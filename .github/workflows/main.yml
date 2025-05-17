@@ -1,7 +1,7 @@
 # Nombre del flujo de trabajo: Deploy Node.js API
 name: Deploy Node.js API
 
-# Disparador: Este flujo se ejecutará automáticamente cada vez que se haga un push a la rama 'crm_api_nodejs_v2'
+# Disparador: Este flujo se ejecutará automáticamente cada vez que se haga un push a la rama 'main'
 on:
   push:
     branches:
@@ -33,8 +33,9 @@ jobs:
             git config --global user.email "carlosroart13@gmail.com"
             git config --global user.name "Robertoart13"
             sudo git stash
-            git pull https://${{ secrets.MY_GITHUB_TOKEN }}@github.com/Robertoart13/PlanillaVladimir.git api_nodejs_v2
+            git pull https://${{ secrets.MY_GITHUB_TOKEN }}@github.com/Robertoart13/PlanillaVladimir.git main
             export NVM_DIR="$HOME/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+            nvm install 18
             nvm use 18
            
