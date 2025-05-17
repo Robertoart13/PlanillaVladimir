@@ -20,15 +20,13 @@ jobs:
 
       # Paso 2: Configurar la conexión SSH y ejecutar comandos en el servidor
       - name: Deploy to server
-        uses: easingthemes/ssh-deploy@main
-        env:
-          SSH_HOST: 147.93.47.10
-          SSH_USERNAME: root
-          SSH_PASSWORD: Acuamic.2025
-          REMOTE_HOST: 147.93.47.10
-          REMOTE_USER: root
-          TARGET: /var/www/PlanillaVladimir
-          SCRIPT_AFTER: |
+        uses: appleboy/ssh-action@master
+        with:
+          host: 147.93.47.10
+          username: root
+          password: Acuamic.2025
+          port: 22
+          script: |
             sudo chown -R $USER:$USER /var/www/PlanillaVladimir
             sudo chmod -R 755 /var/www/PlanillaVladimir
             cd /var/www/PlanillaVladimir
