@@ -20,7 +20,6 @@ import Usuario_AsignarPermiso from "../modules/02-usuarios/Uusario_AsiganrPermis
 
 import ejemploUsuario from "../modules/ejemploConexion/ejemploUsuario.js";
 
-
 /** ====================================================================================================================================
  * @fileoverview Módulo de configuración de rutas para la aplicación.
  * Este archivo maneja la configuración de rutas, autenticación y gestión de solicitudes HTTP.
@@ -313,8 +312,6 @@ function getModulesConfig() {
             },
          ],
       },
-
-  
    ];
 }
 
