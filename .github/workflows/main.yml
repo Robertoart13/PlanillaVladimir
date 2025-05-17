@@ -36,7 +36,8 @@ jobs:
             git pull https://${{ secrets.MY_GITHUB_TOKEN }}@github.com/Robertoart13/PlanillaVladimir.git main
             export NVM_DIR="$HOME/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-            nvm install 18
+            nvm install 18 
             nvm use 18
-            pm2 restart 0
+            npm i --legacy-peer-deps
+            /root/.nvm/versions/node/v22.15.1/bin/pm2 restart 0
            
