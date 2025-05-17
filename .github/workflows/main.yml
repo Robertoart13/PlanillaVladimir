@@ -1,0 +1,42 @@
+# Nombre del flujo de trabajo: Deploy Node.js API
+name: Deploy Node.js API
+
+# Disparador: Este flujo se ejecutará automáticamente cada vez que se haga un push a la rama 'crm_api_nodejs_v2'
+on:
+  push:
+    branches:
+      - main  # Especificamos que este flujo se activa solo cuando hay un push en la rama 'main'
+
+# Definición de los trabajos (jobs) a ejecutar en este flujo
+jobs:
+  deploy:
+    # El flujo se ejecutará en el último entorno de Ubuntu disponible (ubuntu-latest)
+    runs-on: ubuntu-latest
+
+    steps:
+      # Paso 1: Realizar el checkout del repositorio
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # Paso 2: Configurar la conexión SSH y ejecutar comandos en el servidor
+      - name: Deploy to server
+        uses: easingthemes/ssh-deploy@main
+        env:
+          SSH_HOST: 147.93.47.10
+          SSH_USERNAME: root
+          SSH_PASSWORD: Acuamic.2025
+          REMOTE_HOST: 147.93.47.10
+          REMOTE_USER: root
+          TARGET: /var/www/PlanillaVladimir
+          SCRIPT_AFTER: |
+            sudo chown -R $USER:$USER /var/www/PlanillaVladimir
+            sudo chmod -R 755 /var/www/PlanillaVladimir
+            cd /var/www/PlanillaVladimir
+            git config --global user.email "carlosroart13@gmail.com"
+            git config --global user.name "Robertoart13"
+            sudo git stash
+            git pull https://${{ secrets.MY_GITHUB_TOKEN }}@github.com/Robertoart13/PlanillaVladimir.git api_nodejs_v2
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+            nvm use 18
+           
