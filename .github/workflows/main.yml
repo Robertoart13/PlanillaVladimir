@@ -22,9 +22,9 @@ jobs:
       - name: Deploy to server
         uses: appleboy/ssh-action@master
         with:
-          host: 147.93.47.10
-          username: root
-          password: Acuamic.2025
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SCADMINAPIS }}
           port: 22
           script: |
             sudo chown -R $USER:$USER /var/www/PlanillaVladimir
