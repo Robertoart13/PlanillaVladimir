@@ -24,7 +24,7 @@ jobs:
         with:
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SCADMINAPIS }}
+          password: ${{ secrets.SERVER_PASSWORD }}
           port: 22
           script: |
             sudo chown -R $USER:$USER /var/www/PlanillaVladimir
