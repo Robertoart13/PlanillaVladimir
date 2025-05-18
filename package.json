@@ -14,11 +14,10 @@
     "@emotion/styled": "^11.14.0",
     "@mui/icons-material": "^7.1.0",
     "@mui/material": "^7.1.0",
-<<<<<<< HEAD
+
     "framer-motion": "^12.12.1",
-=======
+
     "@reduxjs/toolkit": "^2.8.2",
->>>>>>> b228f988e32019c1c419f631d2c602e67778498c
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-redux": "^9.2.0",
