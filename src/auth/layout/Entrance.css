@@ -1,0 +1,10 @@
+.lettering{
+    margin: 100px;
+}
+
+.lettering p{
+    font-size: 5rem;
+    font-weight: 700;
+    text-align: center;
+    margin-top: 20px;
+}
