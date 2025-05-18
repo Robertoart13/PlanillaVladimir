@@ -432,59 +432,7 @@ export const SideBar = ({ toggleSidebar, isSidebarOpen }) => {
                                                             <span>Change password</span>
                                                         </span>
                                                     </a>
-                                                    <a href="#" className="dropdown-item">
-                                                        <span className="d-flex align-items-center">
-                                                            <i className="ph-duotone ph-envelope-simple"></i>
-                                                            <span>Recently mail</span>
-                                                        </span>
-                                                        <div className="user-group">
-                                                            <img src="../assets/images/user/avatar-1.jpg" alt="user-image" className="avtar" />
-                                                            <img src="../assets/images/user/avatar-2.jpg" alt="user-image" className="avtar" />
-                                                            <img src="../assets/images/user/avatar-3.jpg" alt="user-image" className="avtar" />
-                                                        </div>
-                                                    </a>
-                                                    <a href="#" className="dropdown-item">
-                                                        <span className="d-flex align-items-center">
-                                                            <i className="ph-duotone ph-calendar-blank"></i>
-                                                            <span>Schedule meetings</span>
-                                                        </span>
-                                                    </a>
-                                                </li>
-                                                <li className="list-group-item">
-                                                    <a href="#" className="dropdown-item">
-                                                        <span className="d-flex align-items-center">
-                                                            <i className="ph-duotone ph-heart"></i>
-                                                            <span>Favorite</span>
-                                                        </span>
-                                                    </a>
-                                                    <a href="#" className="dropdown-item">
-                                                        <span className="d-flex align-items-center">
-                                                            <i className="ph-duotone ph-arrow-circle-down"></i>
-                                                            <span>Download</span>
-                                                        </span>
-                                                        <span className="avtar avtar-xs rounded-circle bg-danger text-white">10</span>
-                                                    </a>
-                                                </li>
-                                                <li className="list-group-item">
-                                                    <div className="dropdown-item">
-                                                        <span className="d-flex align-items-center">
-                                                            <i className="ph-duotone ph-globe-hemisphere-west"></i>
-                                                            <span>Languages</span>
-                                                        </span>
-                                                        <span className="flex-shrink-0">
-                                                            <select className="form-select bg-transparent form-select-sm border-0 shadow-none">
-                                                                <option value="1">English</option>
-                                                                <option value="2">Spain</option>
-                                                                <option value="3">Arbic</option>
-                                                            </select>
-                                                        </span>
-                                                    </div>
-                                                    <a href="#" className="dropdown-item">
-                                                        <span className="d-flex align-items-center">
-                                                            <i className="ph-duotone ph-flag"></i>
-                                                            <span>Country</span>
-                                                        </span>
-                                                    </a>
+                                                    
                                                 </li>
                                                 <li className="list-group-item">
                                                     <a href="#" className="dropdown-item">
@@ -493,13 +441,7 @@ export const SideBar = ({ toggleSidebar, isSidebarOpen }) => {
                                                             <span>Edit profile</span>
                                                         </span>
                                                     </a>
-                                                    <a href="#" className="dropdown-item">
-                                                        <span className="d-flex align-items-center">
-                                                            <i className="ph-duotone ph-star text-warning"></i>
-                                                            <span>Upgrade account</span>
-                                                            <span className="badge bg-light-success border border-success ms-2">NEW</span>
-                                                        </span>
-                                                    </a>
+                                                    
                                                     <a href="#" className="dropdown-item">
                                                         <span className="d-flex align-items-center">
                                                             <i className="ph-duotone ph-bell"></i>
@@ -514,12 +456,7 @@ export const SideBar = ({ toggleSidebar, isSidebarOpen }) => {
                                                     </a>
                                                 </li>
                                                 <li className="list-group-item">
-                                                    <a href="#" className="dropdown-item">
-                                                        <span className="d-flex align-items-center">
-                                                            <i className="ph-duotone ph-plus-circle"></i>
-                                                            <span>Add account</span>
-                                                        </span>
-                                                    </a>
+                                                    
                                                     <a href="#" className="dropdown-item">
                                                         <span className="d-flex align-items-center">
                                                             <i className="ph-duotone ph-power"></i>

@@ -58,7 +58,7 @@ export const NavBar = ({ isSidebarOpen }) => {
                      </a>
                   </li>
                </ul>
-               <div className="card nav-action-card bg-brand-color-4">
+               <div className="card nav-action-card bg-gray-400">
                   <div
                      className="card-body"
                      style={{ backgroundImage: "url('../assets/images/layout/nav-card-bg.svg')" }}
