@@ -102,7 +102,7 @@ const obtenerListaCompleta = async (req, res) => {
       // 3. Obtener los datos de la base de datos una vez validados los permisos.
       const resultado = await obtenerTodosDatos(res?.database);
 
-      console.log(resultado);
+      console.log("resultado de api ejemploUsuario", resultado);
 
 
       // 4. Si la consulta es exitosa, se retornan los datos obtenidos en una respuesta exitosa.
