@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import { AuthLayout } from "../layout/AuthLayout";
 /**
  * Custom hook to manage form state
  * Following Single Responsibility Principle (SRP) by extracting form logic
@@ -13,17 +13,17 @@ const useFormState = (initialState) => {
    // Handler for input changes
    const handleInputChange = ({ target }) => {
       const { name, value, type, checked } = target;
-      setState(prevState => ({
+      setState((prevState) => ({
          ...prevState,
-         [name]: type === 'checkbox' ? checked : value
+         [name]: type === "checkbox" ? checked : value,
       }));
    };
 
    // Setter for specific form state properties
    const setFormState = (newState) => {
-      setState(prevState => ({
+      setState((prevState) => ({
          ...prevState,
-         ...newState
+         ...newState,
       }));
    };
 
@@ -38,7 +38,7 @@ const useFormState = (initialState) => {
 const usePasswordVisibility = () => {
    const [visible, setVisible] = useState(false);
 
-   const toggle = () => setVisible(prev => !prev);
+   const toggle = () => setVisible((prev) => !prev);
 
    return [visible, toggle];
 };
@@ -49,7 +49,7 @@ const usePasswordVisibility = () => {
  * @returns {Object} - Methods to interact with localStorage
  */
 const useRememberedEmail = () => {
-   const storageKey = 'rememberedEmail';
+   const storageKey = "rememberedEmail";
 
    // Get email from localStorage
    const getEmail = () => localStorage.getItem(storageKey);
@@ -67,6 +67,16 @@ const useRememberedEmail = () => {
 };
 
 /**
+ * Validates email format using regex
+ * @param {string} email - Email to validate
+ * @returns {boolean} - True if email format is valid
+ */
+const isValidEmail = (email) => {
+   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+   return emailRegex.test(email);
+};
+
+/**
  * LoginPage Component
  * Handles user authentication through a login form with "remember me" functionality
  * @returns {JSX.Element} - LoginPage component
@@ -74,12 +84,16 @@ const useRememberedEmail = () => {
 export const LoginPage = () => {
    // Initialize custom hooks
    const [formState, handleInputChange, setFormState] = useFormState({
-      email: '',
-      password: '',
-      rememberMe: false
+      email: "",
+      password: "",
+      rememberMe: false,
    });
    const [showPassword, togglePasswordVisibility] = usePasswordVisibility();
    const { getEmail, saveEmail } = useRememberedEmail();
+   const [errors, setErrors] = useState({
+      email: "",
+      password: "",
+   });
 
    const { email, password, rememberMe } = formState;
 
@@ -89,18 +103,63 @@ export const LoginPage = () => {
       if (savedEmail) {
          setFormState({
             email: savedEmail,
-            rememberMe: true
+            rememberMe: true,
          });
       }
    }, []);
 
+   // Clear errors when fields are modified
+   useEffect(() => {
+      const newErrors = { ...errors };
+      
+      if (email) {
+         if (isValidEmail(email)) {
+            newErrors.email = "";
+         } else {
+            newErrors.email = "Formato de correo electrónico inválido";
+         }
+      }
+      
+      if (password) {
+         newErrors.password = "";
+      }
+      
+      setErrors(newErrors);
+   }, [email, password]);
+
    /**
     * Handle form submission
-    * Saves email to localStorage if "Remember me" is checked
+    * Validates form fields and saves email to localStorage if "Remember me" is checked
     * @param {Event} e - Form submission event
     */
    const handleSubmit = (e) => {
       e.preventDefault();
+      
+      // Validate form fields
+      const newErrors = {};
+      let isValid = true;
+      
+      // Validate email
+      if (!email) {
+         newErrors.email = "El correo electrónico es obligatorio";
+         isValid = false;
+      } else if (!isValidEmail(email)) {
+         newErrors.email = "Formato de correo electrónico inválido";
+         isValid = false;
+      }
+      
+      // Validate password
+      if (!password) {
+         newErrors.password = "La contraseña es obligatoria";
+         isValid = false;
+      }
+      
+      setErrors(newErrors);
+      
+      // If validation fails, return early
+      if (!isValid) {
+         return;
+      }
 
       // TODO: Add authentication logic here
 
@@ -113,82 +172,93 @@ export const LoginPage = () => {
    };
 
    return (
-      <>
-         <div className="auth-main v1">
-            <div className="auth-wrapper">
-               <div className="auth-form">
-                  <div className="card my-5">
-                     <div className="card-body">
-                        <div className="text-center">
-                           <img src="/img/logo.svg" alt="Logo" className="img-fluid mb-4" width={200} />
-                           <h4 className="f-w-800 mb-1">Iniciar sesión con tu correo electrónico</h4>
-                           <br />
-                        </div>
-                        <form onSubmit={handleSubmit}>
-                           <div className="mb-3">
-                              <input
-                                 type="email"
-                                 className="form-control"
-                                 id="floatingInput"
-                                 placeholder="Correo electrónico"
-                                 name="email"
-                                 value={email}
-                                 onChange={handleInputChange}
-                                 aria-label="Email"
-                              />
-                           </div>
-                           <div className="mb-3 position-relative">
-                              <input
-                                 type={showPassword ? "text" : "password"}
-                                 className="form-control"
-                                 id="floatingInput1"
-                                 placeholder="Contraseña"
-                                 name="password"
-                                 value={password}
-                                 onChange={handleInputChange}
-                                 aria-label="Password"
-                              />
-                              <button
-                                 type="button"
-                                 className="btn position-absolute end-0 top-50 translate-middle-y bg-transparent border-0 text-secondary pe-3"
-                                 onClick={togglePasswordVisibility}
-                                 aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
-                              >
-                                 <i className={`fa ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`} aria-hidden="true"></i>
-                              </button>
-                           </div>
-                           <div className="d-flex mt-1 justify-content-between align-items-center">
-                              <div className="form-check">
-                                 <input
-                                    className="form-check-input input-dark"
-                                    type="checkbox"
-                                    id="customCheckc1"
-                                    name="rememberMe"
-                                    checked={rememberMe}
-                                    onChange={handleInputChange}
-                                    aria-label="Remember me checkbox"
-                                 />
-                                 <label className="form-check-label text-muted" htmlFor="customCheckc1">Recordarme</label>
-                              </div>
-                              <Link to="/auth/recover" className="text-decoration-none">
-                                 <h6 className="f-w-400 mb-0">¿Olvidaste tu contraseña?</h6>
-                              </Link>
-                           </div>
-                           <div className="d-grid mt-4">
-                              <button
-                                 type="submit"
-                                 className="btn btn-dark"
-                                 aria-label="Iniciar sesión"
-                              >
-                                 Iniciar sesión
-                              </button>
-                           </div>
-                        </form>
-                     </div>
-                  </div>
-               </div>
-            </div>
+      <AuthLayout>
+         <div className="text-center">
+            <img
+               src="/img/logo.svg"
+               alt="Logo"
+               className="img-fluid mb-4"
+               width={200}
+            />
+            <h4 className="f-w-800 mb-1">Iniciar sesión con tu correo electrónico</h4>
+            <br />
          </div>
-      </>
+
+         <div className="mb-3">
+            <input
+               type="email"
+               className={`form-control ${errors.email ? 'is-invalid' : ''}`}
+               id="floatingInput"
+               placeholder="Correo electrónico"
+               name="email"
+               value={email}
+               onChange={handleInputChange}
+               aria-label="Email"
+            />
+            {errors.email && (
+               <div className="text-danger mt-1">{errors.email}</div>
+            )}
+         </div>
+         <div className="mb-3 position-relative">
+            <input
+               type={showPassword ? "text" : "password"}
+               className={`form-control ${errors.password ? 'is-invalid' : ''}`}
+               id="floatingInput1"
+               placeholder="Contraseña"
+               name="password"
+               value={password}
+               onChange={handleInputChange}
+               aria-label="Password"
+            />
+            <button
+               type="button"
+               className="btn position-absolute end-0 top-50 translate-middle-y bg-transparent border-0 text-secondary pe-3"
+               onClick={togglePasswordVisibility}
+               aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+            >
+               <i
+                  className={`fa ${showPassword ? "fa-eye-slash" : "fa-eye"}`}
+                  aria-hidden="true"
+               ></i>
+            </button>
+            {errors.password && (
+               <div className="text-danger mt-1">{errors.password}</div>
+            )}
+         </div>
+         <div className="d-flex mt-1 justify-content-between align-items-center">
+            <div className="form-check">
+               <input
+                  className="form-check-input input-dark"
+                  type="checkbox"
+                  id="customCheckc1"
+                  name="rememberMe"
+                  checked={rememberMe}
+                  onChange={handleInputChange}
+                  aria-label="Remember me checkbox"
+               />
+               <label
+                  className="form-check-label text-muted"
+                  htmlFor="customCheckc1"
+               >
+                  Recordarme
+               </label>
+            </div>
+            <Link
+               to="/auth/recover"
+               className="text-decoration-none"
+            >
+               <h6 className="f-w-400 mb-0">¿Olvidaste tu contraseña?</h6>
+            </Link>
+         </div>
+         <div className="d-grid mt-4">
+            <button
+               onClick={handleSubmit}
+               className="btn btn-dark"
+               aria-label="Iniciar sesión"
+            >
+               Iniciar sesión
+            </button>
+         </div>
+      </AuthLayout>
    );
 };

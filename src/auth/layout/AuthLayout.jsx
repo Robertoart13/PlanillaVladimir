@@ -1,0 +1,16 @@
+
+export const AuthLayout = ({ children }) => {
+    return (
+        <div className="auth-main v1">
+            <div className="auth-wrapper">
+                <div className="auth-form">
+                    <div className="card my-5">
+                        <div className="card-body">
+                           {children}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};

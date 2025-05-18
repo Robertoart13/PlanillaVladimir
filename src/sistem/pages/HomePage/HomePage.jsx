@@ -1,7 +1,10 @@
+import { SistemLayout } from "../../layout/SistemLayout"
 
 
 export const HomePage = () => {
   return (
-    <div>HomePage</div>
+    <SistemLayout>
+      <div>HomePage</div>
+    </SistemLayout>
   )
 }
