@@ -1,5 +1,6 @@
 import { LoginPage, RecoverPage } from "../pages";
 import { Routes, Route, Navigate } from "react-router-dom";
+import { LoginPrueba } from "../pages/LoginPrueba";
 
 export const AuthRouter = () => {
    return (
@@ -13,6 +14,11 @@ export const AuthRouter = () => {
          <Route
             path="recover"
             element={<RecoverPage />}
+         />
+         
+         <Route
+            path="ejemplo"
+            element={<LoginPrueba />}
          />
          {/* // ruta por defecto */}
          <Route
