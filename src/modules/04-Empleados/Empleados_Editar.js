@@ -47,7 +47,8 @@ const QUERIES = {
       id_departamento=?,
       id_puesto=?,
       id_supervisor=?,
-      id_empresa=?
+      id_empresa=?,
+      estado_empleado=?
       WHERE id_empleado   = ?;    
    `,
    QUERIES_DELETE_CUENTAS: `
@@ -103,7 +104,9 @@ const editarRegistroBd = async (
          datos.id_puesto,
          datos.id_supervisor,
          datos.id_empresa,
-         datos.id_empleado
+         datos.es_inactivo,
+         datos.id_empleado,
+         
       ],
       database,
    );
@@ -151,6 +154,7 @@ const esEdicionExitosa = (resultado) => {
  * ====================================================================================================================================
  */
 const editarTransaccion = async (req, res) => {
+
    try {
       // 1. Validar los datos iniciales de la solicitud (por ejemplo, formato y autenticidad de los datos).
       const errorValidacion = await realizarValidacionesIniciales(res);
@@ -163,6 +167,7 @@ const editarTransaccion = async (req, res) => {
          res?.transaccion.empleado,     
          res?.database,
       );
+
 
      
       // 4. Verificar si la edición fue exitosa.
