@@ -32,7 +32,7 @@ const getEnvironmentConfig = () => ({
    port: process.env.PORT || 7500,
    corsOrigins: process.env.CORS_ORIGINS
       ? process.env.CORS_ORIGINS.split(",")
-      : ["http://localhost:5173"],
+      : ["http://localhost:5173","https://gt3.acuamic.com"],
 });
 
 /**

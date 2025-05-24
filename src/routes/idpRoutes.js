@@ -5,20 +5,11 @@ import helpers from "../utils/helpers.js";
 
 /**
  * ====================================================================================================================================
- * Importación de módulos relacionados con la autenticación y gestión de usuarios
- * Estos módulos manejan el registro, autenticación, verificación y administración de usuarios
+ * Importación de módulos relacionados con la autenticación
+ * Estos módulos manejan autenticación
  * ====================================================================================================================================
  */
 import usuarioAuth from "../modules/01-usuarioAuth/usuarioAuth.js"; // Autenticación de usuarios
-import Usuarios_Enlistar from "../modules/02-usuarios/Usuario_Enlistar.js"; // Listado de usuarios
-import Usuarios_Editar from "../modules/02-usuarios/Usuarios_Editar.js"; // Edición de usuarios
-import Usuarios_CambioEstado from "../modules/02-usuarios/Usuarios_CambioEstado.js"; // Cambio de estado de usuarios
-import Usuarios_Verificar from "../modules/02-usuarios/Usuarios_Verificar.js"; // Verificación de usuarios
-import Usuario_Reintentos from "../modules/02-usuarios/Usuario_Reintentos.js"; // Gestión de reintentos de acceso
-import Usuario_Crear from "../modules/02-usuarios/Usuario_Crear.js"; // Creación de usuarios
-import Usuario_AsignarPermiso from "../modules/02-usuarios/Uusario_AsiganrPermiso.js"; // Asignación de permisos a usuarios
-
-import ejemploUsuario from "../modules/ejemploConexion/ejemploUsuario.js";
 
 /** ====================================================================================================================================
  * @fileoverview Módulo de configuración de rutas para la aplicación.
@@ -226,89 +217,19 @@ function getModulesConfig() {
          category: "Usuario", // Nombre del módulo
          model: {
             ...usuarioAuth,
-            ...Usuarios_Enlistar,
-            ...Usuarios_Editar,
-            ...Usuarios_CambioEstado,
-            ...Usuarios_Verificar,
-            ...Usuario_Reintentos,
-            ...Usuario_Crear,
-            ...Usuario_AsignarPermiso,
+
          }, // Combinamos ambos modelos
          routes: [
             // Definición de rutas asociadas al módulo
             {
-               path: "usuario/microsoft", // Ruta para autenticación con Microsoft
-               method: "usuarioMicrosoft", // Método que se ejecutará
-               isAuthRequired: false, // No requiere autenticación
-            },
-            {
-               path: "usuario/modificarUsuarioLogin", // Ruta para modificar usuario tras login
-               method: "modificarUsuarioLogin", // Método que se ejecutará
-               isAuthRequired: false, // No requiere autenticación
-            },
-            {
-               path: "usuario/iniciarSesionManualmente", // Ruta para iniciar sesión manualmente
+               path: "usuario/login", // Ruta para autenticación con Microsoft
                method: "iniciarSesionManualmente", // Método que se ejecutará
                isAuthRequired: false, // No requiere autenticación
             },
             {
-               path: "usuario/verificaionDeUsuario", // Ruta para verificar existencia de usuario
-               method: "verificaionDeUsuario", // Método que se ejecutará
+               path: "usuario/verificaionDeUsuario", // Ruta para autenticación con Microsoft
+               method: "verificarEstadoUsuario", // Método que se ejecutará
                isAuthRequired: false, // No requiere autenticación
-            },
-            {
-               path: "usuario/solicitudCambioClave", // Ruta para solicitud de cambio de clave
-               method: "solicitudCambioClave", // Método que se ejecutará
-               isAuthRequired: false, // No requiere autenticación
-            },
-            {
-               path: "usuarios",
-               method: "obtenerListaCompleta",
-               isAuthRequired: true,
-            },
-            {
-               path: "usuarios-editar", // Ruta para editar información de usuario
-               method: "editarTransaccionInfo", // Método que se ejecutará
-               isAuthRequired: true, // Requiere autenticación
-            },
-            {
-               path: "usuarios-crear", // Ruta para cambiar el estado de un usuario
-               method: "crearTransaccionUser", // Método que se ejecutará
-               isAuthRequired: true, // Requiere autenticación
-            },
-            {
-               path: "usuario-verificar", // Ruta para verificar un usuario
-               method: "editarTransaccionVerificar", // Método que se ejecutará
-               isAuthRequired: true, // Requiere autenticación
-            },
-            {
-               path: "usuario-reintentos", // Ruta para reiniciar los intentos de un usuario
-               method: "editarTransaccion", // Método que se ejecutará
-               isAuthRequired: true, // Requiere autenticación
-            },
-            {
-               path: "usuarios-asignarPermiso", // Ruta para asignar un permiso a un usuario
-               method: "asignarPermiso", // Método que se ejecutará
-               isAuthRequired: true, // Requiere autenticación
-            },
-            {
-               path: "usuarios-cambiarEstado", // Ruta para validar un permiso de un usuario
-               method: "editarTransaccionEstado", // Método que se ejecutará
-               isAuthRequired: true, // Requiere autenticación
-            },
-         ],
-      },
-
-      {
-         category: "Ejemplo", // Nombre del módulo
-         model: {
-            ...ejemploUsuario,
-         }, // Combinamos ambos modelos
-         routes: [
-            {
-               path: "ejemplo",
-               method: "obtenerListaCompleta",
-               isAuthRequired: false,
             },
          ],
       },
