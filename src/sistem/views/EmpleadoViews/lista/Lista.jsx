@@ -6,7 +6,7 @@ import { TarjetaRow } from "../../../components/TarjetaRow/TarjetaRow";
 // Importaciones de estilos
 import "../../../styles/customstyles.css";
 import { Button, Stack } from "@mui/material";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
 
 const getTableColumns = () => [
    {
@@ -22,7 +22,7 @@ const getTableColumns = () => [
    },
    {
       data: "cedula_empleado",
-      title: "cedula" ,
+      title: "cedula",
       searchPanes: { show: true },
    },
    {
@@ -55,17 +55,44 @@ const getTableColumns = () => [
    },
 ];
 
-const formatData = (rowData) => ({
-   id_empresa: rowData.id_empresa,
-   nombre_empresa: rowData.nombre_empresa,
-   rnc_empresa: rowData.rnc_empresa,
-   direccion_empresa: rowData.direccion_empresa,
-   telefono_empresa: rowData.telefono_empresa,
-   correo_empresa: rowData.correo_empresa,
-   estado_empresa: rowData.estado_empresa,
-});
+const formatData = (rowData) => (
+   console.log(rowData),
+   {
+      id_empleado: rowData.id_empleado,
+      nombre_empleado: rowData.nombre_empleado,
+      apellidos_empleado: rowData.apellidos_empleado,
+      cedula_empleado: rowData.cedula_empleado,
+      fecha_vencimiento_cedula_empleado: rowData.fecha_vencimiento_cedula_empleado,
+      fecha_nacimiento_empleado: rowData.fecha_nacimiento_empleado,
+      estado_civil_empleado: rowData.estado_civil_empleado,
+      correo_empleado: rowData.correo_empleado,
+      telefono_empleado: rowData.telefono_empleado,
+      direccion_empleado: rowData.direccion_empleado,
+      fecha_ingreso_empleado: rowData.fecha_ingreso_empleado,
+      fecha_salida_empleado: rowData.fecha_salida_empleado,
+      jornada_laboral_empleado: rowData.jornada_laboral_empleado,
+      horario_empleado: rowData.horario_empleado,
+      salario_empleado: rowData.salario_empleado,
+      id_nacionalidad: rowData.id_nacionalidad,
+      id_tipo_contrato: rowData.id_tipo_contrato,
+      id_departamento: rowData.id_departamento,
+      id_puesto: rowData.id_puesto,
+      id_supervisor: rowData.id_supervisor,
+      id_empresa: rowData.id_empresa,
+      estado_empleado: rowData.estado_empleado,
+      fecha_creacion_empleado: rowData.fecha_creacion_empleado,
+      fecha_modificacion_empleado: rowData.fecha_modificacion_empleado,
+      nombre_empresa: rowData.nombre_empresa,
+      nombre_puesto: rowData.nombre_puesto,
+      nombre_departamento: rowData.nombre_departamento,
+      nombre_tipo_contrato: rowData.nombre_tipo_contrato,
+      nombre_nacionalidad: rowData.nombre_nacionalidad,
+      nombre_supervisor: rowData.nombre_supervisor,
+      cuentas_iban: rowData.cuentas_iban,
+   }
+);
 
-export const EmpleadoLista = () => { 
+export const EmpleadoLista = () => {
    // Obtener el usuario autenticado desde Redux.
    const { user } = useSelector((state) => state.auth);
 
@@ -93,7 +120,7 @@ export const EmpleadoLista = () => {
     */
    const tableConfig = useMemo(
       () => ({
-         urlEndpoint: "empleados", // API endpoint para obtener los datos. 
+         urlEndpoint: "empleados", // API endpoint para obtener los datos.
          requestType: "POST", // Método HTTP para la solicitud.
          transaccion: {
             user: {
@@ -107,7 +134,7 @@ export const EmpleadoLista = () => {
             },
          },
          columnsLayout: "columns-2", // Diseño de columnas en la tabla.
-         columnsFilter: [0, 1, 2, 3, 4,5,6], // Índices de columnas que se pueden filtrar.
+         columnsFilter: [0, 1, 2, 3, 4, 5, 6], // Índices de columnas que se pueden filtrar.
          columns: getTableColumns(), // Definición de columnas.
       }),
       [user?.id_usuario], // Se actualiza si cambia el usuario autenticado.
@@ -141,77 +168,72 @@ export const EmpleadoLista = () => {
    };
 
    const handleRowClick = (rowData) => {
-         // Store the selected row data in local storage
-         localStorage.setItem('selectedEmpleado', JSON.stringify(rowData));
-         // Navigate to the edit page
-         navigate('/empleados/editar'); 
+      // Store the selected row data in local storage
+      localStorage.setItem("selectedEmpleado", JSON.stringify(rowData));
+      // Navigate to the edit page
+      navigate("/empleados/editar");
    };
 
    /**
     * Abre el diálogo para crear una nueva cuenta contable.
     */
    const crear = () => {
-      navigate('/empleados/crear'); 
+      navigate("/empleados/crear");
    };
 
-
    return (
-    <>
-       <TarjetaRow
-          texto="Listado de Empleados"
-          subtitulo="Tabla que muestra todos los empleados disponibles."
-       >
-          {/* Muestra mensajes de error cuando ocurren */}
-          {error && (
-             <ErrorMessage
-                error={error}
-                message={message}
-             />
-          )}
+      <>
+         <TarjetaRow
+            texto="Listado de Empleados"
+            subtitulo="Tabla que muestra todos los empleados disponibles."
+         >
+            {/* Muestra mensajes de error cuando ocurren */}
+            {error && (
+               <ErrorMessage
+                  error={error}
+                  message={message}
+               />
+            )}
 
-          {/* Botones para crear */}
-          <Stack
-             direction="row"
-             spacing={2}
-             sx={{
-                mb: 2,
-                width: "15%",
-             }}
-          >
-             <Button
-                variant="contained"
-                onClick={crear}
-                className="user-detail-dialog-buttonSecondary"
-             >
-                <i
-                   className="ph-duotone ph-certificate"
-                   style={{ paddingRight: "5px" }}
-                ></i>
-                Crear Empleado
-             </Button>
-          </Stack>
+            {/* Botones para crear */}
+            <Stack
+               direction="row"
+               spacing={2}
+               sx={{
+                  mb: 2,
+                  width: "15%",
+               }}
+            >
+               <Button
+                  variant="contained"
+                  onClick={crear}
+                  className="user-detail-dialog-buttonSecondary"
+               >
+                  <i
+                     className="ph-duotone ph-certificate"
+                     style={{ paddingRight: "5px" }}
+                  ></i>
+                  Crear Empleado
+               </Button>
+            </Stack>
 
-          {/* Contenedor de la tabla */}
-          <div className="table-responsive">
-             <div className="datatable-wrapper datatable-loading no-footer searchable fixed-columns">
-                <div className="datatable-container">
-                   <table
-                      ref={tableRef}
-                      className="table table-hover datatable-table"
-                   >
-                      <thead></thead>
-                      <tbody></tbody>
-                   </table>
-                </div>
-             </div>
-          </div>
-       </TarjetaRow>
+            {/* Contenedor de la tabla */}
+            <div className="table-responsive">
+               <div className="datatable-wrapper datatable-loading no-footer searchable fixed-columns">
+                  <div className="datatable-container">
+                     <table
+                        ref={tableRef}
+                        className="table table-hover datatable-table"
+                     >
+                        <thead></thead>
+                        <tbody></tbody>
+                     </table>
+                  </div>
+               </div>
+            </div>
+         </TarjetaRow>
 
-       {selected && (
-           handleRowClick(selected)
-         )}
-   
-   
-    </>
- );
+         {selected && handleRowClick(selected)}
+      </>
+   );
 };

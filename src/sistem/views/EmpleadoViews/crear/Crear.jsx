@@ -3,11 +3,11 @@ import { TarjetaRow } from "../../../components/TarjetaRow/TarjetaRow";
 import { useMemo, useRef, useState, useEffect } from "react";
 import { TextField, Select, MenuItem, Button, Grid } from "@mui/material";
 import Swal from "sweetalert2";
-import { Empresa_Crear_Thunks } from "../../../../store/Empresa/Empresa_Crear_Thunks";
+
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { SelectOpcion_Thunks } from "../../../../store/SelectOpcion/SelectOpcion_Thunks";
-
+import { Empleado_Crear_Thunks } from "../../../../store/Empleado/Empleado_Crear_Thunks";
 
 export const CrearEmpleado = () => {
    const [error, setError] = useState(false);
@@ -16,27 +16,28 @@ export const CrearEmpleado = () => {
    const dispatch = useDispatch();
    const navigate = useNavigate();
    const [formData, setFormData] = useState({
-      id_empleado: "",
-      nombre_empleado: "",
-      apellidos_empleado: "",
-      cedula_empleado: "",
-      fecha_vencimiento_cedula_empleado: "",
-      fecha_nacimiento_empleado: "",
-      estado_civil_empleado: "",
-      correo_empleado: "",
-      telefono_empleado: "",
-      direccion_empleado: "",
-      fecha_ingreso_empleado: "",
+      id_empleado: "12345",
+      nombre_empleado: "Juan",
+      apellidos_empleado: "Pérez",
+      cedula_empleado: "123456789",
+      fecha_vencimiento_cedula_empleado: "2025-12-31",
+      fecha_nacimiento_empleado: "1990-01-01",
+      estado_civil_empleado: "soltero",
+      correo_empleado: "juan.perez@example.com",
+      telefono_empleado: "555-1234",
+      direccion_empleado: "123 Main St",
+      fecha_ingreso_empleado: "2023-01-01",
       fecha_salida_empleado: "",
-      jornada_laboral_empleado: "",
-      horario_empleado: "",
-      salario_empleado: "",
+      jornada_laboral_empleado: "Full-time",
+      horario_empleado: "9am - 5pm",
+      salario_empleado: "50000",
       id_nacionalidad: "",
       id_tipo_contrato: "",
       id_departamento: "",
       id_puesto: "",
       id_supervisor: "",
       id_empresa: "",
+      cuentas_bancarias: [""],
    });
    const [cuentasBancarias, setCuentasBancarias] = useState([""]);
    const [departamentos, setDepartamentos] = useState([]);
@@ -77,7 +78,7 @@ export const CrearEmpleado = () => {
    const handleSubmit = (e) => {
       e.preventDefault();
       setSubmitted(true);
-      if (Object.values(formData).some((field) => field === "")) {
+      if (Object.values(formData).some((field) => field === "" || field === "default")) {
          setError(true);
          setMessage("Todos los campos deben estar llenos.");
          return;
@@ -108,7 +109,7 @@ export const CrearEmpleado = () => {
                   Swal.showLoading();
                },
             });
-            const respuesta = await dispatch(Empresa_Crear_Thunks(formData));
+            const respuesta = await dispatch(Empleado_Crear_Thunks({ ...formData, cuentas_bancarias: cuentasBancarias }));
             if (respuesta.success) {
                Swal.fire("¡Creado!", "El empleado ha sido creado exitosamente.", "success").then(
                   () => {
@@ -120,7 +121,7 @@ export const CrearEmpleado = () => {
                         cedula_empleado: "",
                         fecha_vencimiento_cedula_empleado: "",
                         fecha_nacimiento_empleado: "",
-                        estado_civil_empleado: "",
+                        estado_civil_empleado: "soltero",
                         correo_empleado: "",
                         telefono_empleado: "",
                         direccion_empleado: "",
@@ -135,6 +136,7 @@ export const CrearEmpleado = () => {
                         id_puesto: "",
                         id_supervisor: "",
                         id_empresa: "",
+                        cuentas_bancarias: [""],
                      });
                   },
                );
@@ -190,52 +192,138 @@ export const CrearEmpleado = () => {
             <div className="row">
                <div className="col-md-6">
                   <div className="mb-3">
-                     <label className="form-label" htmlFor="nombre_empleado">Nombre del empleado</label>
-                     <input type="text" style={getInputStyle("nombre_empleado")} className="form-control" id="nombre_empleado" name="nombre_empleado" value={formData.nombre_empleado} onChange={handleChange} placeholder="Enter employee name" />
+                     <label
+                        className="form-label"
+                        htmlFor="nombre_empleado"
+                     >
+                        Nombre del empleado
+                     </label>
+                     <input
+                        type="text"
+                        style={getInputStyle("nombre_empleado")}
+                        className="form-control"
+                        id="nombre_empleado"
+                        name="nombre_empleado"
+                        value={formData.nombre_empleado}
+                        onChange={handleChange}
+                        placeholder="Enter employee name"
+                     />
                   </div>
                </div>
                <div className="col-md-6">
                   <div className="mb-3">
-                     <label className="form-label" htmlFor="apellidos_empleado">Apellidos del empleado</label>
-                     <input type="text" style={getInputStyle("apellidos_empleado")} className="form-control" id="apellidos_empleado" name="apellidos_empleado" value={formData.apellidos_empleado} onChange={handleChange} placeholder="Enter employee last name" />
+                     <label
+                        className="form-label"
+                        htmlFor="apellidos_empleado"
+                     >
+                        Apellidos del empleado
+                     </label>
+                     <input
+                        type="text"
+                        style={getInputStyle("apellidos_empleado")}
+                        className="form-control"
+                        id="apellidos_empleado"
+                        name="apellidos_empleado"
+                        value={formData.apellidos_empleado}
+                        onChange={handleChange}
+                        placeholder="Enter employee last name"
+                     />
                   </div>
                </div>
             </div>
             <div className="row">
                <div className="col-md-6">
                   <div className="mb-3">
-                     <label className="form-label" htmlFor="correo_empleado">Correo del empleado</label>
-                     <input type="email" style={getInputStyle("correo_empleado")} className="form-control" id="correo_empleado" name="correo_empleado" value={formData.correo_empleado} onChange={handleChange} placeholder="Enter employee email" />
+                     <label
+                        className="form-label"
+                        htmlFor="correo_empleado"
+                     >
+                        Correo del empleado
+                     </label>
+                     <input
+                        type="email"
+                        style={getInputStyle("correo_empleado")}
+                        className="form-control"
+                        id="correo_empleado"
+                        name="correo_empleado"
+                        value={formData.correo_empleado}
+                        onChange={handleChange}
+                        placeholder="Enter employee email"
+                     />
                   </div>
                </div>
                <div className="col-md-6">
                   <div className="mb-3">
-                     <label className="form-label" htmlFor="telefono_empleado">Teléfono del empleado</label>
-                     <input type="text" style={getInputStyle("telefono_empleado")} className="form-control" id="telefono_empleado" name="telefono_empleado" value={formData.telefono_empleado} onChange={handleChange} placeholder="Enter employee phone" />
+                     <label
+                        className="form-label"
+                        htmlFor="telefono_empleado"
+                     >
+                        Teléfono del empleado
+                     </label>
+                     <input
+                        type="text"
+                        style={getInputStyle("telefono_empleado")}
+                        className="form-control"
+                        id="telefono_empleado"
+                        name="telefono_empleado"
+                        value={formData.telefono_empleado}
+                        onChange={handleChange}
+                        placeholder="Enter employee phone"
+                     />
                   </div>
                </div>
             </div>
             <div className="row">
                <div className="col-md-6">
                   <div className="mb-3">
-                     <label className="form-label" htmlFor="direccion_empleado">Dirección del empleado</label>
-                     <textarea style={getInputStyle("direccion_empleado")} className="form-control" id="direccion_empleado" name="direccion_empleado" value={formData.direccion_empleado} onChange={handleChange} rows="3" placeholder="Enter employee address"></textarea>
+                     <label
+                        className="form-label"
+                        htmlFor="direccion_empleado"
+                     >
+                        Dirección del empleado
+                     </label>
+                     <textarea
+                        style={getInputStyle("direccion_empleado")}
+                        className="form-control"
+                        id="direccion_empleado"
+                        name="direccion_empleado"
+                        value={formData.direccion_empleado}
+                        onChange={handleChange}
+                        rows="3"
+                        placeholder="Enter employee address"
+                     ></textarea>
                   </div>
                </div>
                <div className="col-md-6">
                   <div className="mb-3">
-                     <label className="form-label" htmlFor="id_nacionalidad">Nacionalidad</label>
-                     <select style={getInputStyle("id_nacionalidad")} className="form-control" id="id_nacionalidad" name="id_nacionalidad" value={formData.id_nacionalidad} onChange={handleChange}>
+                     <label
+                        className="form-label"
+                        htmlFor="id_nacionalidad"
+                     >
+                        Nacionalidad
+                     </label>
+                     <select
+                        style={getInputStyle("id_nacionalidad")}
+                        className="form-control"
+                        id="id_nacionalidad"
+                        name="id_nacionalidad"
+                        value={formData.id_nacionalidad}
+                        onChange={handleChange}
+                     >
+                        <option value="">Seleccione una opción</option>
                         {loading ? (
                            <option>Cargando...</option>
+                        ) : Array.isArray(nacionalidades) ? (
+                           nacionalidades.map((nacionalidad) => (
+                              <option
+                                 key={nacionalidad.id_nacionalidad}
+                                 value={nacionalidad.id_nacionalidad}
+                              >
+                                 {nacionalidad.nombre_nacionalidad}
+                              </option>
+                           ))
                         ) : (
-                           Array.isArray(nacionalidades) ? (
-                              nacionalidades.map((nacionalidad) => (
-                                 <option key={nacionalidad.id_nacionalidad} value={nacionalidad.id_nacionalidad}>{nacionalidad.nombre_nacionalidad}</option>
-                              ))
-                           ) : (
-                              <option>Error loading options</option>
-                           )
+                           <option>Error loading options</option>
                         )}
                      </select>
                   </div>
@@ -385,16 +473,20 @@ export const CrearEmpleado = () => {
                         value={formData.id_tipo_contrato}
                         onChange={handleChange}
                      >
+                        <option value="">Seleccione una opción</option>
                         {loading ? (
                            <option>Cargando...</option>
+                        ) : Array.isArray(tiposContrato) ? (
+                           tiposContrato.map((tipo) => (
+                              <option
+                                 key={tipo.id_tipo_contrato}
+                                 value={tipo.id_tipo_contrato}
+                              >
+                                 {tipo.nombre_tipo_contrato}
+                              </option>
+                           ))
                         ) : (
-                           Array.isArray(tiposContrato) ? (
-                              tiposContrato.map((tipo) => (
-                                 <option key={tipo.id_tipo_contrato} value={tipo.id_tipo_contrato}>{tipo.nombre_tipo_contrato}</option>
-                              ))
-                           ) : (
-                              <option>Error loading options</option>
-                           )
+                           <option>Error loading options</option>
                         )}
                      </select>
                   </div>
@@ -415,16 +507,20 @@ export const CrearEmpleado = () => {
                         value={formData.id_departamento}
                         onChange={handleChange}
                      >
+                        <option value="">Seleccione una opción</option>
                         {loading ? (
                            <option>Cargando...</option>
+                        ) : Array.isArray(departamentos) ? (
+                           departamentos.map((departamento) => (
+                              <option
+                                 key={departamento.id_departamento}
+                                 value={departamento.id_departamento}
+                              >
+                                 {departamento.nombre_departamento}
+                              </option>
+                           ))
                         ) : (
-                           Array.isArray(departamentos) ? (
-                              departamentos.map((departamento) => (
-                                 <option key={departamento.id_departamento} value={departamento.id_departamento}>{departamento.nombre_departamento}</option>
-                              ))
-                           ) : (
-                              <option>Error loading options</option>
-                           )
+                           <option>Error loading options</option>
                         )}
                      </select>
                   </div>
@@ -447,16 +543,20 @@ export const CrearEmpleado = () => {
                         value={formData.id_puesto}
                         onChange={handleChange}
                      >
+                        <option value="">Seleccione una opción</option>
                         {loading ? (
                            <option>Cargando...</option>
+                        ) : Array.isArray(puestos) ? (
+                           puestos.map((puesto) => (
+                              <option
+                                 key={puesto.id_puesto}
+                                 value={puesto.id_puesto}
+                              >
+                                 {puesto.nombre_puesto}
+                              </option>
+                           ))
                         ) : (
-                           Array.isArray(puestos) ? (
-                              puestos.map((puesto) => (
-                                 <option key={puesto.id_puesto} value={puesto.id_puesto}>{puesto.nombre_puesto}</option>
-                              ))
-                           ) : (
-                              <option>Error loading options</option>
-                           )
+                           <option>Error loading options</option>
                         )}
                      </select>
                   </div>
@@ -477,16 +577,20 @@ export const CrearEmpleado = () => {
                         value={formData.id_supervisor}
                         onChange={handleChange}
                      >
+                        <option value="">Seleccione una opción</option>
                         {loading ? (
                            <option>Cargando...</option>
+                        ) : Array.isArray(supervisores) ? (
+                           supervisores.map((supervisor) => (
+                              <option
+                                 key={supervisor.id_usuario}
+                                 value={supervisor.id_usuario}
+                              >
+                                 {supervisor.nombre_usuario}
+                              </option>
+                           ))
                         ) : (
-                           Array.isArray(supervisores) ? (
-                              supervisores.map((supervisor) => (
-                                 <option key={supervisor.id_usuario} value={supervisor.id_usuario}>{supervisor.nombre_usuario}</option>
-                              ))
-                           ) : (
-                              <option>Error loading options</option>
-                           )
+                           <option>Error loading options</option>
                         )}
                      </select>
                   </div>
@@ -509,16 +613,20 @@ export const CrearEmpleado = () => {
                         value={formData.id_empresa}
                         onChange={handleChange}
                      >
+                        <option value="">Seleccione una opción</option>
                         {loading ? (
                            <option>Cargando...</option>
+                        ) : Array.isArray(empresas) ? (
+                           empresas.map((empresa) => (
+                              <option
+                                 key={empresa.id_empresa}
+                                 value={empresa.id_empresa}
+                              >
+                                 {empresa.nombre_empresa}
+                              </option>
+                           ))
                         ) : (
-                           Array.isArray(empresas) ? (
-                              empresas.map((empresa) => (
-                                 <option key={empresa.id_empresa} value={empresa.id_empresa}>{empresa.nombre_empresa}</option>
-                              ))
-                           ) : (
-                              <option>Error loading options</option>
-                           )
+                           <option>Error loading options</option>
                         )}
                      </select>
                   </div>
@@ -589,12 +697,33 @@ export const CrearEmpleado = () => {
                   <div className="mb-3">
                      <label className="form-label">Cuentas Bancarias</label>
                      {cuentasBancarias.map((cuenta, index) => (
-                        <div key={index} className="d-flex align-items-center mb-2">
-                           <input type="text" className="form-control" value={cuenta} onChange={(e) => handleCuentaChange(index, e.target.value)} placeholder="Enter bank account" />
-                           <button type="button" className="btn btn-danger ms-2" onClick={() => handleRemoveCuenta(index)}>-</button>
+                        <div
+                           key={index}
+                           className="d-flex align-items-center mb-2"
+                        >
+                           <input
+                              type="text"
+                              className="form-control"
+                              value={cuenta}
+                              onChange={(e) => handleCuentaChange(index, e.target.value)}
+                              placeholder="Enter bank account"
+                           />
+                           <button
+                              type="button"
+                              className="btn btn-danger ms-2"
+                              onClick={() => handleRemoveCuenta(index)}
+                           >
+                              -
+                           </button>
                         </div>
                      ))}
-                     <button type="button" className="btn btn-success" onClick={handleAddCuenta}>+</button>
+                     <button
+                        type="button"
+                        className="btn btn-success"
+                        onClick={handleAddCuenta}
+                     >
+                        +
+                     </button>
                   </div>
                </div>
             </div>

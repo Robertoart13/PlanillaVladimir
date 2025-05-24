@@ -1,33 +1,134 @@
 import { ErrorMessage } from "../../../components/ErrorMessage/ErrorMessage";
 import { TarjetaRow } from "../../../components/TarjetaRow/TarjetaRow";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState, useEffect } from "react";
 import { TextField, Select, MenuItem, Button, Grid } from "@mui/material";
 import Swal from "sweetalert2";
-import { Empresa_Editar_Thunks } from "../../../../store/Empresa/Empresa_Editar_Thunks";
+
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
-export const EditarEmpleado = () => { 
+import { SelectOpcion_Thunks } from "../../../../store/SelectOpcion/SelectOpcion_Thunks";
+import { Empleado_Editar_Thunks } from "../../../../store/Empleado/Empleado_Editar_Thunks";
+
+export const EditarEmpleado = () => {
    const [error, setError] = useState(false);
    const [message, setMessage] = useState("");
    const [submitted, setSubmitted] = useState(false); // Nuevo estado
    const dispatch = useDispatch();
    const navigate = useNavigate();
    const [formData, setFormData] = useState({
+      id_empleado: "12345",
+      nombre_empleado: "Juan",
+      apellidos_empleado: "Pérez",
+      cedula_empleado: "123456789",
+      fecha_vencimiento_cedula_empleado: "2025-12-31",
+      fecha_nacimiento_empleado: "1990-01-01",
+      estado_civil_empleado: "soltero",
+      correo_empleado: "juan.perez@example.com",
+      telefono_empleado: "555-1234",
+      direccion_empleado: "123 Main St",
+      fecha_ingreso_empleado: "2023-01-01",
+      fecha_salida_empleado: "",
+      jornada_laboral_empleado: "Full-time",
+      horario_empleado: "9am - 5pm",
+      salario_empleado: "50000",
+      id_nacionalidad: "",
+      id_tipo_contrato: "",
+      id_departamento: "",
+      id_puesto: "",
+      id_supervisor: "",
+      id_empresa: "",
+      cuentas_bancarias: [""],
+      estado_empleado: "",
+      fecha_creacion_empleado: "",
+      fecha_modificacion_empleado: "",
+      nombre_departamento: "",
       nombre_empresa: "",
-      rnc_empresa: "",
-      direccion_empresa: "",
-      telefono_empresa: "",
-      correo_empresa: "",
-      estado_empresa: 1,
+      nombre_nacionalidad: "",
+      nombre_puesto: "",
+      nombre_supervisor: "",
+      nombre_tipo_contrato: "",
    });
-
-   const storedData = localStorage.getItem("selectedEmpresa");
+   const [cuentasBancarias, setCuentasBancarias] = useState([""]);
+   const [departamentos, setDepartamentos] = useState([]);
+   const [nacionalidades, setNacionalidades] = useState([]);
+   const [empresas, setEmpresas] = useState([]);
+   const [puestos, setPuestos] = useState([]);
+   const [tiposContrato, setTiposContrato] = useState([]);
+   const [supervisores, setSupervisores] = useState([]);
+   const [loading, setLoading] = useState(true);
+   const [optionsLoaded, setOptionsLoaded] = useState(false); // New state to track loading of select options
 
    useEffect(() => {
-      if (storedData) {
+      const fetchSelectOptions = async () => {
+         setLoading(true);
+         const departamentosData = await dispatch(SelectOpcion_Thunks("departamentos/select"));
+         const nacionalidadesData = await dispatch(SelectOpcion_Thunks("nacionalidades/select"));
+         const empresasData = await dispatch(SelectOpcion_Thunks("empresas/select"));
+         const puestosData = await dispatch(SelectOpcion_Thunks("puestos/select"));
+         const tiposContratoData = await dispatch(SelectOpcion_Thunks("tipos_contrato/select"));
+         const supervisoresData = await dispatch(SelectOpcion_Thunks("supervisores/select"));
+         if (departamentosData.success) setDepartamentos(departamentosData.data.array || []);
+         if (nacionalidadesData.success) setNacionalidades(nacionalidadesData.data.array || []);
+         if (empresasData.success) setEmpresas(empresasData.data.array || []);
+         if (puestosData.success) setPuestos(puestosData.data.array || []);
+         if (tiposContratoData.success) setTiposContrato(tiposContratoData.data.array || []);
+         if (supervisoresData.success) setSupervisores(supervisoresData.data.array || []);
+
+         setLoading(false);
+         setOptionsLoaded(true); // Mark options as loaded
+      };
+
+      fetchSelectOptions();
+   }, [dispatch]);
+
+   const storedData = localStorage.getItem("selectedEmpleado");
+
+   useEffect(() => {
+      const formatDate = (dateString) => {
+         const date = new Date(dateString);
+         const year = date.getFullYear();
+         const month = String(date.getMonth() + 1).padStart(2, '0');
+         const day = String(date.getDate()).padStart(2, '0');
+         return `${year}-${month}-${day}`;
+      };
+
+      if (optionsLoaded && storedData) { // Check if options are loaded
          const existingData = JSON.parse(storedData);
-         setFormData(existingData);
-      } else {
+         setFormData({
+            id_empleado: existingData.id_empleado,
+            nombre_empleado: existingData.nombre_empleado,
+            apellidos_empleado: existingData.apellidos_empleado,
+            cedula_empleado: existingData.cedula_empleado,
+            fecha_vencimiento_cedula_empleado: formatDate(existingData.fecha_vencimiento_cedula_empleado),
+            fecha_nacimiento_empleado: formatDate(existingData.fecha_nacimiento_empleado),
+            estado_civil_empleado: existingData.estado_civil_empleado,
+            correo_empleado: existingData.correo_empleado,
+            telefono_empleado: existingData.telefono_empleado,
+            direccion_empleado: existingData.direccion_empleado,
+            fecha_ingreso_empleado: formatDate(existingData.fecha_ingreso_empleado),
+            fecha_salida_empleado: formatDate(existingData.fecha_salida_empleado),
+            jornada_laboral_empleado: existingData.jornada_laboral_empleado,
+            horario_empleado: existingData.horario_empleado,
+            salario_empleado: existingData.salario_empleado,
+            id_nacionalidad: existingData.id_nacionalidad,
+            id_tipo_contrato: existingData.id_tipo_contrato,
+            id_departamento: existingData.id_departamento,
+            id_puesto: existingData.id_puesto,
+            id_supervisor: existingData.id_supervisor,
+            id_empresa: existingData.id_empresa,
+            cuentas_bancarias: existingData.cuentas_iban.split(",").map(cuenta => cuenta.trim()),
+            estado_empleado: existingData.estado_empleado,
+            fecha_creacion_empleado: formatDate(existingData.fecha_creacion_empleado),
+            fecha_modificacion_empleado: formatDate(existingData.fecha_modificacion_empleado),
+            nombre_departamento: existingData.nombre_departamento,
+            nombre_empresa: existingData.nombre_empresa,
+            nombre_nacionalidad: existingData.nombre_nacionalidad,
+            nombre_puesto: existingData.nombre_puesto,
+            nombre_supervisor: existingData.nombre_supervisor,
+            nombre_tipo_contrato: existingData.nombre_tipo_contrato,
+         });
+         setCuentasBancarias(existingData.cuentas_iban.split(",").map(cuenta => cuenta.trim()));
+      } else if (!storedData) {
          setError(true);
          setFormData({
             nombre_clase: "",
@@ -43,7 +144,7 @@ export const EditarEmpleado = () => {
             navigate("/empresas/lista");
          }, 3000);
       }
-   }, [storedData, navigate]);
+   }, [optionsLoaded, storedData, navigate]);
 
    const handleChange = (e) => {
       const { name, value } = e.target;
@@ -53,13 +154,13 @@ export const EditarEmpleado = () => {
    const handleSubmit = (e) => {
       e.preventDefault();
       setSubmitted(true);
-      if (Object.values(formData).some((field) => field === "")) {
+      if (Object.values(formData).some((field) => field === "" || field === "default")) {
          setError(true);
          setMessage("Todos los campos deben estar llenos.");
          return;
       }
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(formData.correo_empresa)) {
+      if (!emailRegex.test(formData.correo_empleado)) {
          setError(true);
          setMessage("Por favor, ingrese un correo electrónico válido.");
          return;
@@ -69,33 +170,58 @@ export const EditarEmpleado = () => {
       setMessage("");
       Swal.fire({
          title: "¿Está seguro?",
-         text: "Confirma que desea editar la empresa.", 
+         text: "Confirma que desea Editar un nuevo empleado.",
          icon: "warning",
          showCancelButton: true,
-         confirmButtonText: "Sí, editar",
+         confirmButtonText: "Sí, Editar",
          cancelButtonText: "Cancelar",
       }).then(async (result) => {
          if (result.isConfirmed) {
             Swal.fire({
-               title: "Creando empresa",
+               title: "Creando empleado",
                text: "Por favor espere...",
                allowOutsideClick: false,
                didOpen: () => {
                   Swal.showLoading();
                },
             });
-            const respuesta = await dispatch(Empresa_Editar_Thunks(formData));
+            const respuesta = await dispatch(Empleado_Editar_Thunks({ ...formData, cuentas_bancarias: cuentasBancarias }));
             if (respuesta.success) {
-               Swal.fire("¡Editado!", "La empresa ha sido editada exitosamente.", "success").then(
+               Swal.fire("¡Creado!", "El empleado ha sido creado exitosamente.", "success").then(
                   () => {
-                     navigate("/empresas/lista");
+                     navigate("/empleados/lista");
 
                      setFormData({
-                        nombre_clase: "",
-                        descripcion_clase: "",
-                        codigo_clase: "",
-                        id_externos_clase: "",
-                        es_inactivo: 1,
+                        nombre_empleado: "",
+                        apellidos_empleado: "",
+                        cedula_empleado: "",
+                        fecha_vencimiento_cedula_empleado: "",
+                        fecha_nacimiento_empleado: "",
+                        estado_civil_empleado: "soltero",
+                        correo_empleado: "",
+                        telefono_empleado: "",
+                        direccion_empleado: "",
+                        fecha_ingreso_empleado: "",
+                        fecha_salida_empleado: "",
+                        jornada_laboral_empleado: "",
+                        horario_empleado: "",
+                        salario_empleado: "",
+                        id_nacionalidad: "",
+                        id_tipo_contrato: "",
+                        id_departamento: "",
+                        id_puesto: "",
+                        id_supervisor: "",
+                        id_empresa: "",
+                        cuentas_bancarias: [""],
+                        estado_empleado: "",
+                        fecha_creacion_empleado: "",
+                        fecha_modificacion_empleado: "",
+                        nombre_departamento: "",
+                        nombre_empresa: "",
+                        nombre_nacionalidad: "",
+                        nombre_puesto: "",
+                        nombre_supervisor: "",
+                        nombre_tipo_contrato: "",
                      });
                   },
                );
@@ -111,19 +237,34 @@ export const EditarEmpleado = () => {
       if (submitted && formData[field] === "") {
          return { border: "1px solid red" };
       }
-      if (field === "correo_empresa" && submitted) {
+      if (field === "correo_empleado" && submitted) {
          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-         if (!emailRegex.test(formData.correo_empresa)) {
+         if (!emailRegex.test(formData.correo_empleado)) {
             return { border: "1px solid red" };
          }
       }
       return { border: "1px solid #ced4da" };
    };
 
+   const handleAddCuenta = () => {
+      setCuentasBancarias([...cuentasBancarias, ""]);
+   };
+
+   const handleRemoveCuenta = (index) => {
+      const newCuentas = cuentasBancarias.filter((_, i) => i !== index);
+      setCuentasBancarias(newCuentas);
+   };
+
+   const handleCuentaChange = (index, value) => {
+      const newCuentas = [...cuentasBancarias];
+      newCuentas[index] = value;
+      setCuentasBancarias(newCuentas);
+   };
+
    return (
       <TarjetaRow
-         texto="Editar una empresa"
-         subtitulo="Vista esta pagina para editar una empresa"
+         texto="Editar un nuevo empleado"
+         subtitulo="Vista esta pagina para Editar un nuevo empleado"
       >
          {error && (
             <ErrorMessage
@@ -138,87 +279,536 @@ export const EditarEmpleado = () => {
                   <div className="mb-3">
                      <label
                         className="form-label"
-                        htmlFor="nombre_empresa"
+                        htmlFor="nombre_empleado"
                      >
-                        Nombre de la empresa
+                        Nombre del empleado
                      </label>
                      <input
                         type="text"
-                        style={getInputStyle("nombre_empresa")}
+                        style={getInputStyle("nombre_empleado")}
                         className="form-control"
-                        id="nombre_empresa"
-                        name="nombre_empresa"
-                        value={formData.nombre_empresa}
+                        id="nombre_empleado"
+                        name="nombre_empleado"
+                        value={formData.nombre_empleado}
                         onChange={handleChange}
-                        placeholder="Enter company name"
-                     />
-                  </div>
-                  <div className="mb-3">
-                     <label
-                        className="form-label"
-                        htmlFor="rnc_empresa"
-                     >
-                        RNC de la empresa
-                     </label>
-                     <input
-                        type="text"
-                        style={getInputStyle("rnc_empresa")}
-                        className="form-control"
-                        id="rnc_empresa"
-                        name="rnc_empresa"
-                        value={formData.rnc_empresa}
-                        onChange={handleChange}
-                        placeholder="Enter RNC"
+                        placeholder="Enter employee name"
                      />
                   </div>
                </div>
                <div className="col-md-6">
                   <div className="mb-3">
-                     <label className="form-label">Teléfono de la empresa</label>
-                     <input
-                        type="text"
-                        style={getInputStyle("telefono_empresa")}
-                        className="form-control"
-                        name="telefono_empresa"
-                        value={formData.telefono_empresa}
-                        onChange={handleChange}
-                        placeholder="Enter phone number"
-                     />
-                  </div>
-                  <div className="mb-3">
                      <label
                         className="form-label"
-                        htmlFor="correo_empresa"
+                        htmlFor="apellidos_empleado"
                      >
-                        Correo de la empresa
+                        Apellidos del empleado
                      </label>
                      <input
                         type="text"
-                        style={getInputStyle("correo_empresa")}
+                        style={getInputStyle("apellidos_empleado")}
                         className="form-control"
-                        id="correo_empresa"
-                        name="correo_empresa"
-                        value={formData.correo_empresa}
+                        id="apellidos_empleado"
+                        name="apellidos_empleado"
+                        value={formData.apellidos_empleado}
                         onChange={handleChange}
-                        placeholder="Enter email"
+                        placeholder="Enter employee last name"
                      />
                   </div>
+               </div>
+            </div>
+            <div className="row">
+               <div className="col-md-6">
                   <div className="mb-3">
                      <label
                         className="form-label"
-                        htmlFor="direccion_empresa"
+                        htmlFor="correo_empleado"
                      >
-                        Dirección de la empresa
+                        Correo del empleado
+                     </label>
+                     <input
+                        type="email"
+                        style={getInputStyle("correo_empleado")}
+                        className="form-control"
+                        id="correo_empleado"
+                        name="correo_empleado"
+                        value={formData.correo_empleado}
+                        onChange={handleChange}
+                        placeholder="Enter employee email"
+                     />
+                  </div>
+               </div>
+               <div className="col-md-6">
+                  <div className="mb-3">
+                     <label
+                        className="form-label"
+                        htmlFor="telefono_empleado"
+                     >
+                        Teléfono del empleado
+                     </label>
+                     <input
+                        type="text"
+                        style={getInputStyle("telefono_empleado")}
+                        className="form-control"
+                        id="telefono_empleado"
+                        name="telefono_empleado"
+                        value={formData.telefono_empleado}
+                        onChange={handleChange}
+                        placeholder="Enter employee phone"
+                     />
+                  </div>
+               </div>
+            </div>
+            <div className="row">
+               <div className="col-md-6">
+                  <div className="mb-3">
+                     <label
+                        className="form-label"
+                        htmlFor="direccion_empleado"
+                     >
+                        Dirección del empleado
                      </label>
                      <textarea
-                        style={getInputStyle("direccion_empresa")}
+                        style={getInputStyle("direccion_empleado")}
                         className="form-control"
-                        id="direccion_empresa"
-                        name="direccion_empresa"
-                        value={formData.direccion_empresa}
+                        id="direccion_empleado"
+                        name="direccion_empleado"
+                        value={formData.direccion_empleado}
                         onChange={handleChange}
                         rows="3"
+                        placeholder="Enter employee address"
                      ></textarea>
+                  </div>
+               </div>
+               <div className="col-md-6">
+                  <div className="mb-3">
+                     <label
+                        className="form-label"
+                        htmlFor="id_nacionalidad"
+                     >
+                        Nacionalidad
+                     </label>
+                     <select
+                        style={getInputStyle("id_nacionalidad")}
+                        className="form-control"
+                        id="id_nacionalidad"
+                        name="id_nacionalidad"
+                        value={formData.id_nacionalidad}
+                        onChange={handleChange}
+                     >
+                        <option value="">Seleccione una opción</option>
+                        {loading ? (
+                           <option>Cargando...</option>
+                        ) : Array.isArray(nacionalidades) ? (
+                           nacionalidades.map((nacionalidad) => (
+                              <option
+                                 key={nacionalidad.id_nacionalidad}
+                                 value={nacionalidad.id_nacionalidad}
+                              >
+                                 {nacionalidad.nombre_nacionalidad}
+                              </option>
+                           ))
+                        ) : (
+                           <option>Error loading options</option>
+                        )}
+                     </select>
+                  </div>
+               </div>
+            </div>
+            <div className="row">
+               <div className="col-md-6">
+                  <div className="mb-3">
+                     <label
+                        className="form-label"
+                        htmlFor="cedula_empleado"
+                     >
+                        Cédula del empleado
+                     </label>
+                     <input
+                        type="text"
+                        style={getInputStyle("cedula_empleado")}
+                        className="form-control"
+                        id="cedula_empleado"
+                        name="cedula_empleado"
+                        value={formData.cedula_empleado}
+                        onChange={handleChange}
+                        placeholder="Enter employee ID"
+                     />
+                  </div>
+               </div>
+               <div className="col-md-6">
+                  <div className="mb-3">
+                     <label
+                        className="form-label"
+                        htmlFor="fecha_vencimiento_cedula_empleado"
+                     >
+                        Fecha de vencimiento de cédula
+                     </label>
+                     <input
+                        type="date"
+                        style={getInputStyle("fecha_vencimiento_cedula_empleado")}
+                        className="form-control"
+                        id="fecha_vencimiento_cedula_empleado"
+                        name="fecha_vencimiento_cedula_empleado"
+                        value={formData.fecha_vencimiento_cedula_empleado}
+                        onChange={handleChange}
+                     />
+                  </div>
+               </div>
+            </div>
+            <div className="row">
+               <div className="col-md-6">
+                  <div className="mb-3">
+                     <label
+                        className="form-label"
+                        htmlFor="fecha_nacimiento_empleado"
+                     >
+                        Fecha de nacimiento
+                     </label>
+                     <input
+                        type="date"
+                        style={getInputStyle("fecha_nacimiento_empleado")}
+                        className="form-control"
+                        id="fecha_nacimiento_empleado"
+                        name="fecha_nacimiento_empleado"
+                        value={formData.fecha_nacimiento_empleado}
+                        onChange={handleChange}
+                     />
+                  </div>
+               </div>
+               <div className="col-md-6">
+                  <div className="mb-3">
+                     <label
+                        className="form-label"
+                        htmlFor="estado_civil_empleado"
+                     >
+                        Estado civil
+                     </label>
+                     <select
+                        style={getInputStyle("estado_civil_empleado")}
+                        className="form-control"
+                        id="estado_civil_empleado"
+                        name="estado_civil_empleado"
+                        value={formData.estado_civil_empleado}
+                        onChange={handleChange}
+                     >
+                        <option value="soltero">Soltero</option>
+                        <option value="casado">Casado</option>
+                        <option value="divorciado">Divorciado</option>
+                        <option value="viudo">Viudo</option>
+                     </select>
+                  </div>
+               </div>
+            </div>
+            <div className="row">
+               <div className="col-md-6">
+                  <div className="mb-3">
+                     <label
+                        className="form-label"
+                        htmlFor="horario_empleado"
+                     >
+                        Horario
+                     </label>
+                     <input
+                        type="text"
+                        style={getInputStyle("horario_empleado")}
+                        className="form-control"
+                        id="horario_empleado"
+                        name="horario_empleado"
+                        value={formData.horario_empleado}
+                        onChange={handleChange}
+                        placeholder="Enter schedule"
+                     />
+                  </div>
+               </div>
+               <div className="col-md-6">
+                  <div className="mb-3">
+                     <label
+                        className="form-label"
+                        htmlFor="salario_empleado"
+                     >
+                        Salario
+                     </label>
+                     <input
+                        type="number"
+                        style={getInputStyle("salario_empleado")}
+                        className="form-control"
+                        id="salario_empleado"
+                        name="salario_empleado"
+                        value={formData.salario_empleado}
+                        onChange={handleChange}
+                        placeholder="Enter salary"
+                     />
+                  </div>
+               </div>
+            </div>
+            <div className="row">
+               <div className="col-md-6">
+                  <div className="mb-3">
+                     <label
+                        className="form-label"
+                        htmlFor="id_tipo_contrato"
+                     >
+                        Tipo de Contrato
+                     </label>
+                     <select
+                        style={getInputStyle("id_tipo_contrato")}
+                        className="form-control"
+                        id="id_tipo_contrato"
+                        name="id_tipo_contrato"
+                        value={formData.id_tipo_contrato}
+                        onChange={handleChange}
+                     >
+                        <option value="">Seleccione una opción</option>
+                        {loading ? (
+                           <option>Cargando...</option>
+                        ) : Array.isArray(tiposContrato) ? (
+                           tiposContrato.map((tipo) => (
+                              <option
+                                 key={tipo.id_tipo_contrato}
+                                 value={tipo.id_tipo_contrato}
+                              >
+                                 {tipo.nombre_tipo_contrato}
+                              </option>
+                           ))
+                        ) : (
+                           <option>Error loading options</option>
+                        )}
+                     </select>
+                  </div>
+               </div>
+               <div className="col-md-6">
+                  <div className="mb-3">
+                     <label
+                        className="form-label"
+                        htmlFor="id_departamento"
+                     >
+                        Departamento
+                     </label>
+                     <select
+                        style={getInputStyle("id_departamento")}
+                        className="form-control"
+                        id="id_departamento"
+                        name="id_departamento"
+                        value={formData.id_departamento}
+                        onChange={handleChange}
+                     >
+                        <option value="">Seleccione una opción</option>
+                        {loading ? (
+                           <option>Cargando...</option>
+                        ) : Array.isArray(departamentos) ? (
+                           departamentos.map((departamento) => (
+                              <option
+                                 key={departamento.id_departamento}
+                                 value={departamento.id_departamento}
+                              >
+                                 {departamento.nombre_departamento}
+                              </option>
+                           ))
+                        ) : (
+                           <option>Error loading options</option>
+                        )}
+                     </select>
+                  </div>
+               </div>
+            </div>
+            <div className="row">
+               <div className="col-md-6">
+                  <div className="mb-3">
+                     <label
+                        className="form-label"
+                        htmlFor="id_puesto"
+                     >
+                        Puesto
+                     </label>
+                     <select
+                        style={getInputStyle("id_puesto")}
+                        className="form-control"
+                        id="id_puesto"
+                        name="id_puesto"
+                        value={formData.id_puesto}
+                        onChange={handleChange}
+                     >
+                        <option value="">Seleccione una opción</option>
+                        {loading ? (
+                           <option>Cargando...</option>
+                        ) : Array.isArray(puestos) ? (
+                           puestos.map((puesto) => (
+                              <option
+                                 key={puesto.id_puesto}
+                                 value={puesto.id_puesto}
+                              >
+                                 {puesto.nombre_puesto}
+                              </option>
+                           ))
+                        ) : (
+                           <option>Error loading options</option>
+                        )}
+                     </select>
+                  </div>
+               </div>
+               <div className="col-md-6">
+                  <div className="mb-3">
+                     <label
+                        className="form-label"
+                        htmlFor="id_supervisor"
+                     >
+                        Supervisor
+                     </label>
+                     <select
+                        style={getInputStyle("id_supervisor")}
+                        className="form-control"
+                        id="id_supervisor"
+                        name="id_supervisor"
+                        value={formData.id_supervisor}
+                        onChange={handleChange}
+                     >
+                        <option value="">Seleccione una opción</option>
+                        {loading ? (
+                           <option>Cargando...</option>
+                        ) : Array.isArray(supervisores) ? (
+                           supervisores.map((supervisor) => (
+                              <option
+                                 key={supervisor.id_usuario}
+                                 value={supervisor.id_usuario}
+                              >
+                                 {supervisor.nombre_usuario}
+                              </option>
+                           ))
+                        ) : (
+                           <option>Error loading options</option>
+                        )}
+                     </select>
+                  </div>
+               </div>
+            </div>
+            <div className="row">
+               <div className="col-md-6">
+                  <div className="mb-3">
+                     <label
+                        className="form-label"
+                        htmlFor="id_empresa"
+                     >
+                        Empresa
+                     </label>
+                     <select
+                        style={getInputStyle("id_empresa")}
+                        className="form-control"
+                        id="id_empresa"
+                        name="id_empresa"
+                        value={formData.id_empresa}
+                        onChange={handleChange}
+                     >
+                        <option value="">Seleccione una opción</option>
+                        {loading ? (
+                           <option>Cargando...</option>
+                        ) : Array.isArray(empresas) ? (
+                           empresas.map((empresa) => (
+                              <option
+                                 key={empresa.id_empresa}
+                                 value={empresa.id_empresa}
+                              >
+                                 {empresa.nombre_empresa}
+                              </option>
+                           ))
+                        ) : (
+                           <option>Error loading options</option>
+                        )}
+                     </select>
+                  </div>
+               </div>
+               <div className="col-md-6">
+                  <div className="mb-3">
+                     <label
+                        className="form-label"
+                        htmlFor="fecha_ingreso_empleado"
+                     >
+                        Fecha de ingreso
+                     </label>
+                     <input
+                        type="date"
+                        style={getInputStyle("fecha_ingreso_empleado")}
+                        className="form-control"
+                        id="fecha_ingreso_empleado"
+                        name="fecha_ingreso_empleado"
+                        value={formData.fecha_ingreso_empleado}
+                        onChange={handleChange}
+                     />
+                  </div>
+               </div>
+            </div>
+            <div className="row">
+               <div className="col-md-6">
+                  <div className="mb-3">
+                     <label
+                        className="form-label"
+                        htmlFor="fecha_salida_empleado"
+                     >
+                        Fecha de salida
+                     </label>
+                     <input
+                        type="date"
+                        style={getInputStyle("fecha_salida_empleado")}
+                        className="form-control"
+                        id="fecha_salida_empleado"
+                        name="fecha_salida_empleado"
+                        value={formData.fecha_salida_empleado}
+                        onChange={handleChange}
+                     />
+                  </div>
+               </div>
+               <div className="col-md-6">
+                  <div className="mb-3">
+                     <label
+                        className="form-label"
+                        htmlFor="jornada_laboral_empleado"
+                     >
+                        Jornada laboral
+                     </label>
+                     <input
+                        type="text"
+                        style={getInputStyle("jornada_laboral_empleado")}
+                        className="form-control"
+                        id="jornada_laboral_empleado"
+                        name="jornada_laboral_empleado"
+                        value={formData.jornada_laboral_empleado}
+                        onChange={handleChange}
+                        placeholder="Enter work schedule"
+                     />
+                  </div>
+               </div>
+            </div>
+            <div className="row">
+               <div className="col-md-6">
+                  <div className="mb-3">
+                     <label className="form-label">Cuentas Bancarias</label>
+                     {cuentasBancarias.map((cuenta, index) => (
+                        <div
+                           key={index}
+                           className="d-flex align-items-center mb-2"
+                        >
+                           <input
+                              type="text"
+                              className="form-control"
+                              value={cuenta}
+                              onChange={(e) => handleCuentaChange(index, e.target.value)}
+                              placeholder="Enter bank account"
+                           />
+                           <button
+                              type="button"
+                              className="btn btn-danger ms-2"
+                              onClick={() => handleRemoveCuenta(index)}
+                           >
+                              -
+                           </button>
+                        </div>
+                     ))}
+                     <button
+                        type="button"
+                        className="btn btn-success"
+                        onClick={handleAddCuenta}
+                     >
+                        +
+                     </button>
                   </div>
                </div>
             </div>
