@@ -35,7 +35,7 @@ export const NavBar = ({ isSidebarOpen, isMobile }) => {
                         </span>
                         <span
                            className="pc-mtext"
-                           data-i18n="Sample Page"
+                           data-i18n="Inicio"
                         >
                            Inicio
                         </span>
@@ -57,7 +57,7 @@ export const NavBar = ({ isSidebarOpen, isMobile }) => {
                         </span>
                         <span
                            className="pc-mtext"
-                           data-i18n="Sample Page"
+                           data-i18n="Empleados"
                         >
                            Empleados
                         </span>
@@ -73,7 +73,7 @@ export const NavBar = ({ isSidebarOpen, isMobile }) => {
                         </span>
                         <span
                            className="pc-mtext"
-                           data-i18n="Sample Page"
+                           data-i18n="Clientes"
                         >
                            Clientes
                         </span>
@@ -89,7 +89,7 @@ export const NavBar = ({ isSidebarOpen, isMobile }) => {
                         </span>
                         <span
                            className="pc-mtext"
-                           data-i18n="Sample Page"
+                           data-i18n="Planillas"
                         >
                            Planillas
                         </span>
@@ -105,7 +105,7 @@ export const NavBar = ({ isSidebarOpen, isMobile }) => {
                         </span>
                         <span
                            className="pc-mtext"
-                           data-i18n="Sample Page"
+                           data-i18n="Calendario"
                         >
                            Calendario
                         </span>
