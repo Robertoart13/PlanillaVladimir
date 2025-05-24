@@ -47,6 +47,7 @@ export const EditarEmpleado = () => {
       nombre_puesto: "",
       nombre_supervisor: "",
       nombre_tipo_contrato: "",
+      es_inactivo: 0,
    });
    const [cuentasBancarias, setCuentasBancarias] = useState([""]);
    const [departamentos, setDepartamentos] = useState([]);
@@ -63,12 +64,12 @@ export const EditarEmpleado = () => {
       const fetchSelectOptions = async () => {
          setLoading(true);
          Swal.fire({
-            title: 'Cargando opciones',
-            text: 'Por favor espere mientras se cargan las opciones...',
+            title: "Cargando opciones",
+            text: "Por favor espere mientras se cargan las opciones...",
             allowOutsideClick: false,
             didOpen: () => {
                Swal.showLoading();
-            }
+            },
          });
          const departamentosData = await dispatch(SelectOpcion_Thunks("departamentos/select"));
          const nacionalidadesData = await dispatch(SelectOpcion_Thunks("nacionalidades/select"));
@@ -91,34 +92,39 @@ export const EditarEmpleado = () => {
       fetchSelectOptions();
    }, [dispatch]);
 
+   
    const storedData = localStorage.getItem("selectedEmpleado");
 
    useEffect(() => {
       const formatDate = (dateString) => {
          const date = new Date(dateString);
          const year = date.getFullYear();
-         const month = String(date.getMonth() + 1).padStart(2, '0');
-         const day = String(date.getDate()).padStart(2, '0');
+         const month = String(date.getMonth() + 1).padStart(2, "0");
+         const day = String(date.getDate()).padStart(2, "0");
          return `${year}-${month}-${day}`;
       };
 
-      if (optionsLoaded && storedData) { // Check if options are loaded
+      if (optionsLoaded && storedData) {
+         // Check if options are loaded
          setLoadingData(true); // Start loading
          Swal.fire({
-            title: 'Cargando datos',
-            text: 'Por favor espere...',
+            title: "Cargando datos",
+            text: "Por favor espere...",
             allowOutsideClick: false,
             didOpen: () => {
                Swal.showLoading();
-            }
+            },
          });
          const existingData = JSON.parse(storedData);
+         console.log(existingData);
          setFormData({
             id_empleado: existingData.id_empleado,
             nombre_empleado: existingData.nombre_empleado,
             apellidos_empleado: existingData.apellidos_empleado,
             cedula_empleado: existingData.cedula_empleado,
-            fecha_vencimiento_cedula_empleado: formatDate(existingData.fecha_vencimiento_cedula_empleado),
+            fecha_vencimiento_cedula_empleado: formatDate(
+               existingData.fecha_vencimiento_cedula_empleado,
+            ),
             fecha_nacimiento_empleado: formatDate(existingData.fecha_nacimiento_empleado),
             estado_civil_empleado: existingData.estado_civil_empleado,
             correo_empleado: existingData.correo_empleado,
@@ -135,7 +141,7 @@ export const EditarEmpleado = () => {
             id_puesto: existingData.id_puesto,
             id_supervisor: existingData.id_supervisor,
             id_empresa: existingData.id_empresa,
-            cuentas_bancarias: existingData.cuentas_iban.split(",").map(cuenta => cuenta.trim()),
+            cuentas_bancarias: existingData.cuentas_iban.split(",").map((cuenta) => cuenta.trim()),
             estado_empleado: existingData.estado_empleado,
             fecha_creacion_empleado: formatDate(existingData.fecha_creacion_empleado),
             fecha_modificacion_empleado: formatDate(existingData.fecha_modificacion_empleado),
@@ -145,8 +151,9 @@ export const EditarEmpleado = () => {
             nombre_puesto: existingData.nombre_puesto,
             nombre_supervisor: existingData.nombre_supervisor,
             nombre_tipo_contrato: existingData.nombre_tipo_contrato,
+            es_inactivo: existingData.estado_empleado,
          });
-         setCuentasBancarias(existingData.cuentas_iban.split(",").map(cuenta => cuenta.trim()));
+         setCuentasBancarias(existingData.cuentas_iban.split(",").map((cuenta) => cuenta.trim()));
          setLoadingData(false); // End loading
          Swal.close(); // Close Swal
       } else if (!storedData) {
@@ -210,10 +217,13 @@ export const EditarEmpleado = () => {
                   Swal.showLoading();
                },
             });
-            const respuesta = await dispatch(Empleado_Editar_Thunks({ ...formData, cuentas_bancarias: cuentasBancarias }));
+            const respuesta = await dispatch(
+               Empleado_Editar_Thunks({ ...formData, cuentas_bancarias: cuentasBancarias }),
+            );
             if (respuesta.success) {
                Swal.fire("¡Editado!", "El empleado ha sido editado exitosamente.", "success").then(
                   () => {
+                     localStorage.removeItem("selectedEmpleado");
                      navigate("/empleados/lista");
 
                      setFormData({
@@ -247,6 +257,7 @@ export const EditarEmpleado = () => {
                         nombre_puesto: "",
                         nombre_supervisor: "",
                         nombre_tipo_contrato: "",
+                        es_inactivo: 1,
                      });
                   },
                );
@@ -286,6 +297,10 @@ export const EditarEmpleado = () => {
       setCuentasBancarias(newCuentas);
    };
 
+   const handleCheckboxChange = (e) => {
+      setFormData({ ...formData, es_inactivo: e.target.checked ? 1 : 0 });
+   };
+
    return (
       <TarjetaRow
          texto="Editar un nuevo empleado"
@@ -300,6 +315,28 @@ export const EditarEmpleado = () => {
 
          <div className="card-body">
             <div className="row">
+               <div className="row">
+                  <div className="col-md-12">
+                     <div class="form-check mb-4">
+                        <input
+                           className="form-check-input input-primary"
+                           type="checkbox"
+                           id="es_inactivo"
+                           name="es_inactivo"
+                           checked={formData.es_inactivo === 1}
+                           onChange={handleCheckboxChange}
+                        />
+                        <label
+                           class="form-check-label"
+                           for="customCheckc1"
+                        >
+                           {" "}
+                           Estado del empleado
+                        </label>
+                     </div>
+                  </div>
+               </div>
+
                <div className="col-md-6">
                   <div className="mb-3">
                      <label
@@ -837,6 +874,7 @@ export const EditarEmpleado = () => {
                   </div>
                </div>
             </div>
+
             <button
                onClick={handleSubmit}
                className="btn btn-dark mb-4"
