@@ -25,7 +25,7 @@ import { crearRespuestaErrorCrear } from "../../hooks/crearRespuestaErrorCrear.j
 const QUERIES = {
    // Consulta SQL para obtener todos los registros de la tabla
    QUERIES_SELECT: `
-        SELECT * FROM usuarios_tbl where login_usuario !=1
+        SELECT * FROM usuarios_tbl
     `,
 };
 

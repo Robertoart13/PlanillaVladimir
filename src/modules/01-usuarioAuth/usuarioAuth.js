@@ -315,9 +315,9 @@ const usuarioAuth = {
    verificarEstadoUsuario,
 };
 
-// For testing purposes, generate a new hash
+// // For testing purposes, generate a new hash
 // const salt = await bcrypt.genSalt(10);
-// const newHash = await bcrypt.hash("!Rocca.2025JGJG", salt);
+// const newHash = await bcrypt.hash("!Acu.25@Vla", salt);
 // console.log("New hash:", newHash);
 
 export default usuarioAuth;
