@@ -416,7 +416,7 @@ export const SideBar = ({ toggleSidebar, isSidebarOpen, isMobile }) => {
                                                 <li className="list-group-item">
                                                     <div className="d-flex align-items-center">
                                                         <div className="flex-shrink-0">
-                                                            <img  src="/img/users.png" alt="user-image" className="wid-50 rounded-circle" />
+                                                            <img  src="/img/users.png" alt="user-image" className="wid-40 rounded-circle" />
                                                         </div>
                                                         <div className="flex-grow-1 mx-3">
                                                             <h5 className="mb-0">Carson Darrin</h5>
