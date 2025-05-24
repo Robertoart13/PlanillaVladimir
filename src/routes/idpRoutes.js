@@ -11,6 +11,42 @@ import helpers from "../utils/helpers.js";
  */
 import usuarioAuth from "../modules/01-usuarioAuth/usuarioAuth.js"; // Autenticación de usuarios
 
+
+/**
+ * ====================================================================================================================================
+ * Importación de módulos relacionados con la empresa
+ * Estos módulos manejan la lista de empresas
+ * ====================================================================================================================================
+ */
+import Empresas_Listar from "../modules/03-Empresas/Empresas_ListaCompleta.js";
+import Empresas_Crear from "../modules/03-Empresas/Empresas_Crear.js";
+import Empresas_Editar from "../modules/03-Empresas/Empresas_Editar.js";
+
+
+/**
+ * ====================================================================================================================================
+ * Importación de módulos relacionados con la empresa
+ * Estos módulos manejan la lista de empresas
+ * ====================================================================================================================================
+ */
+import Empleados_Listar from "../modules/02-Empleados/Empleados_ListaCompleta.js";
+
+
+/**
+ * ====================================================================================================================================
+ * Importación de módulos relacionados con la Selecciones
+ * Estos módulos manejan la lista de selecciones
+ * ====================================================================================================================================
+ */
+import Departamentos_Listar_select from "../modules/03-Selects/Departamentos_Lista.js";
+import Nacionalidad_Listar_select from "../modules/03-Selects/Nacionalidad_Lista.js";
+import Empresas_Listar_select from "../modules/03-Selects/Empresas_Lista.js";
+import Puesto_Listar_select from "../modules/03-Selects/Puestos_Lista.js";
+import TipoContrato_Listar_select from "../modules/03-Selects/TipoContrato.js";
+import Supervisor_Listar_select from "../modules/03-Selects/Supervisores.js";
+
+
+
 /** ====================================================================================================================================
  * @fileoverview Módulo de configuración de rutas para la aplicación.
  * Este archivo maneja la configuración de rutas, autenticación y gestión de solicitudes HTTP.
@@ -230,6 +266,87 @@ function getModulesConfig() {
                path: "usuario/verificaionDeUsuario", // Ruta para autenticación con Microsoft
                method: "verificarEstadoUsuario", // Método que se ejecutará
                isAuthRequired: false, // No requiere autenticación
+            },
+         ],
+      },
+      {
+         category: "Empresa", // Nombre del módulo
+         model: {
+            ...Empresas_Listar,
+            ...Empresas_Crear,
+            ...Empresas_Editar,
+         }, // Combinamos ambos modelos
+         routes: [
+            {
+               path: "empresas", // Ruta para la lista de empresas
+               method: "obtenerListaCompleta", // Método que se ejecutará
+               isAuthRequired: true, // Requiere autenticación
+            },
+            {
+               path: "empresa/crear", // Ruta para la lista de empresas 
+               method: "crearTransaccion", // Método que se ejecutará
+               isAuthRequired: true, // Requiere autenticación
+            },
+            {
+               path: "empresa/editar", // Ruta para la lista de empresas
+               method: "editarTransaccion", // Método que se ejecutará
+               isAuthRequired: true, // Requiere autenticación
+            },
+         ],
+      },
+      {
+         category: "Empleado", // Nombre del módulo
+         model: {
+            ...Empleados_Listar,
+         }, // Combinamos ambos modelos
+         routes: [
+            {
+               path: "empleados", // Ruta para la lista de empleados
+               method: "obtenerListaCompleta", // Método que se ejecutará
+               isAuthRequired: true, // Requiere autenticación
+            },
+         ],
+      },
+      {
+         category: "Selecciones", // Nombre del módulo
+         model: {
+            ...Departamentos_Listar_select,
+            ...Nacionalidad_Listar_select,
+            ...Empresas_Listar_select,
+            ...Puesto_Listar_select,
+            ...TipoContrato_Listar_select,
+            ...Supervisor_Listar_select,
+         }, // Combinamos ambos modelos
+         routes: [
+            {
+               path: "departamentos/select", // Ruta para la lista de departamentos
+               method: "Departamentos_Listar_select", // Método que se ejecutará
+               isAuthRequired: true, // Requiere autenticación
+            },
+            {
+               path: "nacionalidades/select", // Ruta para la lista de nacionalidades
+               method: "Nacionalidad_Listar_select", // Método que se ejecutará
+               isAuthRequired: true, // Requiere autenticación
+            },
+            {
+               path: "empresas/select", // Ruta para la lista de empresas
+               method: "Empresas_Listar_select", // Método que se ejecutará
+               isAuthRequired: true, // Requiere autenticación
+            },
+            {
+               path: "puestos/select", // Ruta para la lista de puestos
+               method: "Puestos_Listar_select", // Método que se ejecutará
+               isAuthRequired: true, // Requiere autenticación
+            },
+            {
+               path: "tipos_contrato/select", // Ruta para la lista de tipos de contrato
+               method: "Tipos_Contrato_Listar_select", // Método que se ejecutará
+               isAuthRequired: true, // Requiere autenticación
+            },
+            {
+               path: "supervisores/select", // Ruta para la lista de supervisores
+               method: "Supervisores_Listar_select", // Método que se ejecutará
+               isAuthRequired: true, // Requiere autenticación
             },
          ],
       },

@@ -35,6 +35,7 @@ const construirPayloadToken = (usuario) => ({
    rol_usuario: usuario.rol_usuario,
    estado_usuario: usuario.estado_usuario,
    intentos_login_usuario: usuario.intentos_login_usuario,
+   login_usuario: usuario.login_usuario,
 });
 
 /**
@@ -170,6 +171,7 @@ const prepararDatosUsuario = (usuario) => ({
    rol_usuario: usuario.rol_usuario,
    estado_usuario: usuario.estado_usuario,
    intentos_login_usuario: usuario.intentos_login_usuario,
+   login_usuario: usuario.login_usuario,
 });
 
 /**
