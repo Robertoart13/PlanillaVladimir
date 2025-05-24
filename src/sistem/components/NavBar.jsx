@@ -1,12 +1,19 @@
 import { useDispatch, useSelector } from "react-redux";
 import Avatar from "@mui/material/Avatar";
 import { useLocation } from 'react-router-dom';
+import { logout } from "../../store/auth/authThunk";
 export const NavBar = ({ isSidebarOpen, isMobile }) => {
    const { user } = useSelector((state) => state.auth);
    const location = useLocation();
+   const dispatch = useDispatch();
 
    const getActiveClass = (path) => {
       return location.pathname.includes(path) ? 'active' : '';
+   };
+
+
+   const handleLogout = () => {
+      dispatch(logout({ mensaje: `Se ha cerrado la sesión.` }));
    };
 
 
@@ -197,7 +204,7 @@ export const NavBar = ({ isSidebarOpen, isMobile }) => {
                                        </a>
                                     </li>
                                     <li>
-                                       <a className="pc-user-links">
+                                       <a className="pc-user-links" onClick={handleLogout}>
                                           <i className="ph-duotone ph-power"></i>
                                           <span>Cerrar Sesión</span>
                                        </a>
