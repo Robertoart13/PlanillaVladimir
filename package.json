@@ -16,6 +16,7 @@
     "@mui/material": "^7.1.0",
     "@reduxjs/toolkit": "^2.8.2",
     "axios": "^1.9.0",
+    "build": "^0.1.4",
     "framer-motion": "^12.12.1",
     "js-cookie": "^3.0.5",
     "jwt-decode": "^4.0.0",
