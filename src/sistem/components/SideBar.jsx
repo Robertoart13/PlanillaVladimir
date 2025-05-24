@@ -239,7 +239,7 @@ export const SideBar = ({ toggleSidebar, isSidebarOpen, isMobile }) => {
                                                 <p className="text-span">Today</p>
                                                 <div className="d-flex">
                                                     <div className="flex-shrink-0">
-                                                        <img src="../assets/images/user/avatar-2.jpg" alt="user-image" className="user-avtar avtar avtar-s" />
+                                                        <img  src="/img/users.png" alt="user-image" className="user-avtar avtar avtar-s" />
                                                     </div>
                                                     <div className="flex-grow-1 ms-3">
                                                         <div className="d-flex">
@@ -404,7 +404,7 @@ export const SideBar = ({ toggleSidebar, isSidebarOpen, isMobile }) => {
                                     data-bs-auto-close="outside"
                                     aria-expanded="false"
                                 >
-                                    <img src="../assets/images/user/avatar-2.jpg" alt="user-image" className="user-avtar" />
+                                    <img  src="/img/users.png" alt="user-image" className="user-avtar" />
                                 </a>
                                 <div className="dropdown-menu dropdown-user-profile dropdown-menu-end pc-h-dropdown">
                                     <div className="dropdown-header d-flex align-items-center justify-content-between">
@@ -416,7 +416,7 @@ export const SideBar = ({ toggleSidebar, isSidebarOpen, isMobile }) => {
                                                 <li className="list-group-item">
                                                     <div className="d-flex align-items-center">
                                                         <div className="flex-shrink-0">
-                                                            <img src="../assets/images/user/avatar-2.jpg" alt="user-image" className="wid-50 rounded-circle" />
+                                                            <img  src="/img/users.png" alt="user-image" className="wid-50 rounded-circle" />
                                                         </div>
                                                         <div className="flex-grow-1 mx-3">
                                                             <h5 className="mb-0">Carson Darrin</h5>

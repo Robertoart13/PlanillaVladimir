@@ -11,8 +11,9 @@ export const RecoverPage = () => {
                className="img-fluid mb-4"
                width={250}
             />
-            <h4 className="f-w-800 mb-1">Recuperar contraseña</h4>
-            <br />
+            <div class="saprator my-1">
+                <span>Recuperar contraseña</span>
+              </div>
          </div>
          <div className="mb-3">
             <input
