@@ -54,6 +54,7 @@ import Supervisor_Listar_select from "../modules/05-Selects/Supervisores.js";
  * ====================================================================================================================================
  */
 import Empleados_Crear from "../modules/04-Empleados/Empleados_Crear.js";
+import Empleados_Editar from "../modules/04-Empleados/Empleados_Editar.js";
 /** ====================================================================================================================================
  * @fileoverview Módulo de configuración de rutas para la aplicación.
  * Este archivo maneja la configuración de rutas, autenticación y gestión de solicitudes HTTP.
@@ -361,11 +362,17 @@ function getModulesConfig() {
          category: "Empleado", // Nombre del módulo
          model: {
             ...Empleados_Crear,
+            ...Empleados_Editar,
          }, // Combinamos ambos modelos
          routes: [
             {
                path: "empleado/crear", // Ruta para la lista de empleados
                method: "crearTransaccion", // Método que se ejecutará
+               isAuthRequired: true, // Requiere autenticación
+            },
+            {
+               path: "empleado/editar", // Ruta para la lista de empleados
+               method: "editarTransaccion", // Método que se ejecutará
                isAuthRequired: true, // Requiere autenticación
             },
          ],
