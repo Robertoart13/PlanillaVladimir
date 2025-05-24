@@ -57,10 +57,19 @@ export const EditarEmpleado = () => {
    const [supervisores, setSupervisores] = useState([]);
    const [loading, setLoading] = useState(true);
    const [optionsLoaded, setOptionsLoaded] = useState(false); // New state to track loading of select options
+   const [loadingData, setLoadingData] = useState(false); // New state for loading data
 
    useEffect(() => {
       const fetchSelectOptions = async () => {
          setLoading(true);
+         Swal.fire({
+            title: 'Cargando opciones',
+            text: 'Por favor espere mientras se cargan las opciones...',
+            allowOutsideClick: false,
+            didOpen: () => {
+               Swal.showLoading();
+            }
+         });
          const departamentosData = await dispatch(SelectOpcion_Thunks("departamentos/select"));
          const nacionalidadesData = await dispatch(SelectOpcion_Thunks("nacionalidades/select"));
          const empresasData = await dispatch(SelectOpcion_Thunks("empresas/select"));
@@ -76,6 +85,7 @@ export const EditarEmpleado = () => {
 
          setLoading(false);
          setOptionsLoaded(true); // Mark options as loaded
+         Swal.close(); // Close Swal
       };
 
       fetchSelectOptions();
@@ -93,6 +103,15 @@ export const EditarEmpleado = () => {
       };
 
       if (optionsLoaded && storedData) { // Check if options are loaded
+         setLoadingData(true); // Start loading
+         Swal.fire({
+            title: 'Cargando datos',
+            text: 'Por favor espere...',
+            allowOutsideClick: false,
+            didOpen: () => {
+               Swal.showLoading();
+            }
+         });
          const existingData = JSON.parse(storedData);
          setFormData({
             id_empleado: existingData.id_empleado,
@@ -128,6 +147,8 @@ export const EditarEmpleado = () => {
             nombre_tipo_contrato: existingData.nombre_tipo_contrato,
          });
          setCuentasBancarias(existingData.cuentas_iban.split(",").map(cuenta => cuenta.trim()));
+         setLoadingData(false); // End loading
+         Swal.close(); // Close Swal
       } else if (!storedData) {
          setError(true);
          setFormData({
@@ -145,6 +166,10 @@ export const EditarEmpleado = () => {
          }, 3000);
       }
    }, [optionsLoaded, storedData, navigate]);
+
+   if (loadingData) {
+      return <div>Loading data...</div>; // Display loading indicator
+   }
 
    const handleChange = (e) => {
       const { name, value } = e.target;
@@ -187,7 +212,7 @@ export const EditarEmpleado = () => {
             });
             const respuesta = await dispatch(Empleado_Editar_Thunks({ ...formData, cuentas_bancarias: cuentasBancarias }));
             if (respuesta.success) {
-               Swal.fire("¡Creado!", "El empleado ha sido creado exitosamente.", "success").then(
+               Swal.fire("¡Editado!", "El empleado ha sido editado exitosamente.", "success").then(
                   () => {
                      navigate("/empleados/lista");
 
