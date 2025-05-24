@@ -5,11 +5,11 @@ export const RecoverPage = () => {
    return (
       <AuthLayout>
          <div className="text-center">
-            <img
-               src="/img/logo.svg"
-               alt="images"
+         <img
+               src="/img/1.png"
+               alt="Logo"
                className="img-fluid mb-4"
-               width={200}
+               width={250}
             />
             <h4 className="f-w-800 mb-1">Recuperar contraseña</h4>
             <br />

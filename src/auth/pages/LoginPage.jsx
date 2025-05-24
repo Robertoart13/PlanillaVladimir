@@ -178,12 +178,12 @@ export const LoginPage = () => {
                src="/img/1.png"
                alt="Logo"
                className="img-fluid mb-4"
-               width={300}
+               width={250}
             />
 
-            {/* <div class="saprator my-3">
+            <div class="saprator my-3">
                 <span>Iniciar sesión con tu correo electrónico</span>
-              </div> */}
+              </div>
          </div>
 
          <div className="mb-3">
