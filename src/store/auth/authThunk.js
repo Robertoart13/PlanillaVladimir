@@ -38,21 +38,21 @@ const handleAuthenticationError = (dispatch, errorMessage) => {
  */
 const saveTokensInCookies = async (accessToken, refreshToken) => {
    // Guardar token de acceso (corta duración - 1 hora)
-      Cookies.set("access_token", accessToken, {
-         secure: true,
-         sameSite: "Strict",
-         expires: 0.1667, // 4 horas
-      });
+   Cookies.set("access_token", accessToken, {
+      secure: true,
+      sameSite: "Strict",
+      expires: 0.1667, // 4 horas
+   });
 
-      // Guardar token de refresco (larga duración - 30 días)
-      Cookies.set("refresh_token", refreshToken, {
-         httpOnly: true, // No accesible desde JavaScript
-         secure: true,
-         sameSite: "Strict",
-         expires: 30, // Expiración de 30 días
-      });
+   // Guardar token de refresco (larga duración - 30 días)
+   Cookies.set("refresh_token", refreshToken, {
+      httpOnly: true, // No accesible desde JavaScript
+      secure: true,
+      sameSite: "Strict",
+      expires: 30, // Expiración de 30 días
+   });
 
-      return true;
+   return true;
 };
 
 // ====================================================================================================================================
@@ -69,7 +69,12 @@ export const logout = (payload = {}) => {
    return (dispatch) => {
       clearUserSessionData();
       dispatch(logoutAction(payload.mensaje ? { mensaje: payload.mensaje } : {}));
-      dispatch(verificacionUsuario({ authUsuario: "NoAutenticado", Mensaje: payload.mensaje || "Sesión cerrada." }));
+      dispatch(
+         verificacionUsuario({
+            authUsuario: "NoAutenticado",
+            Mensaje: payload.mensaje || "Sesión cerrada.",
+         }),
+      );
    };
 };
 
@@ -90,55 +95,83 @@ export const IniciarSesionManualmente = (datosUsuario, navigate) => {
       const endpoint = "usuario/login";
       let transaccion = loginCredentials;
       try {
-         dispatch(verificacionUsuario({ authUsuario: "EnProceso", Mensaje: `Verificando credenciales...` }));
+         dispatch(
+            verificacionUsuario({
+               authUsuario: "EnProceso",
+               Mensaje: `Verificando credenciales...`,
+            }),
+         );
          Cookies.remove("access_token");
 
          const resultadoValidacion = await ApiProvider({ transaccion, endpoint });
 
-         if (resultadoValidacion.data.status === 401 || 
-            resultadoValidacion.data.status === 404 || 
+         if (
+            resultadoValidacion.data.status === 401 ||
+            resultadoValidacion.data.status === 404 ||
             resultadoValidacion.data.status === 500 ||
-            resultadoValidacion.data.status === 400) {
-           clearUserSessionData();
-           return handleAuthenticationError(dispatch, resultadoValidacion.data.message); 
+            resultadoValidacion.data.status === 400
+         ) {
+            clearUserSessionData();
+            return handleAuthenticationError(dispatch, resultadoValidacion.data.message);
          }
 
-         if(resultadoValidacion.data.data.estado_usuario ===0){
+         if (resultadoValidacion.data.data.estado_usuario === 0) {
             clearUserSessionData();
-            return handleAuthenticationError(dispatch, "Lo sentimos, su usuario está inactivo. Por favor, contacte al administrador."); 
+            return handleAuthenticationError(
+               dispatch,
+               "Lo sentimos, su usuario está inactivo. Por favor, contacte al administrador.",
+            );
          }
 
-         if(resultadoValidacion.data.data.intentos_login_usuario ===1){
+         if (resultadoValidacion.data.data.intentos_login_usuario === 1) {
             clearUserSessionData();
-            return handleAuthenticationError(dispatch, "Lo sentimos, existe una solicitud de cambio de contraseña pendiente. Por favor, contacte al administrador."); 
+            return handleAuthenticationError(
+               dispatch,
+               "Lo sentimos, existe una solicitud de cambio de contraseña pendiente. Por favor, contacte al administrador.",
+            );
+         }
+
+         if (resultadoValidacion.data.data.login_usuario !== 1) {
+            return handleAuthenticationError(
+               dispatch,
+               "Acceso denegado. No tiene permisos para ingresar a este sistema. Su cuenta será bloqueada si reintenta acceder sin autorización.",
+            );
          }
 
          const { accessToken, refreshToken } = resultadoValidacion.data.tokens || {};
 
-         console.log(resultadoValidacion); // Agrega este log para verificar el token de acces
-
          if (!accessToken) {
             clearUserSessionData();
-            handleAuthenticationError(dispatch, "No se recibió el token de acceso después del inicio de sesión.");
+            handleAuthenticationError(
+               dispatch,
+               "No se recibió el token de acceso después del inicio de sesión.",
+            );
             return null;
          }
 
-         await saveTokensInCookies(accessToken, refreshToken);
-
+         // Primer dispatch inmediato: mensaje de bienvenida
+         // Mostrar mensaje de bienvenida inmediatamente
          dispatch(
             verificacionUsuario({
-               authUsuario: "Autenticado",
-               Mensaje: `Bienvenido, ${resultadoValidacion?.data?.data?.nombre_usuario || "usuario"}!`,
+               authUsuario: "EnProceso",
+               Mensaje: `Bienvenido,  ${resultadoValidacion?.data?.data?.nombre_usuario}, \n Estamos verificando el acceso, Por favor, espera un momento...`,
             }),
          );
 
-         navigate("/");
-         return "Autenticado";
+         // Redirigir a los 6 segundos
+         setTimeout(async () => {
+            await saveTokensInCookies(accessToken, refreshToken);
+            navigate("/");
+         }, 2000);
 
+         return "Autenticado";
       } catch (error) {
          console.error("Error crítico durante el inicio de sesión manual:", error);
          clearUserSessionData();
-         handleAuthenticationError(dispatch, "Error de conexión general durante el inicio de sesión.");
+         handleAuthenticationError(
+            dispatch,
+            "Error de conexión general durante el inicio de sesión.",
+         );
          return null;
       }
    };

@@ -1,14 +1,21 @@
 import { useDispatch, useSelector } from "react-redux";
 import Avatar from "@mui/material/Avatar";
-import { useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
+import { logout } from "../../store/auth/authThunk";
+
 export const NavBar = ({ isSidebarOpen, isMobile }) => {
    const { user } = useSelector((state) => state.auth);
    const location = useLocation();
+   const dispatch = useDispatch();
 
    const getActiveClass = (path) => {
-      return location.pathname.includes(path) ? 'active' : '';
+      const currentPath = location.pathname.split('/')[1];
+      return currentPath === path.split('/')[1] ? 'active' : '';
    };
 
+   const handleLogout = () => {
+      dispatch(logout({ mensaje: `Se ha cerrado la sesión.` }));
+   };
 
    return (
       <nav
@@ -17,14 +24,14 @@ export const NavBar = ({ isSidebarOpen, isMobile }) => {
       >
          <div className="navbar-wrapper">
             <div className="m-header">
-               <a
+               <Link
+                  to="/"
                   style={{
                      display: "flex",
                      justifyContent: "center",
                      alignItems: "center",
                      paddingTop: "8%",
                   }}
-                  href="/"
                   className="b-brand text-primary"
                >
                   <img
@@ -33,7 +40,7 @@ export const NavBar = ({ isSidebarOpen, isMobile }) => {
                      alt="Sistema de Planilla"
                      className="logo-lg"
                   />
-               </a>
+               </Link>
             </div>
             <div
                className={`navbar-content ${isSidebarOpen ? "pc-trigger simplebar-scrollable-y" : ""
@@ -41,12 +48,12 @@ export const NavBar = ({ isSidebarOpen, isMobile }) => {
             >
                <ul className="pc-navbar">
                   <li className="pc-item pc-caption">
-                     <label data-i18n="Navigation">Navigation</label>
+                     <label data-i18n="Navigation">Navegación</label>
                      <i className="ph-duotone ph-gauge"></i>
                   </li>
                   <li className={`pc-item ${getActiveClass('/')}`}>
-                     <a
-                        href="../other/sample-page.html"
+                     <Link
+                        to="/"
                         className="pc-link"
                      >
                         <span className="pc-micon">
@@ -58,16 +65,16 @@ export const NavBar = ({ isSidebarOpen, isMobile }) => {
                         >
                            Inicio
                         </span>
-                     </a>
+                     </Link>
                   </li>
 
                   <li className="pc-item pc-caption">
-                     <label data-i18n="Menus">Menus</label>
+                     <label data-i18n="Menus">Menús</label>
                      <i className="ph-duotone ph-gauge"></i>
                   </li>
-                  <li className={`pc-item ${getActiveClass('/empleado')}`}>
-                     <a
-                        href="../other/sample-page.html"
+                  <li className={`pc-item ${getActiveClass('/empleados')}`}>
+                     <Link
+                        to="/empleados/lista"
                         className="pc-link"
                      >
                         <span className="pc-micon">
@@ -79,11 +86,11 @@ export const NavBar = ({ isSidebarOpen, isMobile }) => {
                         >
                            Empleados
                         </span>
-                     </a>
+                     </Link>
                   </li>
                   <li className={`pc-item ${getActiveClass('/clientes')}`}>
-                     <a
-                        href="../other/sample-page.html"
+                     <Link
+                        to="/clientes"
                         className="pc-link"
                      >
                         <span className="pc-micon">
@@ -95,11 +102,27 @@ export const NavBar = ({ isSidebarOpen, isMobile }) => {
                         >
                            Clientes
                         </span>
-                     </a>
+                     </Link>
+                  </li>
+                  <li className={`pc-item ${getActiveClass('/empresas')}`}>
+                     <Link
+                        to="/empresas/lista"
+                        className="pc-link"
+                     >
+                        <span className="pc-micon">
+                           <i className="fas fa-toolbox"></i>
+                        </span>
+                        <span
+                           className="pc-mtext"
+                           data-i18n="Empleados"
+                        >
+                           Empresas
+                        </span>
+                     </Link>
                   </li>
                   <li className={`pc-item ${getActiveClass('/planillas')}`}>
-                     <a
-                        href="../other/sample-page.html"
+                     <Link
+                        to="/planillas"
                         className="pc-link"
                      >
                         <span className="pc-micon">
@@ -111,11 +134,11 @@ export const NavBar = ({ isSidebarOpen, isMobile }) => {
                         >
                            Planillas
                         </span>
-                     </a>
+                     </Link>
                   </li>
                   <li className={`pc-item ${getActiveClass('/calendario')}`}>
-                     <a
-                        href="../other/sample-page.html"
+                     <Link
+                        to="/calendario"
                         className="pc-link"
                      >
                         <span className="pc-micon">
@@ -127,7 +150,7 @@ export const NavBar = ({ isSidebarOpen, isMobile }) => {
                         >
                            Calendario
                         </span>
-                     </a>
+                     </Link>
                   </li>
                </ul>
                <div
@@ -197,7 +220,7 @@ export const NavBar = ({ isSidebarOpen, isMobile }) => {
                                        </a>
                                     </li>
                                     <li>
-                                       <a className="pc-user-links">
+                                       <a className="pc-user-links" onClick={handleLogout}>
                                           <i className="ph-duotone ph-power"></i>
                                           <span>Cerrar Sesión</span>
                                        </a>

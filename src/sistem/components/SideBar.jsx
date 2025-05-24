@@ -7,7 +7,7 @@ export const SideBar = ({ toggleSidebar, isSidebarOpen, isMobile }) => {
    const dispatch = useDispatch();
 
    const handleLogout = () => {
-      dispatch(logout());
+      dispatch(logout({ mensaje: `Se ha cerrado la sesión.` }));
    };
    return (
       <>
@@ -392,7 +392,7 @@ export const SideBar = ({ toggleSidebar, isSidebarOpen, isMobile }) => {
                                     </li>
                                     <li className="list-group-item">
                                        <a
-                                          href="#"
+                                          onClick={handleLogout}
                                           className="dropdown-item"
                                        >
                                           <span className="d-flex align-items-center">
