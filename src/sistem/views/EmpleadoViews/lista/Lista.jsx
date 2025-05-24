@@ -56,7 +56,6 @@ const getTableColumns = () => [
 ];
 
 const formatData = (rowData) => (
-   console.log(rowData),
    {
       id_empleado: rowData.id_empleado,
       nombre_empleado: rowData.nombre_empleado,
