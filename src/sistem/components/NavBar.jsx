@@ -44,7 +44,7 @@ export const NavBar = ({ isSidebarOpen, isMobile }) => {
 
 
                   <li className="pc-item pc-caption">
-                     <label data-i18n="Navigation">Menus</label>
+                     <label data-i18n="Menus">Menus</label>
                      <i className="ph-duotone ph-gauge"></i>
                   </li>
                   <li className="pc-item" >
