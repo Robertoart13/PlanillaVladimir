@@ -175,13 +175,15 @@ export const LoginPage = () => {
       <AuthLayout>
          <div className="text-center">
             <img
-               src="/img/logo.svg"
+               src="/img/1.png"
                alt="Logo"
                className="img-fluid mb-4"
-               width={200}
+               width={300}
             />
-            <h4 className="f-w-800 mb-1">Iniciar sesión con tu correo electrónico</h4>
-            <br />
+
+            {/* <div class="saprator my-3">
+                <span>Iniciar sesión con tu correo electrónico</span>
+              </div> */}
          </div>
 
          <div className="mb-3">

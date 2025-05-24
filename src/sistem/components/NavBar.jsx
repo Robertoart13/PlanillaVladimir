@@ -7,15 +7,17 @@ export const NavBar = ({ isSidebarOpen, isMobile }) => {
                   href="../dashboard/index.html"
                   className="b-brand text-primary"
                >
+                  <center>
                   <img
-                     src="/img/logo.svg"
-                     style={{ width: "165px", height: "60px" }}
+                     src="/img/2.png"
+                     style={{ width: "100px", height: "100px" }}
                      alt="Sistema de Planilla"
                      className="logo-lg"
                   />
                   <span className="badge bg-brand-color-2 rounded-pill ms-1 theme-version">
                      v1.1.0
                   </span>
+                  </center>
                </a>
             </div>
             <div className={`navbar-content ${isSidebarOpen ? "pc-trigger simplebar-scrollable-y" : ""}`}>
