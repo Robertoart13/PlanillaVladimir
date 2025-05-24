@@ -8,6 +8,9 @@ export const AuthLayout = ({ children }) => {
                         <div className="card-body">
                             {/* {sasas} */}
                            {children}
+                           <div className="saprator my-3">
+                                <span>© {new Date().getFullYear()} GT3 Gestión Tributaria y tercerización</span>
+                            </div>
                         </div>
                     </div>
                 </div>

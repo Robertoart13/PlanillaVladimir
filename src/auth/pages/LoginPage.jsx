@@ -111,7 +111,7 @@ export const LoginPage = () => {
    // Clear errors when fields are modified
    useEffect(() => {
       const newErrors = { ...errors };
-      
+
       if (email) {
          if (isValidEmail(email)) {
             newErrors.email = "";
@@ -119,11 +119,11 @@ export const LoginPage = () => {
             newErrors.email = "Formato de correo electrónico inválido";
          }
       }
-      
+
       if (password) {
          newErrors.password = "";
       }
-      
+
       setErrors(newErrors);
    }, [email, password]);
 
@@ -134,11 +134,11 @@ export const LoginPage = () => {
     */
    const handleSubmit = (e) => {
       e.preventDefault();
-      
+
       // Validate form fields
       const newErrors = {};
       let isValid = true;
-      
+
       // Validate email
       if (!email) {
          newErrors.email = "El correo electrónico es obligatorio";
@@ -147,15 +147,15 @@ export const LoginPage = () => {
          newErrors.email = "Formato de correo electrónico inválido";
          isValid = false;
       }
-      
+
       // Validate password
       if (!password) {
          newErrors.password = "La contraseña es obligatoria";
          isValid = false;
       }
-      
+
       setErrors(newErrors);
-      
+
       // If validation fails, return early
       if (!isValid) {
          return;
@@ -187,7 +187,7 @@ export const LoginPage = () => {
          <div className="mb-3">
             <input
                type="email"
-               className={`form-control ${errors.email ? 'is-invalid' : ''}`}
+               className={`form-control ${errors.email ? "is-invalid" : ""}`}
                id="floatingInput"
                placeholder="Correo electrónico"
                name="email"
@@ -195,14 +195,12 @@ export const LoginPage = () => {
                onChange={handleInputChange}
                aria-label="Email"
             />
-            {errors.email && (
-               <div className="text-danger mt-1">{errors.email}</div>
-            )}
+            {errors.email && <div className="text-danger mt-1">{errors.email}</div>}
          </div>
          <div className="mb-3 position-relative">
             <input
                type={showPassword ? "text" : "password"}
-               className={`form-control ${errors.password ? 'is-invalid' : ''}`}
+               className={`form-control ${errors.password ? "is-invalid" : ""}`}
                id="floatingInput1"
                placeholder="Contraseña"
                name="password"
@@ -221,9 +219,7 @@ export const LoginPage = () => {
                   aria-hidden="true"
                ></i>
             </button>
-            {errors.password && (
-               <div className="text-danger mt-1">{errors.password}</div>
-            )}
+            {errors.password && <div className="text-danger mt-1">{errors.password}</div>}
          </div>
          <div className="d-flex mt-1 justify-content-between align-items-center">
             <div className="form-check">
@@ -259,6 +255,7 @@ export const LoginPage = () => {
                Iniciar sesión
             </button>
          </div>
+         
       </AuthLayout>
    );
 };

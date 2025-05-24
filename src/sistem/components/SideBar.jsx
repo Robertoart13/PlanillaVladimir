@@ -1,4 +1,4 @@
-export const SideBar = ({ toggleSidebar, isSidebarOpen }) => {
+export const SideBar = ({ toggleSidebar, isSidebarOpen, isMobile }) => {
     return (
         <>
             <header className="pc-header">
@@ -8,7 +8,7 @@ export const SideBar = ({ toggleSidebar, isSidebarOpen }) => {
                             <li className="pc-h-item pc-sidebar-collapse">
                                 <a href="#" className="pc-head-link ms-0" id="sidebar-hide" onClick={(e) => {
                                     e.preventDefault();
-                                    toggleSidebar();
+                                    toggleSidebar(1);
                                 }}>
                                     <i className="ti ti-menu-2"></i>
                                 </a>
@@ -16,7 +16,7 @@ export const SideBar = ({ toggleSidebar, isSidebarOpen }) => {
                             <li className="pc-h-item pc-sidebar-popup">
                                 <a href="#" className="pc-head-link ms-0" id="mobile-collapse" onClick={(e) => {
                                     e.preventDefault();
-                                    toggleSidebar();
+                                    toggleSidebar(2);
                                 }}>
                                     <i className="ti ti-menu-2"></i>
                                 </a>
