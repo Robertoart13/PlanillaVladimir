@@ -1,35 +1,50 @@
+import { useDispatch, useSelector } from "react-redux";
+import Avatar from "@mui/material/Avatar";
+import { useLocation } from 'react-router-dom';
 export const NavBar = ({ isSidebarOpen, isMobile }) => {
+   const { user } = useSelector((state) => state.auth);
+   const location = useLocation();
 
-   console.log(isSidebarOpen);
-   console.log(isMobile);
-   console.log("****");
+   const getActiveClass = (path) => {
+      return location.pathname.includes(path) ? 'active' : '';
+   };
+
+
    return (
-      <nav className={`pc-sidebar ${!isSidebarOpen ? "pc-sidebar-hide" : (isMobile ? "mob-sidebar-active" : "")}`}>
+      <nav
+         className={`pc-sidebar ${!isSidebarOpen ? "pc-sidebar-hide" : isMobile ? "mob-sidebar-active" : ""
+            }`}
+      >
          <div className="navbar-wrapper">
             <div className="m-header">
                <a
-                  style={{ display: "flex", justifyContent: "center", alignItems: "center" , paddingTop: "8%" }}
+                  style={{
+                     display: "flex",
+                     justifyContent: "center",
+                     alignItems: "center",
+                     paddingTop: "8%",
+                  }}
                   href="/"
                   className="b-brand text-primary"
                >
-        
-                     <img
-                        src="/img/1.png"
-                        style={{ width: "75%", height: "auto"  }}
-                        alt="Sistema de Planilla"
-                        className="logo-lg"
-                     />
-          
-
+                  <img
+                     src="/img/1.png"
+                     style={{ width: "75%", height: "auto" }}
+                     alt="Sistema de Planilla"
+                     className="logo-lg"
+                  />
                </a>
             </div>
-            <div className={`navbar-content ${isSidebarOpen ? "pc-trigger simplebar-scrollable-y" : ""}`}>
+            <div
+               className={`navbar-content ${isSidebarOpen ? "pc-trigger simplebar-scrollable-y" : ""
+                  }`}
+            >
                <ul className="pc-navbar">
                   <li className="pc-item pc-caption">
                      <label data-i18n="Navigation">Navigation</label>
                      <i className="ph-duotone ph-gauge"></i>
                   </li>
-                  <li className="pc-item" >
+                  <li className={`pc-item ${getActiveClass('/')}`}>
                      <a
                         href="../other/sample-page.html"
                         className="pc-link"
@@ -46,12 +61,11 @@ export const NavBar = ({ isSidebarOpen, isMobile }) => {
                      </a>
                   </li>
 
-
                   <li className="pc-item pc-caption">
                      <label data-i18n="Menus">Menus</label>
                      <i className="ph-duotone ph-gauge"></i>
                   </li>
-                  <li className="pc-item" >
+                  <li className={`pc-item ${getActiveClass('/empleado')}`}>
                      <a
                         href="../other/sample-page.html"
                         className="pc-link"
@@ -67,7 +81,7 @@ export const NavBar = ({ isSidebarOpen, isMobile }) => {
                         </span>
                      </a>
                   </li>
-                  <li className="pc-item">
+                  <li className={`pc-item ${getActiveClass('/clientes')}`}>
                      <a
                         href="../other/sample-page.html"
                         className="pc-link"
@@ -83,7 +97,7 @@ export const NavBar = ({ isSidebarOpen, isMobile }) => {
                         </span>
                      </a>
                   </li>
-                  <li className="pc-item">
+                  <li className={`pc-item ${getActiveClass('/planillas')}`}>
                      <a
                         href="../other/sample-page.html"
                         className="pc-link"
@@ -99,7 +113,7 @@ export const NavBar = ({ isSidebarOpen, isMobile }) => {
                         </span>
                      </a>
                   </li>
-                  <li className="pc-item">
+                  <li className={`pc-item ${getActiveClass('/calendario')}`}>
                      <a
                         href="../other/sample-page.html"
                         className="pc-link"
@@ -116,16 +130,25 @@ export const NavBar = ({ isSidebarOpen, isMobile }) => {
                      </a>
                   </li>
                </ul>
-               <div className="card pc-user-card" style={{  marginTop: "50px" }}>
+               <div
+                  className="card pc-user-card"
+                  style={{ marginTop: "50px" }}
+               >
                   <div className="card-body">
                      <div className="d-flex align-items-center">
                         <div className="flex-shrink-0">
-                           <img
-                           
-                              src="/img/users.png"
-                              alt="user-image"
-                              className="user-avtar wid-35 rounded-circle"
-                           />
+                           <div className="flex-shrink-0">
+                              <Avatar
+                                 className="user-avtar wid-35 rounded-circle"
+                                 style={{ backgroundColor: "black", color: "white" }}
+                              >
+                                 {user.name
+                                    .split(" ")
+                                    .slice(0, 2)
+                                    .map((n) => n[0])
+                                    .join("")}
+                              </Avatar>
+                           </div>
                         </div>
                         <div className="flex-grow-1 ms-3">
                            <div className="dropdown">
@@ -137,8 +160,13 @@ export const NavBar = ({ isSidebarOpen, isMobile }) => {
                                  data-bs-offset="0,20"
                               >
                                  <div className="d-flex align-items-center">
-                                    <div className="flex-grow-1 me-2">
-                                       <h6 className="mb-0">Jonh Smith</h6>
+                                    <div className="flex-grow-1 me-1">
+                                       <h6 className="mb-0">  {(() => {
+                                          const words = user.name.split(' ');
+                                          if (words.length <= 2) return user.name;
+                                          return words.slice(0, 2).join(' ') + '...';
+                                       })()}
+                                       </h6>
                                        <small>Administrator</small>
                                     </div>
                                     <div className="flex-shrink-0">
@@ -182,7 +210,6 @@ export const NavBar = ({ isSidebarOpen, isMobile }) => {
                   </div>
                </div>
             </div>
-
          </div>
       </nav>
    );

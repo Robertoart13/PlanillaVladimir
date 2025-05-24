@@ -1,4 +1,14 @@
+import { useDispatch, useSelector } from "react-redux";
+import { logout } from "../../store/auth/authThunk";
+import Avatar from "@mui/material/Avatar";
 export const SideBar = ({ toggleSidebar, isSidebarOpen, isMobile }) => {
+   const { user } = useSelector((state) => state.auth);
+
+   const dispatch = useDispatch();
+
+   const handleLogout = () => {
+      dispatch(logout());
+   };
    return (
       <>
          <header className="pc-header">
@@ -292,11 +302,16 @@ export const SideBar = ({ toggleSidebar, isSidebarOpen, isMobile }) => {
                            data-bs-auto-close="outside"
                            aria-expanded="false"
                         >
-                           <img
-                              src="/img/users.png"
-                              alt="user-image"
-                              className="user-avtar"
-                           />
+                           <Avatar
+                              className="user-avtar wid-35 rounded-circle"
+                              style={{ backgroundColor: "black", color: "white" }}
+                           >
+                              {user.name
+                                 .split(" ")
+                                 .slice(0, 2)
+                                 .map((n) => n[0])
+                                 .join("")}
+                           </Avatar>
                         </a>
                         <div className="dropdown-menu dropdown-user-profile dropdown-menu-end pc-h-dropdown">
                            <div className="dropdown-header d-flex align-items-center justify-content-between">
@@ -311,19 +326,24 @@ export const SideBar = ({ toggleSidebar, isSidebarOpen, isMobile }) => {
                                     <li className="list-group-item">
                                        <div className="d-flex align-items-center">
                                           <div className="flex-shrink-0">
-                                             <img
-                                                src="/img/users.png"
-                                                alt="user-image"
-                                                className="wid-40 rounded-circle"
-                                             />
+                                             <Avatar
+                                                className="user-avtar wid-35 rounded-circle"
+                                                style={{ backgroundColor: "black", color: "white" }}
+                                             >
+                                                {user.name
+                                                   .split(" ")
+                                                   .slice(0, 2)
+                                                   .map((n) => n[0])
+                                                   .join("")}
+                                             </Avatar>
                                           </div>
                                           <div className="flex-grow-1 mx-3">
-                                             <h5 className="mb-0">Carson Darrin</h5>
+                                             <h5 className="mb-0">{user.name}</h5>
                                              <a
                                                 className="link-primary"
                                                 href="mailto:carson.darrin@company.io"
                                              >
-                                                carson.darrin@company.io
+                                                {user.email}
                                              </a>
                                           </div>
                                           <span className="badge bg-primary">PRO</span>
