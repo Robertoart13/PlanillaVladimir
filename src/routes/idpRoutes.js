@@ -38,15 +38,22 @@ import Empleados_Listar from "../modules/02-Empleados/Empleados_ListaCompleta.js
  * Estos módulos manejan la lista de selecciones
  * ====================================================================================================================================
  */
-import Departamentos_Listar_select from "../modules/03-Selects/Departamentos_Lista.js";
-import Nacionalidad_Listar_select from "../modules/03-Selects/Nacionalidad_Lista.js";
-import Empresas_Listar_select from "../modules/03-Selects/Empresas_Lista.js";
-import Puesto_Listar_select from "../modules/03-Selects/Puestos_Lista.js";
-import TipoContrato_Listar_select from "../modules/03-Selects/TipoContrato.js";
-import Supervisor_Listar_select from "../modules/03-Selects/Supervisores.js";
+import Departamentos_Listar_select from "../modules/05-Selects/Departamentos_Lista.js";
+import Nacionalidad_Listar_select from "../modules/05-Selects/Nacionalidad_Lista.js";
+import Empresas_Listar_select from "../modules/05-Selects/Empresas_Lista.js";
+import Puesto_Listar_select from "../modules/05-Selects/Puestos_Lista.js";
+import TipoContrato_Listar_select from "../modules/05-Selects/TipoContrato.js";
+import Supervisor_Listar_select from "../modules/05-Selects/Supervisores.js";
 
 
 
+/**
+ * ====================================================================================================================================
+ * Importación de módulos relacionados con la Empleados
+ * Estos módulos manejan la lista de empleados
+ * ====================================================================================================================================
+ */
+import Empleados_Crear from "../modules/04-Empleados/Empleados_Crear.js";
 /** ====================================================================================================================================
  * @fileoverview Módulo de configuración de rutas para la aplicación.
  * Este archivo maneja la configuración de rutas, autenticación y gestión de solicitudes HTTP.
@@ -346,6 +353,19 @@ function getModulesConfig() {
             {
                path: "supervisores/select", // Ruta para la lista de supervisores
                method: "Supervisores_Listar_select", // Método que se ejecutará
+               isAuthRequired: true, // Requiere autenticación
+            },
+         ],
+      },
+      {
+         category: "Empleado", // Nombre del módulo
+         model: {
+            ...Empleados_Crear,
+         }, // Combinamos ambos modelos
+         routes: [
+            {
+               path: "empleado/crear", // Ruta para la lista de empleados
+               method: "crearTransaccion", // Método que se ejecutará
                isAuthRequired: true, // Requiere autenticación
             },
          ],

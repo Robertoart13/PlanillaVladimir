@@ -4,7 +4,7 @@
  * @requires ../../mysql2-promise/mysql2-promise
  * @requires ../../hooks/realizarValidacionesIniciales
  * @requires ../../hooks/crearRespuestaExitosa
- * @requires ../../hooks/verificarPermisosUsuario
+ * 
  *
  * Este módulo proporciona funcionalidades para consultar y listar los registros
  * disponibles en el sistema, con validaciones de permisos y manejo de errores.
@@ -25,27 +25,7 @@ import { crearRespuestaErrorCrear } from "../../hooks/crearRespuestaErrorCrear.j
 const QUERIES = {
    // Consulta SQL para obtener todos los registros de la tabla
    QUERIES_SELECT: `
-        SELECT 
-    e.*,
-    em.nombre_empresa,
-    p.nombre_puesto,
-    d.nombre_departamento,
-    tc.nombre_tipo_contrato,
-    n.nombre_nacionalidad,
-    u.nombre_usuario AS nombre_supervisor,
-    GROUP_CONCAT(ci.numero_cuenta_iban SEPARATOR ', ') AS cuentas_iban
-
-FROM empleados_tbl e
-LEFT JOIN empresas_tbl em ON e.id_empresa = em.id_empresa
-LEFT JOIN puestos_tbl p ON e.id_puesto = p.id_puesto
-LEFT JOIN departamentos_tbl d ON e.id_departamento = d.id_departamento
-LEFT JOIN tipos_contrato_tbl tc ON e.id_tipo_contrato = tc.id_tipo_contrato
-LEFT JOIN nacionalidades_tbl n ON e.id_nacionalidad = n.id_nacionalidad
-LEFT JOIN usuarios_tbl u ON e.id_supervisor = u.id_usuario
-LEFT JOIN cuentas_iban_tbl ci ON e.id_empleado = ci.id_empleado
-
-GROUP BY e.id_empleado;
-;
+         SELECT * FROM empresas_tbl;
 
       `,
 };
@@ -118,9 +98,11 @@ const esConsultarExitosa = (resultado) => {
  */
 const obtenerListaCompleta = async (req, res) => {
    try {
+   
       // 1. Validar los datos iniciales de la solicitud (por ejemplo, formato y autenticidad de los datos).
-      const errorValidacion = await realizarValidacionesIniciales(res);
+       const errorValidacion = await realizarValidacionesIniciales(res);
       if (errorValidacion) return errorValidacion; // Si hay un error en la validación, lo retorna inmediatamente.
+
 
       // 3. Obtener los datos de la base de datos una vez validados los permisos.
       const resultado = await obtenerTodosDatos(res?.database);
@@ -149,8 +131,8 @@ const obtenerListaCompleta = async (req, res) => {
  * Este módulo expone la funcionalidad de obtener la lista completa, entre otras.
  * ====================================================================================================================================
  */
-const Empleados_Listar = {
-   obtenerListaCompleta, // Método que obtiene la lista completa, con validaciones y permisos.
+const Empresas_Listar = {
+    obtenerListaCompleta, // Método que obtiene la lista completa, con validaciones y permisos.
 };
 
-export default Empleados_Listar;
+export default Empresas_Listar;   
