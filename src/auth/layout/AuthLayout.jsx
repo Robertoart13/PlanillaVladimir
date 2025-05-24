@@ -4,7 +4,7 @@ export const AuthLayout = ({ children }) => {
         <div className="auth-main v1">
             <div className="auth-wrapper">
                 <div className="auth-form">
-                    <div className="card my-5">
+                    <div className="card my-6">
                         <div className="card-body">
                             {/* {sasas} */}
                            {children}
