@@ -3,8 +3,8 @@ import { SideBar } from "../components/SideBar";
 import { useState, useEffect, useRef } from "react";
 
 export const SistemLayout = ({ children }) => {
-   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-   const [isMobile, setIsMobile] = useState(false);
+   const [isMobile, setIsMobile] = useState(window.innerWidth <= 992);
+   const [isSidebarOpen, setIsSidebarOpen] = useState(!isMobile);
    const sidebarRef = useRef(null);
 
    useEffect(() => {
@@ -24,6 +24,7 @@ export const SistemLayout = ({ children }) => {
             sidebarRef.current &&
             !sidebarRef.current.contains(event.target)
          ) {
+            
             setIsSidebarOpen(false);
          }
       };

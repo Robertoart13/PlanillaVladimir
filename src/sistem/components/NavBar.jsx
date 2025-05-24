@@ -1,4 +1,8 @@
 export const NavBar = ({ isSidebarOpen, isMobile }) => {
+
+   console.log(isSidebarOpen);
+   console.log(isMobile);
+   console.log("****");
    return (
       <nav className={`pc-sidebar ${!isSidebarOpen ? "pc-sidebar-hide" : (isMobile ? "mob-sidebar-active" : "")}`}>
          <div className="navbar-wrapper">
