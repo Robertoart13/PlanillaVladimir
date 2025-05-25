@@ -78,7 +78,14 @@ export const CrearEmpleado = () => {
    const handleSubmit = (e) => {
       e.preventDefault();
       setSubmitted(true);
-      if (Object.values(formData).some((field) => field === "" || field === "default")) {
+      console.log('formData:', formData); // Debugging line
+      // Exclude cuentas_bancarias and id_empleado from empty field validation
+      const fieldsToValidate = { ...formData };
+      delete fieldsToValidate.cuentas_bancarias;
+      delete fieldsToValidate.id_empleado;
+      const emptyFields = Object.entries(fieldsToValidate).filter(([key, value]) => value === "" || value === "default");
+      if (emptyFields.length > 0) {
+         console.log('Empty fields:', emptyFields.map(([key]) => key)); // Log empty fields
          setError(true);
          setMessage("Todos los campos deben estar llenos.");
          return;
