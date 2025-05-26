@@ -1,90 +1,131 @@
 import { ErrorMessage } from "../../../components/ErrorMessage/ErrorMessage";
 import { TarjetaRow } from "../../../components/TarjetaRow/TarjetaRow";
-import { useMemo, useRef, useState } from "react";
+import { useState } from "react";
 import { TextField, Select, MenuItem, Button, Grid } from "@mui/material";
 import Swal from "sweetalert2";
 import { Empresa_Crear_Thunks } from "../../../../store/Empresa/Empresa_Crear_Thunks";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
+
+/**
+ * Componente principal para crear una nueva empresa.
+ * @returns {JSX.Element} El componente de creación de empresa.
+ */
 export const CrearEmpresa = () => {
+   // Estado para manejar errores y mensajes
    const [error, setError] = useState(false);
    const [message, setMessage] = useState("");
    const [submitted, setSubmitted] = useState(false);
    const dispatch = useDispatch();
    const navigate = useNavigate();
-   const [formData, setFormData] = useState({
-      nombre_comercial: "",
-      nombre_razon_social: "",
-      cedula_juridica: "",
-      nombre_contacto: "",
-      correo_contacto: "",
-      correo_facturacion: "",
-      direccion: "",
-   });
+   const [formData, setFormData] = useState(initializeFormData());
 
-   const handleChange = (e) => {
+   /**
+    * Inicializa los datos del formulario.
+    * @returns {Object} Objeto con los campos del formulario inicializados.
+    */
+   function initializeFormData() {
+      return {
+         nombre_comercial: "",
+         nombre_razon_social: "",
+         cedula_juridica: "",
+         nombre_contacto: "",
+         correo_contacto: "",
+         correo_facturacion: "",
+         direccion: "",
+      };
+   }
+
+   /**
+    * Maneja el cambio de los campos del formulario.
+    * @param {Object} e - Evento de cambio del input.
+    */
+   function handleChange(e) {
       const { name, value } = e.target;
       setFormData({ ...formData, [name]: value });
-   };
+   }
 
-   const handleSubmit = (e) => {
-      e.preventDefault();
-      setSubmitted(true);
+   /**
+    * Valida los campos del formulario.
+    * @returns {boolean} Verdadero si el formulario es válido, falso de lo contrario.
+    */
+   function validateForm() {
       if (Object.values(formData).some((field) => field === "")) {
          setError(true);
          setMessage("Todos los campos deben estar llenos.");
-         return;
+         return false;
       }
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(formData.correo_contacto) || !emailRegex.test(formData.correo_facturacion)) {
          setError(true);
          setMessage("Por favor, ingrese correos electrónicos válidos.");
-         return;
+         return false;
       }
       setError(false);
       setMessage("");
-      Swal.fire({
+      return true;
+   }
+
+   /**
+    * Maneja el envío del formulario.
+    * @param {Object} e - Evento de envío del formulario.
+    */
+   async function handleSubmit(e) {
+      e.preventDefault();
+      setSubmitted(true);
+      if (!validateForm()) return;
+
+      const userConfirmed = await showConfirmationDialog();
+      if (userConfirmed) {
+         await createEmpresa();
+      }
+   }
+
+   /**
+    * Muestra un diálogo de confirmación al usuario.
+    * @returns {Promise<boolean>} Promesa que resuelve a verdadero si el usuario confirma, falso de lo contrario.
+    */
+   function showConfirmationDialog() {
+      return Swal.fire({
          title: "¿Está seguro?",
          text: "Confirma que desea crear una nueva empresa.",
          icon: "warning",
          showCancelButton: true,
          confirmButtonText: "Sí, crear",
          cancelButtonText: "Cancelar",
-      }).then(async (result) => {
-         if (result.isConfirmed) {
-            Swal.fire({
-               title: "Creando empresa",
-               text: "Por favor espere...",
-               allowOutsideClick: false,
-               didOpen: () => {
-                  Swal.showLoading();
-               },
-            });
-            const respuesta = await dispatch(Empresa_Crear_Thunks(formData));
-            if (respuesta.success) {
-               Swal.fire("¡Creado!", "La empresa ha sido creada exitosamente.", "success").then(
-                  () => {
-                     navigate("/empresas/lista");
-                     setFormData({
-                        nombre_comercial: "",
-                        nombre_razon_social: "",
-                        cedula_juridica: "",
-                        nombre_contacto: "",
-                        correo_contacto: "",
-                        correo_facturacion: "",
-                        direccion: "",
-                     });
-                  },
-               );
-            } else {
-               Swal.close();
-               setMessage(respuesta.message);
-            }
-         }
-      });
-   };
+      }).then((result) => result.isConfirmed);
+   }
 
-   const getInputStyle = (field) => {
+   /**
+    * Crea una nueva empresa utilizando los datos del formulario.
+    */
+   async function createEmpresa() {
+      Swal.fire({
+         title: "Creando empresa",
+         text: "Por favor espere...",
+         allowOutsideClick: false,
+         didOpen: () => {
+            Swal.showLoading();
+         },
+      });
+      const respuesta = await dispatch(Empresa_Crear_Thunks(formData));
+      if (respuesta.success) {
+         Swal.fire("¡Creado!", "La empresa ha sido creada exitosamente.", "success").then(() => {
+            navigate("/empresas/lista");
+            setFormData(initializeFormData());
+         });
+      } else {
+         Swal.close();
+         setMessage(respuesta.message);
+      }
+   }
+
+   /**
+    * Obtiene el estilo de los inputs basado en la validación.
+    * @param {string} field - Nombre del campo a validar.
+    * @returns {Object} Estilo CSS para el input.
+    */
+   function getInputStyle(field) {
       if (submitted && formData[field] === "") {
          return { border: "1px solid red" };
       }
@@ -95,7 +136,7 @@ export const CrearEmpresa = () => {
          }
       }
       return { border: "1px solid #ced4da" };
-   };
+   }
 
    return (
       <TarjetaRow
@@ -112,133 +153,15 @@ export const CrearEmpresa = () => {
          <div className="card-body">
             <div className="row">
                <div className="col-md-6">
-                  <div className="mb-3">
-                     <label
-                        className="form-label"
-                        htmlFor="nombre_comercial"
-                     >
-                        Nombre Comercial
-                     </label>
-                     <input
-                        type="text"
-                        style={getInputStyle("nombre_comercial")}
-                        className="form-control"
-                        id="nombre_comercial"
-                        name="nombre_comercial"
-                        value={formData.nombre_comercial}
-                        onChange={handleChange}
-                        placeholder="Enter commercial name"
-                     />
-                  </div>
-                  <div className="mb-3">
-                     <label
-                        className="form-label"
-                        htmlFor="nombre_razon_social"
-                     >
-                        Nombre de Razón Social
-                     </label>
-                     <input
-                        type="text"
-                        style={getInputStyle("nombre_razon_social")}
-                        className="form-control"
-                        id="nombre_razon_social"
-                        name="nombre_razon_social"
-                        value={formData.nombre_razon_social}
-                        onChange={handleChange}
-                        placeholder="Enter social reason name"
-                     />
-                  </div>
-                  <div className="mb-3">
-                     <label
-                        className="form-label"
-                        htmlFor="cedula_juridica"
-                     >
-                        Cédula Jurídica
-                     </label>
-                     <input
-                        type="text"
-                        style={getInputStyle("cedula_juridica")}
-                        className="form-control"
-                        id="cedula_juridica"
-                        name="cedula_juridica"
-                        value={formData.cedula_juridica}
-                        onChange={handleChange}
-                        placeholder="Enter legal ID"
-                     />
-                  </div>
+                  {renderInputField("nombre_comercial", "Nombre Comercial", "Enter commercial name")}
+                  {renderInputField("nombre_razon_social", "Nombre de Razón Social", "Enter social reason name")}
+                  {renderInputField("cedula_juridica", "Cédula Jurídica", "Enter legal ID")}
                </div>
                <div className="col-md-6">
-                  <div className="mb-3">
-                     <label
-                        className="form-label"
-                        htmlFor="nombre_contacto"
-                     >
-                        Nombre de Contacto
-                     </label>
-                     <input
-                        type="text"
-                        style={getInputStyle("nombre_contacto")}
-                        className="form-control"
-                        id="nombre_contacto"
-                        name="nombre_contacto"
-                        value={formData.nombre_contacto}
-                        onChange={handleChange}
-                        placeholder="Enter contact name"
-                     />
-                  </div>
-                  <div className="mb-3">
-                     <label
-                        className="form-label"
-                        htmlFor="correo_contacto"
-                     >
-                        Correo de Contacto
-                     </label>
-                     <input
-                        type="text"
-                        style={getInputStyle("correo_contacto")}
-                        className="form-control"
-                        id="correo_contacto"
-                        name="correo_contacto"
-                        value={formData.correo_contacto}
-                        onChange={handleChange}
-                        placeholder="Enter contact email"
-                     />
-                  </div>
-                  <div className="mb-3">
-                     <label
-                        className="form-label"
-                        htmlFor="correo_facturacion"
-                     >
-                        Correo de Facturación
-                     </label>
-                     <input
-                        type="text"
-                        style={getInputStyle("correo_facturacion")}
-                        className="form-control"
-                        id="correo_facturacion"
-                        name="correo_facturacion"
-                        value={formData.correo_facturacion}
-                        onChange={handleChange}
-                        placeholder="Enter billing email"
-                     />
-                  </div>
-                  <div className="mb-3">
-                     <label
-                        className="form-label"
-                        htmlFor="direccion"
-                     >
-                        Dirección
-                     </label>
-                     <textarea
-                        style={getInputStyle("direccion")}
-                        className="form-control"
-                        id="direccion"
-                        name="direccion"
-                        value={formData.direccion}
-                        onChange={handleChange}
-                        rows="3"
-                     ></textarea>
-                  </div>
+                  {renderInputField("nombre_contacto", "Nombre de Contacto", "Enter contact name")}
+                  {renderInputField("correo_contacto", "Correo de Contacto", "Enter contact email")}
+                  {renderInputField("correo_facturacion", "Correo de Facturación", "Enter billing email")}
+                  {renderTextAreaField("direccion", "Dirección", "Enter address")}
                </div>
             </div>
             <button
@@ -250,4 +173,54 @@ export const CrearEmpresa = () => {
          </div>
       </TarjetaRow>
    );
+
+   /**
+    * Renderiza un campo de entrada de texto.
+    * @param {string} field - Nombre del campo.
+    * @param {string} label - Etiqueta del campo.
+    * @param {string} placeholder - Texto de marcador de posición.
+    * @returns {JSX.Element} El campo de entrada de texto.
+    */
+   function renderInputField(field, label, placeholder) {
+      return (
+         <div className="mb-3">
+            <label className="form-label" htmlFor={field}>{label}</label>
+            <input
+               type="text"
+               style={getInputStyle(field)}
+               className="form-control"
+               id={field}
+               name={field}
+               value={formData[field]}
+               onChange={handleChange}
+               placeholder={placeholder}
+            />
+         </div>
+      );
+   }
+
+   /**
+    * Renderiza un campo de área de texto.
+    * @param {string} field - Nombre del campo.
+    * @param {string} label - Etiqueta del campo.
+    * @param {string} placeholder - Texto de marcador de posición.
+    * @returns {JSX.Element} El campo de área de texto.
+    */
+   function renderTextAreaField(field, label, placeholder) {
+      return (
+         <div className="mb-3">
+            <label className="form-label" htmlFor={field}>{label}</label>
+            <textarea
+               style={getInputStyle(field)}
+               className="form-control"
+               id={field}
+               name={field}
+               value={formData[field]}
+               onChange={handleChange}
+               placeholder={placeholder}
+               rows="3"
+            ></textarea>
+         </div>
+      );
+   }
 };

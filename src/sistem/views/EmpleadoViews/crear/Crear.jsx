@@ -9,39 +9,152 @@ import { useNavigate } from "react-router-dom";
 import { SelectOpcion_Thunks } from "../../../../store/SelectOpcion/SelectOpcion_Thunks";
 import { Empleado_Crear_Thunks } from "../../../../store/Empleado/Empleado_Crear_Thunks";
 
+// Función para inicializar el estado del formulario
+const inicializarEstadoFormulario = () => ({
+   id_empleado: "",
+   nombre_empleado: "",
+   apellidos_empleado: "",
+   cedula_empleado: "",
+   fecha_vencimiento_cedula_empleado: "",
+   fecha_nacimiento_empleado: "",
+   estado_civil_empleado: "",
+   correo_empleado: "",
+   telefono_empleado: "",
+   direccion_empleado: "",
+   fecha_ingreso_empleado: "",
+   fecha_salida_empleado: "",
+   jornada_laboral_empleado: "",
+   horario_empleado: "",
+   salario_empleado: "",
+   id_nacionalidad: "",
+   id_tipo_contrato: "",
+   id_departamento: "",
+   id_puesto: "",
+   id_supervisor: "",
+   id_empresa: "",
+   cuentas_bancarias: [""],
+   ministerio_hacienda: false,
+   rt_ins: false,
+   caja_costarricense_seguro_social: false,
+});
+
+// Función para validar campos vacíos
+const validarCamposVacios = (campos) => {
+   const camposExcluidos = ['cuentas_bancarias', 'id_empleado', 'fecha_salida_empleado'];
+   return Object.entries(campos)
+      .filter(([key, value]) => !camposExcluidos.includes(key) && (value === "" || value === "default"));
+};
+
+// Función para validar el formato del correo electrónico
+const validarCorreoElectronico = (correo) => {
+   const regexCorreo = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+   return regexCorreo.test(correo);
+};
+
+// Función para manejar el cambio de estado del formulario
+const manejarCambioFormulario = (e, setFormData, formData) => {
+   const { name, value } = e.target;
+   setFormData({ ...formData, [name]: value });
+};
+
+// Función para manejar el envío del formulario
+const manejarEnvioFormulario = async (e, formData, setError, setMessage, dispatch, navigate, setFormData, cuentasBancarias, setSubmitted) => {
+   e.preventDefault();
+   setSubmitted(true);
+   const camposVacios = validarCamposVacios(formData);
+   if (camposVacios.length > 0) {
+      setError(true);
+      setMessage("Todos los campos deben estar llenos.");
+      Swal.fire({
+         title: "Error",
+         text: "Todos los campos deben estar llenos. el campo de fecha de salida del empleado es opcional.",
+         icon: "error",
+         confirmButtonText: "Aceptar"
+      });
+      return;
+   }
+   if (!validarCorreoElectronico(formData.correo_empleado)) {
+      setError(true);
+      setMessage("Por favor, ingrese un correo electrónico válido.");
+      return;
+   }
+   setError(false);
+   setMessage("");
+   Swal.fire({
+      title: "¿Está seguro?",
+      text: "Confirma que desea crear un nuevo empleado.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Sí, crear",
+      cancelButtonText: "Cancelar",
+   }).then(async (result) => {
+      if (result.isConfirmed) {
+         Swal.fire({
+            title: "Creando empleado",
+            text: "Por favor espere...",
+            allowOutsideClick: false,
+            didOpen: () => {
+               Swal.showLoading();
+            },
+         });
+         const respuesta = await dispatch(Empleado_Crear_Thunks({ ...formData, cuentas_bancarias: cuentasBancarias }));
+         if (respuesta.success) {
+            Swal.fire("¡Creado!", "El empleado ha sido creado exitosamente.", "success").then(() => {
+               navigate("/empleados/lista");
+               setFormData(inicializarEstadoFormulario());
+            });
+         } else {
+            setError(true);
+            setMessage(respuesta.message);
+            Swal.fire({
+               title: "Error",
+               text: respuesta.message || "Ocurrió un error inesperado.",
+               icon: "error",
+               confirmButtonText: "Aceptar"
+            });
+         }
+      }
+   });
+};
+
+// Función para obtener el estilo de entrada
+const obtenerEstiloEntrada = (campo, formData, submitted) => {
+   if (submitted && formData[campo] === "" && campo !== "fecha_salida_empleado") {
+      return { border: "1px solid red" };
+   }
+   if (campo === "correo_empleado" && submitted) {
+      if (!validarCorreoElectronico(formData.correo_empleado)) {
+         return { border: "1px solid red" };
+      }
+   }
+   return { border: "1px solid #ced4da" };
+};
+
+// Función para manejar el cambio de cuentas bancarias
+const manejarCambioCuenta = (index, value, cuentasBancarias, setCuentasBancarias) => {
+   const nuevasCuentas = [...cuentasBancarias];
+   nuevasCuentas[index] = value;
+   setCuentasBancarias(nuevasCuentas);
+};
+
+// Función para agregar una nueva cuenta bancaria
+const agregarCuentaBancaria = (cuentasBancarias, setCuentasBancarias) => {
+   setCuentasBancarias([...cuentasBancarias, ""]);
+};
+
+// Función para eliminar una cuenta bancaria
+const eliminarCuentaBancaria = (index, cuentasBancarias, setCuentasBancarias) => {
+   const nuevasCuentas = cuentasBancarias.filter((_, i) => i !== index);
+   setCuentasBancarias(nuevasCuentas);
+};
+
 export const CrearEmpleado = () => {
    const [error, setError] = useState(false);
    const [message, setMessage] = useState("");
-   const [submitted, setSubmitted] = useState(false); // Nuevo estado
+   const [submitted, setSubmitted] = useState(false);
    const dispatch = useDispatch();
    const navigate = useNavigate();
-   const [formData, setFormData] = useState({
-      id_empleado: "",
-      nombre_empleado: "",
-      apellidos_empleado: "",
-      cedula_empleado: "",
-      fecha_vencimiento_cedula_empleado: "",
-      fecha_nacimiento_empleado: "",
-      estado_civil_empleado: "",
-      correo_empleado: "",
-      telefono_empleado: "",
-      direccion_empleado: "",
-      fecha_ingreso_empleado: "",
-      fecha_salida_empleado: "",
-      jornada_laboral_empleado: "",
-      horario_empleado: "",
-      salario_empleado: "",
-      id_nacionalidad: "",
-      id_tipo_contrato: "",
-      id_departamento: "",
-      id_puesto: "",
-      id_supervisor: "",
-      id_empresa: "",
-      cuentas_bancarias: [""],
-      ministerio_hacienda: false,
-      rt_ins: false,
-      caja_costarricense_seguro_social: false,
-   });
+   const [formData, setFormData] = useState(inicializarEstadoFormulario());
    const [cuentasBancarias, setCuentasBancarias] = useState([""]);
    const [departamentos, setDepartamentos] = useState([]);
    const [nacionalidades, setNacionalidades] = useState([]);
@@ -73,125 +186,6 @@ export const CrearEmpleado = () => {
       fetchSelectOptions();
    }, [dispatch]);
 
-   const handleChange = (e) => {
-      const { name, value } = e.target;
-      setFormData({ ...formData, [name]: value });
-   };
-
-   const handleSubmit = (e) => {
-      e.preventDefault();
-      setSubmitted(true);
-
-      // Exclude cuentas_bancarias, id_empleado, and fecha_salida_empleado from empty field validation
-      const fieldsToValidate = { ...formData };
-      delete fieldsToValidate.cuentas_bancarias;
-      delete fieldsToValidate.id_empleado;
-      delete fieldsToValidate.fecha_salida_empleado;
-      const emptyFields = Object.entries(fieldsToValidate).filter(([key, value]) => value === "" || value === "default");
-      if (emptyFields.length > 0) {
-         setError(true);
-         setMessage("Todos los campos deben estar llenos.");
-         return;
-      }
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(formData.correo_empleado)) {
-         setError(true);
-         setMessage("Por favor, ingrese un correo electrónico válido.");
-         return;
-      }
-      // Limpiar mensajes de error si todo es válido
-      setError(false);
-      setMessage("");
-      Swal.fire({
-         title: "¿Está seguro?",
-         text: "Confirma que desea crear un nuevo empleado.",
-         icon: "warning",
-         showCancelButton: true,
-         confirmButtonText: "Sí, crear",
-         cancelButtonText: "Cancelar",
-      }).then(async (result) => {
-         if (result.isConfirmed) {
-            Swal.fire({
-               title: "Creando empleado",
-               text: "Por favor espere...",
-               allowOutsideClick: false,
-               didOpen: () => {
-                  Swal.showLoading();
-               },
-            });
-            const respuesta = await dispatch(Empleado_Crear_Thunks({ ...formData, cuentas_bancarias: cuentasBancarias }));
-            if (respuesta.success) {
-               Swal.fire("¡Creado!", "El empleado ha sido creado exitosamente.", "success").then(
-                  () => {
-                     navigate("/empleados/lista");
-
-                     setFormData({
-                        nombre_empleado: "",
-                        apellidos_empleado: "",
-                        cedula_empleado: "",
-                        fecha_vencimiento_cedula_empleado: "",
-                        fecha_nacimiento_empleado: "",
-                        estado_civil_empleado: "soltero",
-                        correo_empleado: "",
-                        telefono_empleado: "",
-                        direccion_empleado: "",
-                        fecha_ingreso_empleado: "",
-                        fecha_salida_empleado: "",
-                        jornada_laboral_empleado: "",
-                        horario_empleado: "",
-                        salario_empleado: "",
-                        id_nacionalidad: "",
-                        id_tipo_contrato: "",
-                        id_departamento: "",
-                        id_puesto: "",
-                        id_supervisor: "",
-                        id_empresa: "",
-                        cuentas_bancarias: [""],
-                     });
-                  },
-               );
-            } else {
-               setError(true);
-               setMessage(respuesta.message);
-               Swal.fire({
-                  title: "Error",
-                  text: respuesta.message || "Ocurrió un error inesperado.",
-                  icon: "error",
-                  confirmButtonText: "Aceptar"
-                });
-            }
-         }
-      });
-   };
-
-   const getInputStyle = (field) => {
-      if (submitted && formData[field] === "" && field !== "fecha_salida_empleado") {
-         return { border: "1px solid red" };
-      }
-      if (field === "correo_empleado" && submitted) {
-         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-         if (!emailRegex.test(formData.correo_empleado)) {
-            return { border: "1px solid red" };
-         }
-      }
-      return { border: "1px solid #ced4da" };
-   };
-
-   const handleAddCuenta = () => {
-      setCuentasBancarias([...cuentasBancarias, ""]);
-   };
-
-   const handleRemoveCuenta = (index) => {
-      const newCuentas = cuentasBancarias.filter((_, i) => i !== index);
-      setCuentasBancarias(newCuentas);
-   };
-
-   const handleCuentaChange = (index, value) => {
-      const newCuentas = [...cuentasBancarias];
-      newCuentas[index] = value;
-      setCuentasBancarias(newCuentas);
-   };
-
    return (
       <TarjetaRow
          texto="Crear un nuevo empleado"
@@ -216,12 +210,12 @@ export const CrearEmpleado = () => {
                      </label>
                      <input
                         type="text"
-                        style={getInputStyle("nombre_empleado")}
+                        style={obtenerEstiloEntrada("nombre_empleado", formData, submitted)}
                         className="form-control"
                         id="nombre_empleado"
                         name="nombre_empleado"
                         value={formData.nombre_empleado}
-                        onChange={handleChange}
+                        onChange={(e) => manejarCambioFormulario(e, setFormData, formData)}
                         placeholder="Enter employee name"
                      />
                   </div>
@@ -236,12 +230,12 @@ export const CrearEmpleado = () => {
                      </label>
                      <input
                         type="text"
-                        style={getInputStyle("apellidos_empleado")}
+                        style={obtenerEstiloEntrada("apellidos_empleado", formData, submitted)}
                         className="form-control"
                         id="apellidos_empleado"
                         name="apellidos_empleado"
                         value={formData.apellidos_empleado}
-                        onChange={handleChange}
+                        onChange={(e) => manejarCambioFormulario(e, setFormData, formData)}
                         placeholder="Enter employee last name"
                      />
                   </div>
@@ -258,12 +252,12 @@ export const CrearEmpleado = () => {
                      </label>
                      <input
                         type="email"
-                        style={getInputStyle("correo_empleado")}
+                        style={obtenerEstiloEntrada("correo_empleado", formData, submitted)}
                         className="form-control"
                         id="correo_empleado"
                         name="correo_empleado"
                         value={formData.correo_empleado}
-                        onChange={handleChange}
+                        onChange={(e) => manejarCambioFormulario(e, setFormData, formData)}
                         placeholder="Enter employee email"
                      />
                   </div>
@@ -278,12 +272,12 @@ export const CrearEmpleado = () => {
                      </label>
                      <input
                         type="text"
-                        style={getInputStyle("telefono_empleado")}
+                        style={obtenerEstiloEntrada("telefono_empleado", formData, submitted)}
                         className="form-control"
                         id="telefono_empleado"
                         name="telefono_empleado"
                         value={formData.telefono_empleado}
-                        onChange={handleChange}
+                        onChange={(e) => manejarCambioFormulario(e, setFormData, formData)}
                         placeholder="Enter employee phone"
                      />
                   </div>
@@ -299,12 +293,12 @@ export const CrearEmpleado = () => {
                         Dirección del empleado
                      </label>
                      <textarea
-                        style={getInputStyle("direccion_empleado")}
+                        style={obtenerEstiloEntrada("direccion_empleado", formData, submitted)}
                         className="form-control"
                         id="direccion_empleado"
                         name="direccion_empleado"
                         value={formData.direccion_empleado}
-                        onChange={handleChange}
+                        onChange={(e) => manejarCambioFormulario(e, setFormData, formData)}
                         rows="3"
                         placeholder="Enter employee address"
                      ></textarea>
@@ -319,12 +313,12 @@ export const CrearEmpleado = () => {
                         Nacionalidad
                      </label>
                      <select
-                        style={getInputStyle("id_nacionalidad")}
+                        style={obtenerEstiloEntrada("id_nacionalidad", formData, submitted)}
                         className="form-control"
                         id="id_nacionalidad"
                         name="id_nacionalidad"
                         value={formData.id_nacionalidad}
-                        onChange={handleChange}
+                        onChange={(e) => manejarCambioFormulario(e, setFormData, formData)}
                      >
                         <option value="">Seleccione una opción</option>
                         {loading ? (
@@ -356,12 +350,12 @@ export const CrearEmpleado = () => {
                      </label>
                      <input
                         type="text"
-                        style={getInputStyle("cedula_empleado")}
+                        style={obtenerEstiloEntrada("cedula_empleado", formData, submitted)}
                         className="form-control"
                         id="cedula_empleado"
                         name="cedula_empleado"
                         value={formData.cedula_empleado}
-                        onChange={handleChange}
+                        onChange={(e) => manejarCambioFormulario(e, setFormData, formData)}
                         placeholder="Enter employee ID"
                      />
                   </div>
@@ -376,12 +370,12 @@ export const CrearEmpleado = () => {
                      </label>
                      <input
                         type="date"
-                        style={getInputStyle("fecha_vencimiento_cedula_empleado")}
+                        style={obtenerEstiloEntrada("fecha_vencimiento_cedula_empleado", formData, submitted)}
                         className="form-control"
                         id="fecha_vencimiento_cedula_empleado"
                         name="fecha_vencimiento_cedula_empleado"
                         value={formData.fecha_vencimiento_cedula_empleado}
-                        onChange={handleChange}
+                        onChange={(e) => manejarCambioFormulario(e, setFormData, formData)}
                      />
                   </div>
                </div>
@@ -397,12 +391,12 @@ export const CrearEmpleado = () => {
                      </label>
                      <input
                         type="date"
-                        style={getInputStyle("fecha_nacimiento_empleado")}
+                        style={obtenerEstiloEntrada("fecha_nacimiento_empleado", formData, submitted)}
                         className="form-control"
                         id="fecha_nacimiento_empleado"
                         name="fecha_nacimiento_empleado"
                         value={formData.fecha_nacimiento_empleado}
-                        onChange={handleChange}
+                        onChange={(e) => manejarCambioFormulario(e, setFormData, formData)}
                      />
                   </div>
                </div>
@@ -415,12 +409,12 @@ export const CrearEmpleado = () => {
                         Estado civil
                      </label>
                      <select
-                        style={getInputStyle("estado_civil_empleado")}
+                        style={obtenerEstiloEntrada("estado_civil_empleado", formData, submitted)}
                         className="form-control"
                         id="estado_civil_empleado"
                         name="estado_civil_empleado"
                         value={formData.estado_civil_empleado}
-                        onChange={handleChange}
+                        onChange={(e) => manejarCambioFormulario(e, setFormData, formData)}
                      >
                         <option value="soltero">Soltero</option>
                         <option value="casado">Casado</option>
@@ -441,12 +435,12 @@ export const CrearEmpleado = () => {
                      </label>
                      <input
                         type="text"
-                        style={getInputStyle("horario_empleado")}
+                        style={obtenerEstiloEntrada("horario_empleado", formData, submitted)}
                         className="form-control"
                         id="horario_empleado"
                         name="horario_empleado"
                         value={formData.horario_empleado}
-                        onChange={handleChange}
+                        onChange={(e) => manejarCambioFormulario(e, setFormData, formData)}
                         placeholder="Enter schedule"
                      />
                   </div>
@@ -461,12 +455,12 @@ export const CrearEmpleado = () => {
                      </label>
                      <input
                         type="number"
-                        style={getInputStyle("salario_empleado")}
+                        style={obtenerEstiloEntrada("salario_empleado", formData, submitted)}
                         className="form-control"
                         id="salario_empleado"
                         name="salario_empleado"
                         value={formData.salario_empleado}
-                        onChange={handleChange}
+                        onChange={(e) => manejarCambioFormulario(e, setFormData, formData)}
                         placeholder="Enter salary"
                      />
                   </div>
@@ -482,12 +476,12 @@ export const CrearEmpleado = () => {
                         Tipo de Contrato
                      </label>
                      <select
-                        style={getInputStyle("id_tipo_contrato")}
+                        style={obtenerEstiloEntrada("id_tipo_contrato", formData, submitted)}
                         className="form-control"
                         id="id_tipo_contrato"
                         name="id_tipo_contrato"
                         value={formData.id_tipo_contrato}
-                        onChange={handleChange}
+                        onChange={(e) => manejarCambioFormulario(e, setFormData, formData)}
                      >
                         <option value="">Seleccione una opción</option>
                         {loading ? (
@@ -516,12 +510,12 @@ export const CrearEmpleado = () => {
                         Departamento
                      </label>
                      <select
-                        style={getInputStyle("id_departamento")}
+                        style={obtenerEstiloEntrada("id_departamento", formData, submitted)}
                         className="form-control"
                         id="id_departamento"
                         name="id_departamento"
                         value={formData.id_departamento}
-                        onChange={handleChange}
+                        onChange={(e) => manejarCambioFormulario(e, setFormData, formData)}
                      >
                         <option value="">Seleccione una opción</option>
                         {loading ? (
@@ -552,12 +546,12 @@ export const CrearEmpleado = () => {
                         Puesto
                      </label>
                      <select
-                        style={getInputStyle("id_puesto")}
+                        style={obtenerEstiloEntrada("id_puesto", formData, submitted)}
                         className="form-control"
                         id="id_puesto"
                         name="id_puesto"
                         value={formData.id_puesto}
-                        onChange={handleChange}
+                        onChange={(e) => manejarCambioFormulario(e, setFormData, formData)}
                      >
                         <option value="">Seleccione una opción</option>
                         {loading ? (
@@ -586,12 +580,12 @@ export const CrearEmpleado = () => {
                         Supervisor
                      </label>
                      <select
-                        style={getInputStyle("id_supervisor")}
+                        style={obtenerEstiloEntrada("id_supervisor", formData, submitted)}
                         className="form-control"
                         id="id_supervisor"
                         name="id_supervisor"
                         value={formData.id_supervisor}
-                        onChange={handleChange}
+                        onChange={(e) => manejarCambioFormulario(e, setFormData, formData)}
                      >
                         <option value="">Seleccione una opción</option>
                         {loading ? (
@@ -622,12 +616,12 @@ export const CrearEmpleado = () => {
                         Empresa
                      </label>
                      <select
-                        style={getInputStyle("id_empresa")}
+                        style={obtenerEstiloEntrada("id_empresa", formData, submitted)}
                         className="form-control"
                         id="id_empresa"
                         name="id_empresa"
                         value={formData.id_empresa}
-                        onChange={handleChange}
+                        onChange={(e) => manejarCambioFormulario(e, setFormData, formData)}
                      >
                         <option value="">Seleccione una opción</option>
                         {loading ? (
@@ -657,12 +651,12 @@ export const CrearEmpleado = () => {
                      </label>
                      <input
                         type="date"
-                        style={getInputStyle("fecha_ingreso_empleado")}
+                        style={obtenerEstiloEntrada("fecha_ingreso_empleado", formData, submitted)}
                         className="form-control"
                         id="fecha_ingreso_empleado"
                         name="fecha_ingreso_empleado"
                         value={formData.fecha_ingreso_empleado}
-                        onChange={handleChange}
+                        onChange={(e) => manejarCambioFormulario(e, setFormData, formData)}
                      />
                   </div>
                </div>
@@ -678,12 +672,12 @@ export const CrearEmpleado = () => {
                      </label>
                      <input
                         type="date"
-                        style={getInputStyle("fecha_salida_empleado")}
+                        style={obtenerEstiloEntrada("fecha_salida_empleado", formData, submitted)}
                         className="form-control"
                         id="fecha_salida_empleado"
                         name="fecha_salida_empleado"
                         value={formData.fecha_salida_empleado}
-                        onChange={handleChange}
+                        onChange={(e) => manejarCambioFormulario(e, setFormData, formData)}
                      />
                   </div>
                </div>
@@ -697,12 +691,12 @@ export const CrearEmpleado = () => {
                      </label>
                      <input
                         type="text"
-                        style={getInputStyle("jornada_laboral_empleado")}
+                        style={obtenerEstiloEntrada("jornada_laboral_empleado", formData, submitted)}
                         className="form-control"
                         id="jornada_laboral_empleado"
                         name="jornada_laboral_empleado"
                         value={formData.jornada_laboral_empleado}
-                        onChange={handleChange}
+                        onChange={(e) => manejarCambioFormulario(e, setFormData, formData)}
                         placeholder="Enter work schedule"
                      />
                   </div>
@@ -721,13 +715,13 @@ export const CrearEmpleado = () => {
                               type="text"
                               className="form-control"
                               value={cuenta}
-                              onChange={(e) => handleCuentaChange(index, e.target.value)}
+                              onChange={(e) => manejarCambioCuenta(index, e.target.value, cuentasBancarias, setCuentasBancarias)}
                               placeholder="Enter bank account"
                            />
                            <button
                               type="button"
                               className="btn btn-danger ms-2"
-                              onClick={() => handleRemoveCuenta(index)}
+                              onClick={() => eliminarCuentaBancaria(index, cuentasBancarias, setCuentasBancarias)}
                            >
                               -
                            </button>
@@ -736,42 +730,39 @@ export const CrearEmpleado = () => {
                      <button
                         type="button"
                         className="btn btn-success"
-                        onClick={handleAddCuenta}
+                        onClick={() => agregarCuentaBancaria(cuentasBancarias, setCuentasBancarias)}
                      >
                         +
                      </button>
                   </div>
                </div>
                <div className="col-md-6">
-                    <div className="mb-3">
-                        
-                        <Switch
-                            checked={formData.ministerio_hacienda}
-                            onChange={(e) => setFormData({ ...formData, ministerio_hacienda: e.target.checked })}
-                        />
-                        <label>Ministerio de Hacienda</label>
-                    </div>
-                    <div className="mb-3">
-                       
-                        <Switch
-                            checked={formData.rt_ins}
-                            onChange={(e) => setFormData({ ...formData, rt_ins: e.target.checked })}
-                        />
-                         <label>RT INS</label>
-                    </div>
-                    <div className="mb-3">
-                       
-                        <Switch
-                            checked={formData.caja_costarricense_seguro_social}
-                            onChange={(e) => setFormData({ ...formData, caja_costarricense_seguro_social: e.target.checked })}
-                        />
-                         <label>Caja Costarricense de Seguro Social</label>
-                    </div>
-                </div>
+                  <div className="mb-3">
+                     <Switch
+                        checked={formData.ministerio_hacienda}
+                        onChange={(e) => setFormData({ ...formData, ministerio_hacienda: e.target.checked })}
+                     />
+                     <label>Ministerio de Hacienda</label>
+                  </div>
+                  <div className="mb-3">
+                     <Switch
+                        checked={formData.rt_ins}
+                        onChange={(e) => setFormData({ ...formData, rt_ins: e.target.checked })}
+                     />
+                     <label>RT INS</label>
+                  </div>
+                  <div className="mb-3">
+                     <Switch
+                        checked={formData.caja_costarricense_seguro_social}
+                        onChange={(e) => setFormData({ ...formData, caja_costarricense_seguro_social: e.target.checked })}
+                     />
+                     <label>Caja Costarricense de Seguro Social</label>
+                  </div>
+               </div>
             </div>
 
             <button
-               onClick={handleSubmit}
+               onClick={(e) => manejarEnvioFormulario(e, formData, setError, setMessage, dispatch, navigate, setFormData, cuentasBancarias, setSubmitted)}
                className="btn btn-dark mb-4"
             >
                Crear Registro
@@ -780,3 +771,68 @@ export const CrearEmpleado = () => {
       </TarjetaRow>
    );
 };
+
+/**
+ * Inicializa el estado del formulario con valores predeterminados.
+ * @returns {Object} Estado inicial del formulario.
+ */
+
+/**
+ * Valida si hay campos vacíos en el formulario.
+ * @param {Object} campos - Campos del formulario a validar.
+ * @returns {Array} Lista de campos vacíos.
+ */
+
+/**
+ * Valida el formato del correo electrónico.
+ * @param {string} correo - Correo electrónico a validar.
+ * @returns {boolean} True si el correo es válido, false de lo contrario.
+ */
+
+/**
+ * Maneja el cambio de estado del formulario.
+ * @param {Event} e - Evento de cambio.
+ * @param {Function} setFormData - Función para actualizar el estado del formulario.
+ * @param {Object} formData - Estado actual del formulario.
+ */
+
+/**
+ * Maneja el envío del formulario.
+ * @param {Event} e - Evento de envío.
+ * @param {Object} formData - Datos del formulario.
+ * @param {Function} setError - Función para establecer el estado de error.
+ * @param {Function} setMessage - Función para establecer el mensaje de error.
+ * @param {Function} dispatch - Función para despachar acciones de Redux.
+ * @param {Function} navigate - Función para navegar a otra ruta.
+ * @param {Function} setFormData - Función para actualizar el estado del formulario.
+ * @param {Array} cuentasBancarias - Lista de cuentas bancarias.
+ */
+
+/**
+ * Obtiene el estilo de entrada para un campo del formulario.
+ * @param {string} campo - Nombre del campo.
+ * @param {Object} formData - Datos del formulario.
+ * @param {boolean} submitted - Indica si el formulario ha sido enviado.
+ * @returns {Object} Estilo CSS para el campo.
+ */
+
+/**
+ * Maneja el cambio de valor de una cuenta bancaria.
+ * @param {number} index - Índice de la cuenta bancaria.
+ * @param {string} value - Nuevo valor de la cuenta bancaria.
+ * @param {Array} cuentasBancarias - Lista de cuentas bancarias.
+ * @param {Function} setCuentasBancarias - Función para actualizar la lista de cuentas bancarias.
+ */
+
+/**
+ * Agrega una nueva cuenta bancaria a la lista.
+ * @param {Array} cuentasBancarias - Lista de cuentas bancarias.
+ * @param {Function} setCuentasBancarias - Función para actualizar la lista de cuentas bancarias.
+ */
+
+/**
+ * Elimina una cuenta bancaria de la lista.
+ * @param {number} index - Índice de la cuenta bancaria a eliminar.
+ * @param {Array} cuentasBancarias - Lista de cuentas bancarias.
+ * @param {Function} setCuentasBancarias - Función para actualizar la lista de cuentas bancarias.
+ */

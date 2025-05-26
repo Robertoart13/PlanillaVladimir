@@ -9,49 +9,18 @@ import { useNavigate } from "react-router-dom";
 import { SelectOpcion_Thunks } from "../../../../store/SelectOpcion/SelectOpcion_Thunks";
 import { Empleado_Editar_Thunks } from "../../../../store/Empleado/Empleado_Editar_Thunks";
 
+/**
+ * Componente principal para editar un empleado.
+ * @returns {JSX.Element} Componente de edición de empleado.
+ */
 export const EditarEmpleado = () => {
+   // Estados para manejar errores, mensajes y datos del formulario
    const [error, setError] = useState(false);
-   const [message, setMessage] = useState("");
-   const [submitted, setSubmitted] = useState(false); // Nuevo estado
+   const [mensajeError, setMensajeError] = useState("");
+   const [formularioEnviado, setFormularioEnviado] = useState(false);
    const dispatch = useDispatch();
    const navigate = useNavigate();
-   const [formData, setFormData] = useState({
-      id_empleado: "",
-      nombre_empleado: "",
-      apellidos_empleado: "",
-      cedula_empleado: "",
-      fecha_vencimiento_cedula_empleado: "",
-      fecha_nacimiento_empleado: "",
-      estado_civil_empleado: "",
-      correo_empleado: "",
-      telefono_empleado: "",
-      direccion_empleado: "",
-      fecha_ingreso_empleado: "",
-      fecha_salida_empleado: "",
-      jornada_laboral_empleado: "",
-      horario_empleado: "",
-      salario_empleado: "",
-      id_nacionalidad: "",
-      id_tipo_contrato: "",
-      id_departamento: "",
-      id_puesto: "",
-      id_supervisor: "",
-      id_empresa: "",
-      cuentas_bancarias: [""],
-      estado_empleado: "",
-      fecha_creacion_empleado: "",
-      fecha_modificacion_empleado: "",
-      nombre_departamento: "",
-      nombre_empresa: "",
-      nombre_nacionalidad: "",
-      nombre_puesto: "",
-      nombre_supervisor: "",
-      nombre_tipo_contrato: "",
-      es_inactivo: 0,
-      ministerio_hacienda: false,
-      rt_ins: false,
-      caja_costarricense_seguro_social: false,
-   });
+   const [datosFormulario, setDatosFormulario] = useState(inicializarDatosFormulario());
    const [cuentasBancarias, setCuentasBancarias] = useState([""]);
    const [departamentos, setDepartamentos] = useState([]);
    const [nacionalidades, setNacionalidades] = useState([]);
@@ -59,156 +28,264 @@ export const EditarEmpleado = () => {
    const [puestos, setPuestos] = useState([]);
    const [tiposContrato, setTiposContrato] = useState([]);
    const [supervisores, setSupervisores] = useState([]);
-   const [loading, setLoading] = useState(true);
-   const [optionsLoaded, setOptionsLoaded] = useState(false); // New state to track loading of select options
-   const [loadingData, setLoadingData] = useState(false); // New state for loading data
+   const [opcionesCargadas, setOpcionesCargadas] = useState(false);
+   const [cargandoDatos, setCargandoDatos] = useState(false);
 
+   // Efecto para cargar las opciones de selección
    useEffect(() => {
-      const fetchSelectOptions = async () => {
-         setLoading(true);
-         Swal.fire({
-            title: "Cargando opciones",
-            text: "Por favor espere mientras se cargan las opciones...",
-            allowOutsideClick: false,
-            didOpen: () => {
-               Swal.showLoading();
-            },
-         });
-         const departamentosData = await dispatch(SelectOpcion_Thunks("departamentos/select"));
-         const nacionalidadesData = await dispatch(SelectOpcion_Thunks("nacionalidades/select"));
-         const empresasData = await dispatch(SelectOpcion_Thunks("empresas/select"));
-         const puestosData = await dispatch(SelectOpcion_Thunks("puestos/select"));
-         const tiposContratoData = await dispatch(SelectOpcion_Thunks("tipos_contrato/select"));
-         const supervisoresData = await dispatch(SelectOpcion_Thunks("supervisores/select"));
-         if (departamentosData.success) setDepartamentos(departamentosData.data.array || []);
-         if (nacionalidadesData.success) setNacionalidades(nacionalidadesData.data.array || []);
-         if (empresasData.success) setEmpresas(empresasData.data.array || []);
-         if (puestosData.success) setPuestos(puestosData.data.array || []);
-         if (tiposContratoData.success) setTiposContrato(tiposContratoData.data.array || []);
-         if (supervisoresData.success) setSupervisores(supervisoresData.data.array || []);
-
-         setLoading(false);
-         setOptionsLoaded(true); // Mark options as loaded
-         Swal.close(); // Close Swal
-      };
-
-      fetchSelectOptions();
+      cargarOpcionesSeleccion();
    }, [dispatch]);
 
-   
-   const storedData = localStorage.getItem("selectedEmpleado");
-
+   // Efecto para cargar los datos del empleado seleccionado
    useEffect(() => {
-      const formatDate = (dateString) => {
-         if (!dateString) return ""; // Return empty string if dateString is null or undefined
-         const date = new Date(dateString);
-         const year = date.getFullYear();
-         const month = String(date.getMonth() + 1).padStart(2, "0");
-         const day = String(date.getDate()).padStart(2, "0");
-         return `${year}-${month}-${day}`;
+      cargarDatosEmpleadoSeleccionado();
+   }, [opcionesCargadas, navigate]);
+
+   // Función para inicializar los datos del formulario
+   function inicializarDatosFormulario() {
+      return {
+         id_empleado: "",
+         nombre_empleado: "",
+         apellidos_empleado: "",
+         cedula_empleado: "",
+         fecha_vencimiento_cedula_empleado: "",
+         fecha_nacimiento_empleado: "",
+         estado_civil_empleado: "",
+         correo_empleado: "",
+         telefono_empleado: "",
+         direccion_empleado: "",
+         fecha_ingreso_empleado: "",
+         fecha_salida_empleado: "",
+         jornada_laboral_empleado: "",
+         horario_empleado: "",
+         salario_empleado: "",
+         id_nacionalidad: "",
+         id_tipo_contrato: "",
+         id_departamento: "",
+         id_puesto: "",
+         id_supervisor: "",
+         id_empresa: "",
+         cuentas_bancarias: [""],
+         estado_empleado: "",
+         fecha_creacion_empleado: "",
+         fecha_modificacion_empleado: "",
+         nombre_departamento: "",
+         nombre_empresa: "",
+         nombre_nacionalidad: "",
+         nombre_puesto: "",
+         nombre_supervisor: "",
+         nombre_tipo_contrato: "",
+         es_inactivo: 0,
+         ministerio_hacienda: false,
+         rt_ins: false,
+         caja_costarricense_seguro_social: false,
       };
-
-      if (optionsLoaded && storedData) {
-         // Check if options are loaded
-         setLoadingData(true); // Start loading
-         Swal.fire({
-            title: "Cargando datos",
-            text: "Por favor espere...",
-            allowOutsideClick: false,
-            didOpen: () => {
-               Swal.showLoading();
-            },
-         });
-         const existingData = JSON.parse(storedData);
-         setFormData({
-            id_empleado: existingData.id_empleado,
-            nombre_empleado: existingData.nombre_empleado,
-            apellidos_empleado: existingData.apellidos_empleado,
-            cedula_empleado: existingData.cedula_empleado,
-            fecha_vencimiento_cedula_empleado: formatDate(
-               existingData.fecha_vencimiento_cedula_empleado,
-            ),
-            fecha_nacimiento_empleado: formatDate(existingData.fecha_nacimiento_empleado),
-            estado_civil_empleado: existingData.estado_civil_empleado,
-            correo_empleado: existingData.correo_empleado,
-            telefono_empleado: existingData.telefono_empleado,
-            direccion_empleado: existingData.direccion_empleado,
-            fecha_ingreso_empleado: formatDate(existingData.fecha_ingreso_empleado),
-            fecha_salida_empleado: formatDate(existingData.fecha_salida_empleado),
-            jornada_laboral_empleado: existingData.jornada_laboral_empleado,
-            horario_empleado: existingData.horario_empleado,
-            salario_empleado: existingData.salario_empleado,
-            id_nacionalidad: existingData.id_nacionalidad,
-            id_tipo_contrato: existingData.id_tipo_contrato,
-            id_departamento: existingData.id_departamento,
-            id_puesto: existingData.id_puesto,
-            id_supervisor: existingData.id_supervisor,
-            id_empresa: existingData.id_empresa,
-            cuentas_bancarias: existingData.cuentas_iban.split(",").map((cuenta) => cuenta.trim()),
-            estado_empleado: existingData.estado_empleado,
-            fecha_creacion_empleado: formatDate(existingData.fecha_creacion_empleado),
-            fecha_modificacion_empleado: formatDate(existingData.fecha_modificacion_empleado),
-            nombre_departamento: existingData.nombre_departamento,
-            nombre_empresa: existingData.nombre_empresa,
-            nombre_nacionalidad: existingData.nombre_nacionalidad,
-            nombre_puesto: existingData.nombre_puesto,
-            nombre_supervisor: existingData.nombre_supervisor,
-            nombre_tipo_contrato: existingData.nombre_tipo_contrato,
-            es_inactivo: existingData.estado_empleado,
-
-            ministerio_hacienda: existingData.ministerio_hacienda_empleado,
-            rt_ins: existingData.rt_ins_empleado,
-            caja_costarricense_seguro_social: existingData.caja_costarricense_seguro_social_empleado,
-         });
-         setCuentasBancarias(existingData.cuentas_iban.split(",").map((cuenta) => cuenta.trim()));
-         setLoadingData(false); // End loading
-         Swal.close(); // Close Swal
-      } else if (!storedData) {
-         setError(true);
-         setFormData({
-            nombre_clase: "",
-            descripcion_clase: "",
-            codigo_clase: "",
-            id_externos_clase: "",
-            es_inactivo: 1,
-         });
-
-         setMessage("No se ha seleccionado ninguna empresa.");
-
-         setTimeout(() => {
-            navigate("/empresas/lista");
-         }, 3000);
-      }
-   }, [optionsLoaded, storedData, navigate]);
-
-   if (loadingData) {
-      return <div>Loading data...</div>; // Display loading indicator
    }
 
-   const handleChange = (e) => {
+   /**
+    * Carga las opciones de selección desde el servidor.
+    */
+   async function cargarOpcionesSeleccion() {
+      setCargandoDatos(true);
+      mostrarCargando("Cargando opciones", "Por favor espere mientras se cargan las opciones...");
+      const departamentosData = await dispatch(SelectOpcion_Thunks("departamentos/select"));
+      const nacionalidadesData = await dispatch(SelectOpcion_Thunks("nacionalidades/select"));
+      const empresasData = await dispatch(SelectOpcion_Thunks("empresas/select"));
+      const puestosData = await dispatch(SelectOpcion_Thunks("puestos/select"));
+      const tiposContratoData = await dispatch(SelectOpcion_Thunks("tipos_contrato/select"));
+      const supervisoresData = await dispatch(SelectOpcion_Thunks("supervisores/select"));
+      actualizarOpcionesSeleccion(departamentosData, nacionalidadesData, empresasData, puestosData, tiposContratoData, supervisoresData);
+      setCargandoDatos(false);
+      setOpcionesCargadas(true);
+      Swal.close();
+   }
+
+   /**
+    * Actualiza las opciones de selección en el estado.
+    * @param {Object} departamentosData - Datos de departamentos.
+    * @param {Object} nacionalidadesData - Datos de nacionalidades.
+    * @param {Object} empresasData - Datos de empresas.
+    * @param {Object} puestosData - Datos de puestos.
+    * @param {Object} tiposContratoData - Datos de tipos de contrato.
+    * @param {Object} supervisoresData - Datos de supervisores.
+    */
+   function actualizarOpcionesSeleccion(departamentosData, nacionalidadesData, empresasData, puestosData, tiposContratoData, supervisoresData) {
+      if (departamentosData.success) setDepartamentos(departamentosData.data.array || []);
+      if (nacionalidadesData.success) setNacionalidades(nacionalidadesData.data.array || []);
+      if (empresasData.success) setEmpresas(empresasData.data.array || []);
+      if (puestosData.success) setPuestos(puestosData.data.array || []);
+      if (tiposContratoData.success) setTiposContrato(tiposContratoData.data.array || []);
+      if (supervisoresData.success) setSupervisores(supervisoresData.data.array || []);
+   }
+
+   /**
+    * Muestra un mensaje de carga utilizando SweetAlert.
+    * @param {string} titulo - Título del mensaje.
+    * @param {string} texto - Texto del mensaje.
+    */
+   function mostrarCargando(titulo, texto) {
+      Swal.fire({
+         title: titulo,
+         text: texto,
+         allowOutsideClick: false,
+         didOpen: () => {
+            Swal.showLoading();
+         },
+      });
+   }
+
+   /**
+    * Carga los datos del empleado seleccionado desde el almacenamiento local.
+    */
+   function cargarDatosEmpleadoSeleccionado() {
+      const datosAlmacenados = localStorage.getItem("selectedEmpleado");
+      if (opcionesCargadas && datosAlmacenados) {
+         setCargandoDatos(true);
+         mostrarCargando("Cargando datos", "Por favor espere...");
+         const datosExistentes = JSON.parse(datosAlmacenados);
+         setDatosFormulario(formatearDatosEmpleado(datosExistentes));
+         setCuentasBancarias(datosExistentes.cuentas_iban.split(",").map((cuenta) => cuenta.trim()));
+         setCargandoDatos(false);
+         Swal.close();
+      } else if (!datosAlmacenados) {
+         manejarErrorSinDatos();
+      }
+   }
+
+   /**
+    * Formatea los datos del empleado para el formulario.
+    * @param {Object} datosExistentes - Datos existentes del empleado.
+    * @returns {Object} Datos formateados para el formulario.
+    */
+   function formatearDatosEmpleado(datosExistentes) {
+      return {
+         id_empleado: datosExistentes.id_empleado,
+         nombre_empleado: datosExistentes.nombre_empleado,
+         apellidos_empleado: datosExistentes.apellidos_empleado,
+         cedula_empleado: datosExistentes.cedula_empleado,
+         fecha_vencimiento_cedula_empleado: formatearFecha(datosExistentes.fecha_vencimiento_cedula_empleado),
+         fecha_nacimiento_empleado: formatearFecha(datosExistentes.fecha_nacimiento_empleado),
+         estado_civil_empleado: datosExistentes.estado_civil_empleado,
+         correo_empleado: datosExistentes.correo_empleado,
+         telefono_empleado: datosExistentes.telefono_empleado,
+         direccion_empleado: datosExistentes.direccion_empleado,
+         fecha_ingreso_empleado: formatearFecha(datosExistentes.fecha_ingreso_empleado),
+         fecha_salida_empleado: formatearFecha(datosExistentes.fecha_salida_empleado),
+         jornada_laboral_empleado: datosExistentes.jornada_laboral_empleado,
+         horario_empleado: datosExistentes.horario_empleado,
+         salario_empleado: datosExistentes.salario_empleado,
+         id_nacionalidad: datosExistentes.id_nacionalidad,
+         id_tipo_contrato: datosExistentes.id_tipo_contrato,
+         id_departamento: datosExistentes.id_departamento,
+         id_puesto: datosExistentes.id_puesto,
+         id_supervisor: datosExistentes.id_supervisor,
+         id_empresa: datosExistentes.id_empresa,
+         cuentas_bancarias: datosExistentes.cuentas_iban.split(",").map((cuenta) => cuenta.trim()),
+         estado_empleado: datosExistentes.estado_empleado,
+         fecha_creacion_empleado: formatearFecha(datosExistentes.fecha_creacion_empleado),
+         fecha_modificacion_empleado: formatearFecha(datosExistentes.fecha_modificacion_empleado),
+         nombre_departamento: datosExistentes.nombre_departamento,
+         nombre_empresa: datosExistentes.nombre_empresa,
+         nombre_nacionalidad: datosExistentes.nombre_nacionalidad,
+         nombre_puesto: datosExistentes.nombre_puesto,
+         nombre_supervisor: datosExistentes.nombre_supervisor,
+         nombre_tipo_contrato: datosExistentes.nombre_tipo_contrato,
+         es_inactivo: datosExistentes.estado_empleado,
+         ministerio_hacienda: datosExistentes.ministerio_hacienda_empleado,
+         rt_ins: datosExistentes.rt_ins_empleado,
+         caja_costarricense_seguro_social: datosExistentes.caja_costarricense_seguro_social_empleado,
+      };
+   }
+
+   /**
+    * Formatea una fecha en formato YYYY-MM-DD.
+    * @param {string} fechaString - Fecha en formato de cadena.
+    * @returns {string} Fecha formateada o cadena vacía si es inválida.
+    */
+   function formatearFecha(fechaString) {
+      if (!fechaString) return "";
+      const fecha = new Date(fechaString);
+      const año = fecha.getFullYear();
+      const mes = String(fecha.getMonth() + 1).padStart(2, "0");
+      const día = String(fecha.getDate()).padStart(2, "0");
+      return `${año}-${mes}-${día}`;
+   }
+
+   /**
+    * Maneja el error cuando no hay datos de empleado seleccionados.
+    */
+   function manejarErrorSinDatos() {
+      setError(true);
+      setDatosFormulario(inicializarDatosFormulario());
+      setMensajeError("No se ha seleccionado ninguna empresa.");
+      setTimeout(() => {
+         navigate("/empresas/lista");
+      }, 3000);
+   }
+
+   /**
+    * Maneja el cambio de los campos del formulario.
+    * @param {Object} e - Evento de cambio del formulario.
+    */
+   function manejarCambioFormulario(e) {
       const { name, value } = e.target;
-      setFormData({ ...formData, [name]: value });
-   };
+      setDatosFormulario({ ...datosFormulario, [name]: value });
+   }
 
-   const handleSubmit = (e) => {
+   /**
+    * Maneja el envío del formulario de edición de empleado.
+    * @param {Object} e - Evento de envío del formulario.
+    */
+   function manejarEnvioFormulario(e) {
       e.preventDefault();
-      setSubmitted(true);
-      const requiredFields = Object.keys(formData).filter(field => field !== 'fecha_salida_empleado');
-      if (requiredFields.some(field => formData[field] === "" || formData[field] === "default")) {
-          setError(true);
-          setMessage("Todos los campos deben estar llenos.");
-          return;
-      }
+      setFormularioEnviado(true);
+      if (!validarCamposRequeridos()) return;
+      if (!validarCorreoElectronico(datosFormulario.correo_empleado)) return;
+      limpiarErrores();
+      confirmarEdicionEmpleado();
+   }
 
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(formData.correo_empleado)) {
+   /**
+    * Valida que todos los campos requeridos estén llenos.
+    * @returns {boolean} Verdadero si todos los campos están llenos, falso de lo contrario.
+    */
+   function validarCamposRequeridos() {
+      const camposRequeridos = Object.keys(datosFormulario).filter(campo => campo !== 'fecha_salida_empleado');
+      if (camposRequeridos.some(campo => datosFormulario[campo] === "" || datosFormulario[campo] === "default")) {
          setError(true);
-         setMessage("Por favor, ingrese un correo electrónico válido.");
-         return;
+         setMensajeError("Todos los campos deben estar llenos.");
+         return false;
       }
-      // Limpiar mensajes de error si todo es válido
+      return true;
+   }
+
+   /**
+    * Valida el formato del correo electrónico.
+    * @param {string} correo - Correo electrónico a validar.
+    * @returns {boolean} Verdadero si el correo es válido, falso de lo contrario.
+    */
+   function validarCorreoElectronico(correo) {
+      const regexCorreo = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!regexCorreo.test(correo)) {
+         setError(true);
+         setMensajeError("Por favor, ingrese un correo electrónico válido.");
+         return false;
+      }
+      return true;
+   }
+
+   /**
+    * Limpia los mensajes de error.
+    */
+   function limpiarErrores() {
       setError(false);
-      setMessage("");
+      setMensajeError("");
+   }
+
+   /**
+    * Confirma la edición del empleado mediante un diálogo de confirmación.
+    */
+   function confirmarEdicionEmpleado() {
       Swal.fire({
          title: "¿Está seguro?",
          text: "Confirma que desea Editar un nuevo empleado.",
@@ -218,101 +295,82 @@ export const EditarEmpleado = () => {
          cancelButtonText: "Cancelar",
       }).then(async (result) => {
          if (result.isConfirmed) {
-            Swal.fire({
-               title: "Creando empleado",
-               text: "Por favor espere...",
-               allowOutsideClick: false,
-               didOpen: () => {
-                  Swal.showLoading();
-               },
-            });
-            const respuesta = await dispatch(
-               Empleado_Editar_Thunks({ ...formData, cuentas_bancarias: cuentasBancarias }),
-            );
-            if (respuesta.success) {
-               Swal.fire("¡Editado!", "El empleado ha sido editado exitosamente.", "success").then(
-                  () => {
-                     localStorage.removeItem("selectedEmpleado");
-                     navigate("/empleados/lista");
-
-                     setFormData({
-                        nombre_empleado: "",
-                        apellidos_empleado: "",
-                        cedula_empleado: "",
-                        fecha_vencimiento_cedula_empleado: "",
-                        fecha_nacimiento_empleado: "",
-                        estado_civil_empleado: "soltero",
-                        correo_empleado: "",
-                        telefono_empleado: "",
-                        direccion_empleado: "",
-                        fecha_ingreso_empleado: "",
-                        fecha_salida_empleado: "",
-                        jornada_laboral_empleado: "",
-                        horario_empleado: "",
-                        salario_empleado: "",
-                        id_nacionalidad: "",
-                        id_tipo_contrato: "",
-                        id_departamento: "",
-                        id_puesto: "",
-                        id_supervisor: "",
-                        id_empresa: "",
-                        cuentas_bancarias: [""],
-                        estado_empleado: "",
-                        fecha_creacion_empleado: "",
-                        fecha_modificacion_empleado: "",
-                        nombre_departamento: "",
-                        nombre_empresa: "",
-                        nombre_nacionalidad: "",
-                        nombre_puesto: "",
-                        nombre_supervisor: "",
-                        nombre_tipo_contrato: "",
-                        es_inactivo: 1,
-                     });
-                  },
-               );
-            } else {
-               setError(true);
-               setMessage(respuesta.message);
-               Swal.fire({
-                  title: "Error",
-                  text: respuesta.message || "Ocurrió un error inesperado.",
-                  icon: "error",
-                  confirmButtonText: "Aceptar"
-                });
-            }
+            mostrarCargando("Creando empleado", "Por favor espere...");
+            const respuesta = await dispatch(Empleado_Editar_Thunks({ ...datosFormulario, cuentas_bancarias: cuentasBancarias }));
+            manejarRespuestaEdicion(respuesta);
          }
       });
-   };
+   }
 
-   const getInputStyle = (field) => {
-      if (submitted && formData[field] === "") {
+   /**
+    * Maneja la respuesta de la edición del empleado.
+    * @param {Object} respuesta - Respuesta del servidor.
+    */
+   function manejarRespuestaEdicion(respuesta) {
+      if (respuesta.success) {
+         Swal.fire("¡Editado!", "El empleado ha sido editado exitosamente.", "success").then(() => {
+            localStorage.removeItem("selectedEmpleado");
+            navigate("/empleados/lista");
+            setDatosFormulario(inicializarDatosFormulario());
+         });
+      } else {
+         setError(true);
+         setMensajeError(respuesta.message);
+         Swal.fire({
+            title: "Error",
+            text: respuesta.message || "Ocurrió un error inesperado.",
+            icon: "error",
+            confirmButtonText: "Aceptar"
+         });
+      }
+   }
+
+   /**
+    * Obtiene el estilo de entrada para un campo específico.
+    * @param {string} campo - Nombre del campo.
+    * @returns {Object} Estilo de entrada.
+    */
+   function obtenerEstiloEntrada(campo) {
+      if (formularioEnviado && datosFormulario[campo] === "") {
          return { border: "1px solid red" };
       }
-      if (field === "correo_empleado" && submitted) {
-         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-         if (!emailRegex.test(formData.correo_empleado)) {
+      if (campo === "correo_empleado" && formularioEnviado) {
+         const regexCorreo = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+         if (!regexCorreo.test(datosFormulario.correo_empleado)) {
             return { border: "1px solid red" };
          }
       }
       return { border: "1px solid #ced4da" };
-   };
+   }
 
-   const handleAddCuenta = () => {
+   /**
+    * Maneja la adición de una nueva cuenta bancaria.
+    */
+   function manejarAdicionCuenta() {
       setCuentasBancarias([...cuentasBancarias, ""]);
-   };
+   }
 
-   const handleRemoveCuenta = (index) => {
-      const newCuentas = cuentasBancarias.filter((_, i) => i !== index);
-      setCuentasBancarias(newCuentas);
-   };
+   /**
+    * Maneja la eliminación de una cuenta bancaria.
+    * @param {number} indice - Índice de la cuenta a eliminar.
+    */
+   function manejarEliminacionCuenta(indice) {
+      const nuevasCuentas = cuentasBancarias.filter((_, i) => i !== indice);
+      setCuentasBancarias(nuevasCuentas);
+   }
 
-   const handleCuentaChange = (index, value) => {
-      const newCuentas = [...cuentasBancarias];
-      newCuentas[index] = value;
-      setCuentasBancarias(newCuentas);
-   };
+   /**
+    * Maneja el cambio de valor de una cuenta bancaria.
+    * @param {number} indice - Índice de la cuenta.
+    * @param {string} valor - Nuevo valor de la cuenta.
+    */
+   function manejarCambioCuenta(indice, valor) {
+      const nuevasCuentas = [...cuentasBancarias];
+      nuevasCuentas[indice] = valor;
+      setCuentasBancarias(nuevasCuentas);
+   }
 
-
+   // Renderizado del componente
    return (
       <TarjetaRow
          texto="Editar un nuevo empleado"
@@ -321,7 +379,7 @@ export const EditarEmpleado = () => {
          {error && (
             <ErrorMessage
                error={error}
-               message={message}
+               message={mensajeError}
             />
          )}
 
@@ -330,13 +388,12 @@ export const EditarEmpleado = () => {
                <div className="row">
                   <div className="col-md-12">
                      <div className="mb-3">
-                       
                         <Switch
-                            checked={formData.es_inactivo === 1}
-                            onChange={(e) => setFormData({ ...formData, es_inactivo: e.target.checked ? 1 : 0 })}
+                           checked={datosFormulario.es_inactivo === 1}
+                           onChange={(e) => setDatosFormulario({ ...datosFormulario, es_inactivo: e.target.checked ? 1 : 0 })}
                         />
-                         <label>Estado del empleado</label>
-                    </div>
+                        <label>Estado del empleado</label>
+                     </div>
                   </div>
                </div>
 
@@ -350,12 +407,12 @@ export const EditarEmpleado = () => {
                      </label>
                      <input
                         type="text"
-                        style={getInputStyle("nombre_empleado")}
+                        style={obtenerEstiloEntrada("nombre_empleado")}
                         className="form-control"
                         id="nombre_empleado"
                         name="nombre_empleado"
-                        value={formData.nombre_empleado}
-                        onChange={handleChange}
+                        value={datosFormulario.nombre_empleado}
+                        onChange={manejarCambioFormulario}
                         placeholder="Enter employee name"
                      />
                   </div>
@@ -370,12 +427,12 @@ export const EditarEmpleado = () => {
                      </label>
                      <input
                         type="text"
-                        style={getInputStyle("apellidos_empleado")}
+                        style={obtenerEstiloEntrada("apellidos_empleado")}
                         className="form-control"
                         id="apellidos_empleado"
                         name="apellidos_empleado"
-                        value={formData.apellidos_empleado}
-                        onChange={handleChange}
+                        value={datosFormulario.apellidos_empleado}
+                        onChange={manejarCambioFormulario}
                         placeholder="Enter employee last name"
                      />
                   </div>
@@ -392,12 +449,12 @@ export const EditarEmpleado = () => {
                      </label>
                      <input
                         type="email"
-                        style={getInputStyle("correo_empleado")}
+                        style={obtenerEstiloEntrada("correo_empleado")}
                         className="form-control"
                         id="correo_empleado"
                         name="correo_empleado"
-                        value={formData.correo_empleado}
-                        onChange={handleChange}
+                        value={datosFormulario.correo_empleado}
+                        onChange={manejarCambioFormulario}
                         placeholder="Enter employee email"
                      />
                   </div>
@@ -412,12 +469,12 @@ export const EditarEmpleado = () => {
                      </label>
                      <input
                         type="text"
-                        style={getInputStyle("telefono_empleado")}
+                        style={obtenerEstiloEntrada("telefono_empleado")}
                         className="form-control"
                         id="telefono_empleado"
                         name="telefono_empleado"
-                        value={formData.telefono_empleado}
-                        onChange={handleChange}
+                        value={datosFormulario.telefono_empleado}
+                        onChange={manejarCambioFormulario}
                         placeholder="Enter employee phone"
                      />
                   </div>
@@ -433,12 +490,12 @@ export const EditarEmpleado = () => {
                         Dirección del empleado
                      </label>
                      <textarea
-                        style={getInputStyle("direccion_empleado")}
+                        style={obtenerEstiloEntrada("direccion_empleado")}
                         className="form-control"
                         id="direccion_empleado"
                         name="direccion_empleado"
-                        value={formData.direccion_empleado}
-                        onChange={handleChange}
+                        value={datosFormulario.direccion_empleado}
+                        onChange={manejarCambioFormulario}
                         rows="3"
                         placeholder="Enter employee address"
                      ></textarea>
@@ -453,15 +510,15 @@ export const EditarEmpleado = () => {
                         Nacionalidad
                      </label>
                      <select
-                        style={getInputStyle("id_nacionalidad")}
+                        style={obtenerEstiloEntrada("id_nacionalidad")}
                         className="form-control"
                         id="id_nacionalidad"
                         name="id_nacionalidad"
-                        value={formData.id_nacionalidad}
-                        onChange={handleChange}
+                        value={datosFormulario.id_nacionalidad}
+                        onChange={manejarCambioFormulario}
                      >
                         <option value="">Seleccione una opción</option>
-                        {loading ? (
+                        {cargandoDatos ? (
                            <option>Cargando...</option>
                         ) : Array.isArray(nacionalidades) ? (
                            nacionalidades.map((nacionalidad) => (
@@ -490,12 +547,12 @@ export const EditarEmpleado = () => {
                      </label>
                      <input
                         type="text"
-                        style={getInputStyle("cedula_empleado")}
+                        style={obtenerEstiloEntrada("cedula_empleado")}
                         className="form-control"
                         id="cedula_empleado"
                         name="cedula_empleado"
-                        value={formData.cedula_empleado}
-                        onChange={handleChange}
+                        value={datosFormulario.cedula_empleado}
+                        onChange={manejarCambioFormulario}
                         placeholder="Enter employee ID"
                      />
                   </div>
@@ -510,12 +567,12 @@ export const EditarEmpleado = () => {
                      </label>
                      <input
                         type="date"
-                        style={getInputStyle("fecha_vencimiento_cedula_empleado")}
+                        style={obtenerEstiloEntrada("fecha_vencimiento_cedula_empleado")}
                         className="form-control"
                         id="fecha_vencimiento_cedula_empleado"
                         name="fecha_vencimiento_cedula_empleado"
-                        value={formData.fecha_vencimiento_cedula_empleado}
-                        onChange={handleChange}
+                        value={datosFormulario.fecha_vencimiento_cedula_empleado}
+                        onChange={manejarCambioFormulario}
                      />
                   </div>
                </div>
@@ -531,12 +588,12 @@ export const EditarEmpleado = () => {
                      </label>
                      <input
                         type="date"
-                        style={getInputStyle("fecha_nacimiento_empleado")}
+                        style={obtenerEstiloEntrada("fecha_nacimiento_empleado")}
                         className="form-control"
                         id="fecha_nacimiento_empleado"
                         name="fecha_nacimiento_empleado"
-                        value={formData.fecha_nacimiento_empleado}
-                        onChange={handleChange}
+                        value={datosFormulario.fecha_nacimiento_empleado}
+                        onChange={manejarCambioFormulario}
                      />
                   </div>
                </div>
@@ -549,12 +606,12 @@ export const EditarEmpleado = () => {
                         Estado civil
                      </label>
                      <select
-                        style={getInputStyle("estado_civil_empleado")}
+                        style={obtenerEstiloEntrada("estado_civil_empleado")}
                         className="form-control"
                         id="estado_civil_empleado"
                         name="estado_civil_empleado"
-                        value={formData.estado_civil_empleado}
-                        onChange={handleChange}
+                        value={datosFormulario.estado_civil_empleado}
+                        onChange={manejarCambioFormulario}
                      >
                         <option value="soltero">Soltero</option>
                         <option value="casado">Casado</option>
@@ -575,12 +632,12 @@ export const EditarEmpleado = () => {
                      </label>
                      <input
                         type="text"
-                        style={getInputStyle("horario_empleado")}
+                        style={obtenerEstiloEntrada("horario_empleado")}
                         className="form-control"
                         id="horario_empleado"
                         name="horario_empleado"
-                        value={formData.horario_empleado}
-                        onChange={handleChange}
+                        value={datosFormulario.horario_empleado}
+                        onChange={manejarCambioFormulario}
                         placeholder="Enter schedule"
                      />
                   </div>
@@ -595,12 +652,12 @@ export const EditarEmpleado = () => {
                      </label>
                      <input
                         type="number"
-                        style={getInputStyle("salario_empleado")}
+                        style={obtenerEstiloEntrada("salario_empleado")}
                         className="form-control"
                         id="salario_empleado"
                         name="salario_empleado"
-                        value={formData.salario_empleado}
-                        onChange={handleChange}
+                        value={datosFormulario.salario_empleado}
+                        onChange={manejarCambioFormulario}
                         placeholder="Enter salary"
                      />
                   </div>
@@ -616,15 +673,15 @@ export const EditarEmpleado = () => {
                         Tipo de Contrato
                      </label>
                      <select
-                        style={getInputStyle("id_tipo_contrato")}
+                        style={obtenerEstiloEntrada("id_tipo_contrato")}
                         className="form-control"
                         id="id_tipo_contrato"
                         name="id_tipo_contrato"
-                        value={formData.id_tipo_contrato}
-                        onChange={handleChange}
+                        value={datosFormulario.id_tipo_contrato}
+                        onChange={manejarCambioFormulario}
                      >
                         <option value="">Seleccione una opción</option>
-                        {loading ? (
+                        {cargandoDatos ? (
                            <option>Cargando...</option>
                         ) : Array.isArray(tiposContrato) ? (
                            tiposContrato.map((tipo) => (
@@ -650,15 +707,15 @@ export const EditarEmpleado = () => {
                         Departamento
                      </label>
                      <select
-                        style={getInputStyle("id_departamento")}
+                        style={obtenerEstiloEntrada("id_departamento")}
                         className="form-control"
                         id="id_departamento"
                         name="id_departamento"
-                        value={formData.id_departamento}
-                        onChange={handleChange}
+                        value={datosFormulario.id_departamento}
+                        onChange={manejarCambioFormulario}
                      >
                         <option value="">Seleccione una opción</option>
-                        {loading ? (
+                        {cargandoDatos ? (
                            <option>Cargando...</option>
                         ) : Array.isArray(departamentos) ? (
                            departamentos.map((departamento) => (
@@ -686,15 +743,15 @@ export const EditarEmpleado = () => {
                         Puesto
                      </label>
                      <select
-                        style={getInputStyle("id_puesto")}
+                        style={obtenerEstiloEntrada("id_puesto")}
                         className="form-control"
                         id="id_puesto"
                         name="id_puesto"
-                        value={formData.id_puesto}
-                        onChange={handleChange}
+                        value={datosFormulario.id_puesto}
+                        onChange={manejarCambioFormulario}
                      >
                         <option value="">Seleccione una opción</option>
-                        {loading ? (
+                        {cargandoDatos ? (
                            <option>Cargando...</option>
                         ) : Array.isArray(puestos) ? (
                            puestos.map((puesto) => (
@@ -720,15 +777,15 @@ export const EditarEmpleado = () => {
                         Supervisor
                      </label>
                      <select
-                        style={getInputStyle("id_supervisor")}
+                        style={obtenerEstiloEntrada("id_supervisor")}
                         className="form-control"
                         id="id_supervisor"
                         name="id_supervisor"
-                        value={formData.id_supervisor}
-                        onChange={handleChange}
+                        value={datosFormulario.id_supervisor}
+                        onChange={manejarCambioFormulario}
                      >
                         <option value="">Seleccione una opción</option>
-                        {loading ? (
+                        {cargandoDatos ? (
                            <option>Cargando...</option>
                         ) : Array.isArray(supervisores) ? (
                            supervisores.map((supervisor) => (
@@ -756,15 +813,15 @@ export const EditarEmpleado = () => {
                         Empresa
                      </label>
                      <select
-                        style={getInputStyle("id_empresa")}
+                        style={obtenerEstiloEntrada("id_empresa")}
                         className="form-control"
                         id="id_empresa"
                         name="id_empresa"
-                        value={formData.id_empresa}
-                        onChange={handleChange}
+                        value={datosFormulario.id_empresa}
+                        onChange={manejarCambioFormulario}
                      >
                         <option value="">Seleccione una opción</option>
-                        {loading ? (
+                        {cargandoDatos ? (
                            <option>Cargando...</option>
                         ) : Array.isArray(empresas) ? (
                            empresas.map((empresa) => (
@@ -791,12 +848,12 @@ export const EditarEmpleado = () => {
                      </label>
                      <input
                         type="date"
-                        style={getInputStyle("fecha_ingreso_empleado")}
+                        style={obtenerEstiloEntrada("fecha_ingreso_empleado")}
                         className="form-control"
                         id="fecha_ingreso_empleado"
                         name="fecha_ingreso_empleado"
-                        value={formData.fecha_ingreso_empleado}
-                        onChange={handleChange}
+                        value={datosFormulario.fecha_ingreso_empleado}
+                        onChange={manejarCambioFormulario}
                      />
                   </div>
                </div>
@@ -812,12 +869,12 @@ export const EditarEmpleado = () => {
                      </label>
                      <input
                         type="date"
-                        style={getInputStyle("fecha_salida_empleado")}
+                        style={obtenerEstiloEntrada("fecha_salida_empleado")}
                         className="form-control"
                         id="fecha_salida_empleado"
                         name="fecha_salida_empleado"
-                        value={formData.fecha_salida_empleado}
-                        onChange={handleChange}
+                        value={datosFormulario.fecha_salida_empleado}
+                        onChange={manejarCambioFormulario}
                      />
                   </div>
                </div>
@@ -831,12 +888,12 @@ export const EditarEmpleado = () => {
                      </label>
                      <input
                         type="text"
-                        style={getInputStyle("jornada_laboral_empleado")}
+                        style={obtenerEstiloEntrada("jornada_laboral_empleado")}
                         className="form-control"
                         id="jornada_laboral_empleado"
                         name="jornada_laboral_empleado"
-                        value={formData.jornada_laboral_empleado}
-                        onChange={handleChange}
+                        value={datosFormulario.jornada_laboral_empleado}
+                        onChange={manejarCambioFormulario}
                         placeholder="Enter work schedule"
                      />
                   </div>
@@ -855,13 +912,13 @@ export const EditarEmpleado = () => {
                               type="text"
                               className="form-control"
                               value={cuenta}
-                              onChange={(e) => handleCuentaChange(index, e.target.value)}
+                              onChange={(e) => manejarCambioCuenta(index, e.target.value)}
                               placeholder="Enter bank account"
                            />
                            <button
                               type="button"
                               className="btn btn-danger ms-2"
-                              onClick={() => handleRemoveCuenta(index)}
+                              onClick={() => manejarEliminacionCuenta(index)}
                            >
                               -
                            </button>
@@ -870,42 +927,39 @@ export const EditarEmpleado = () => {
                      <button
                         type="button"
                         className="btn btn-success"
-                        onClick={handleAddCuenta}
+                        onClick={manejarAdicionCuenta}
                      >
                         +
                      </button>
                   </div>
                </div>
                <div className="col-md-6">
-                    <div className="mb-3">
-                        
-                        <Switch
-                            checked={formData.ministerio_hacienda}
-                            onChange={(e) => setFormData({ ...formData, ministerio_hacienda: e.target.checked })}
-                        />
-                        <label>Ministerio de Hacienda</label>
-                    </div>
-                    <div className="mb-3">
-                       
-                        <Switch
-                            checked={formData.rt_ins}
-                            onChange={(e) => setFormData({ ...formData, rt_ins: e.target.checked })}
-                        />
-                         <label>RT INS</label>
-                    </div>
-                    <div className="mb-3">
-                       
-                        <Switch
-                            checked={formData.caja_costarricense_seguro_social}
-                            onChange={(e) => setFormData({ ...formData, caja_costarricense_seguro_social: e.target.checked })}
-                        />
-                         <label>Caja Costarricense de Seguro Social</label>
-                    </div>
-                </div>
+                  <div className="mb-3">
+                     <Switch
+                        checked={datosFormulario.ministerio_hacienda}
+                        onChange={(e) => setDatosFormulario({ ...datosFormulario, ministerio_hacienda: e.target.checked })}
+                     />
+                     <label>Ministerio de Hacienda</label>
+                  </div>
+                  <div className="mb-3">
+                     <Switch
+                        checked={datosFormulario.rt_ins}
+                        onChange={(e) => setDatosFormulario({ ...datosFormulario, rt_ins: e.target.checked })}
+                     />
+                     <label>RT INS</label>
+                  </div>
+                  <div className="mb-3">
+                     <Switch
+                        checked={datosFormulario.caja_costarricense_seguro_social}
+                        onChange={(e) => setDatosFormulario({ ...datosFormulario, caja_costarricense_seguro_social: e.target.checked })}
+                     />
+                     <label>Caja Costarricense de Seguro Social</label>
+                  </div>
+               </div>
             </div>
 
             <button
-               onClick={handleSubmit}
+               onClick={manejarEnvioFormulario}
                className="btn btn-dark mb-4"
             >
                Editar Registro

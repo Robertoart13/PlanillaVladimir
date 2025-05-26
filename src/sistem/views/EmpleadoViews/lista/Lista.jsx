@@ -8,7 +8,11 @@ import "../../../styles/customstyles.css";
 import { Button, Stack } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 
-const getTableColumns = () => [
+/**
+ * Obtiene las columnas de la tabla configuradas.
+ * @returns {Array} Arreglo de objetos que representan las columnas de la tabla.
+ */
+const obtenerColumnasTabla = () => [
    {
       data: null,
       title: "Nombre Completo",
@@ -22,7 +26,7 @@ const getTableColumns = () => [
    },
    {
       data: "cedula_empleado",
-      title: "cedula",
+      title: "Cédula",
       searchPanes: { show: true },
    },
    {
@@ -40,101 +44,106 @@ const getTableColumns = () => [
       title: "Supervisor",
       searchPanes: { show: true },
    },
-
-
    {
       data: "ministerio_hacienda_empleado",
       title: "Ministerio de Hacienda",
       searchPanes: { show: true },
-      render: function (data) {
-         const isActive = data === 1;
-         return `
-           <span class="badge bg-light-${isActive ? "success" : "danger"}">
-              ${isActive ? "Inscrito" : "No Inscrito"}
-           </span>
-        `;
-      },
+      render: (data) => renderEstadoInscripcion(data),
    },
    {
       data: "rt_ins_empleado",
       title: "RT-INS",
       searchPanes: { show: true },
-      render: function (data) {
-         const isActive = data === 1;
-         return `
-           <span class="badge bg-light-${isActive ? "success" : "danger"}">
-              ${isActive ? "Inscrito" : "No Inscrito"}
-           </span>
-        `;
-      },
+      render: (data) => renderEstadoInscripcion(data),
    },
    {
       data: "caja_costarricense_seguro_social_empleado",
-      title: "ccss",
+      title: "CCSS",
       searchPanes: { show: true },
-      render: function (data) {
-         const isActive = data === 1;
-         return `
-           <span class="badge bg-light-${isActive ? "success" : "danger"}">
-              ${isActive ? "Inscrito" : "No Inscrito"}
-           </span>
-        `;
-      },
+      render: (data) => renderEstadoInscripcion(data),
    },
    {
       data: "estado_empleado",
       title: "Estado",
       searchPanes: { show: true },
-      render: function (data) {
-         const isActive = data === 1;
-         return `
-           <span class="badge bg-light-${isActive ? "success" : "danger"}">
-              ${isActive ? "Activo" : "Inactivo"}
-           </span>
-        `;
-      },
+      render: (data) => renderEstadoEmpleado(data),
    },
 ];
 
-const formatData = (rowData) => (
-   {
-      id_empleado: rowData.id_empleado,
-      nombre_empleado: rowData.nombre_empleado,
-      apellidos_empleado: rowData.apellidos_empleado,
-      cedula_empleado: rowData.cedula_empleado,
-      fecha_vencimiento_cedula_empleado: rowData.fecha_vencimiento_cedula_empleado,
-      fecha_nacimiento_empleado: rowData.fecha_nacimiento_empleado,
-      estado_civil_empleado: rowData.estado_civil_empleado,
-      correo_empleado: rowData.correo_empleado,
-      telefono_empleado: rowData.telefono_empleado,
-      direccion_empleado: rowData.direccion_empleado,
-      fecha_ingreso_empleado: rowData.fecha_ingreso_empleado,
-      fecha_salida_empleado: rowData.fecha_salida_empleado,
-      jornada_laboral_empleado: rowData.jornada_laboral_empleado,
-      horario_empleado: rowData.horario_empleado,
-      salario_empleado: rowData.salario_empleado,
-      id_nacionalidad: rowData.id_nacionalidad,
-      id_tipo_contrato: rowData.id_tipo_contrato,
-      id_departamento: rowData.id_departamento,
-      id_puesto: rowData.id_puesto,
-      id_supervisor: rowData.id_supervisor,
-      id_empresa: rowData.id_empresa,
-      estado_empleado: rowData.estado_empleado,
-      fecha_creacion_empleado: rowData.fecha_creacion_empleado,
-      fecha_modificacion_empleado: rowData.fecha_modificacion_empleado,
-      nombre_empresa: rowData.nombre_empresa,
-      nombre_puesto: rowData.nombre_puesto,
-      nombre_departamento: rowData.nombre_departamento,
-      nombre_tipo_contrato: rowData.nombre_tipo_contrato,
-      nombre_nacionalidad: rowData.nombre_nacionalidad,
-      nombre_supervisor: rowData.nombre_supervisor,
-      cuentas_iban: rowData.cuentas_iban,
-      ministerio_hacienda_empleado  : rowData.ministerio_hacienda_empleado,
-      rt_ins_empleado   : rowData.rt_ins_empleado,
-      caja_costarricense_seguro_social_empleado : rowData.caja_costarricense_seguro_social_empleado,
-   }
-);
+/**
+ * Renderiza el estado de inscripción de un empleado.
+ * @param {number} data - Valor que indica si el empleado está inscrito.
+ * @returns {string} HTML que representa el estado de inscripción.
+ */
+const renderEstadoInscripcion = (data) => {
+   const estaInscrito = data === 1;
+   return `
+      <span class="badge bg-light-${estaInscrito ? "success" : "danger"}">
+         ${estaInscrito ? "Inscrito" : "No Inscrito"}
+      </span>
+   `;
+};
 
+/**
+ * Renderiza el estado de un empleado.
+ * @param {number} data - Valor que indica si el empleado está activo.
+ * @returns {string} HTML que representa el estado del empleado.
+ */
+const renderEstadoEmpleado = (data) => {
+   const estaActivo = data === 1;
+   return `
+      <span class="badge bg-light-${estaActivo ? "success" : "danger"}">
+         ${estaActivo ? "Activo" : "Inactivo"}
+      </span>
+   `;
+};
+
+/**
+ * Formatea los datos de un empleado para su uso en la tabla.
+ * @param {Object} datosEmpleado - Datos del empleado.
+ * @returns {Object} Datos formateados del empleado.
+ */
+const formatearDatosEmpleado = (datosEmpleado) => ({
+   id_empleado: datosEmpleado.id_empleado,
+   nombre_empleado: datosEmpleado.nombre_empleado,
+   apellidos_empleado: datosEmpleado.apellidos_empleado,
+   cedula_empleado: datosEmpleado.cedula_empleado,
+   fecha_vencimiento_cedula_empleado: datosEmpleado.fecha_vencimiento_cedula_empleado,
+   fecha_nacimiento_empleado: datosEmpleado.fecha_nacimiento_empleado,
+   estado_civil_empleado: datosEmpleado.estado_civil_empleado,
+   correo_empleado: datosEmpleado.correo_empleado,
+   telefono_empleado: datosEmpleado.telefono_empleado,
+   direccion_empleado: datosEmpleado.direccion_empleado,
+   fecha_ingreso_empleado: datosEmpleado.fecha_ingreso_empleado,
+   fecha_salida_empleado: datosEmpleado.fecha_salida_empleado,
+   jornada_laboral_empleado: datosEmpleado.jornada_laboral_empleado,
+   horario_empleado: datosEmpleado.horario_empleado,
+   salario_empleado: datosEmpleado.salario_empleado,
+   id_nacionalidad: datosEmpleado.id_nacionalidad,
+   id_tipo_contrato: datosEmpleado.id_tipo_contrato,
+   id_departamento: datosEmpleado.id_departamento,
+   id_puesto: datosEmpleado.id_puesto,
+   id_supervisor: datosEmpleado.id_supervisor,
+   id_empresa: datosEmpleado.id_empresa,
+   estado_empleado: datosEmpleado.estado_empleado,
+   fecha_creacion_empleado: datosEmpleado.fecha_creacion_empleado,
+   fecha_modificacion_empleado: datosEmpleado.fecha_modificacion_empleado,
+   nombre_empresa: datosEmpleado.nombre_empresa,
+   nombre_puesto: datosEmpleado.nombre_puesto,
+   nombre_departamento: datosEmpleado.nombre_departamento,
+   nombre_tipo_contrato: datosEmpleado.nombre_tipo_contrato,
+   nombre_nacionalidad: datosEmpleado.nombre_nacionalidad,
+   nombre_supervisor: datosEmpleado.nombre_supervisor,
+   cuentas_iban: datosEmpleado.cuentas_iban,
+   ministerio_hacienda_empleado: datosEmpleado.ministerio_hacienda_empleado,
+   rt_ins_empleado: datosEmpleado.rt_ins_empleado,
+   caja_costarricense_seguro_social_empleado: datosEmpleado.caja_costarricense_seguro_social_empleado,
+});
+
+/**
+ * Componente principal que muestra la lista de empleados.
+ * @returns {JSX.Element} Componente de lista de empleados.
+ */
 export const EmpleadoLista = () => {
    // Obtener el usuario autenticado desde Redux.
    const { user } = useSelector((state) => state.auth);
@@ -161,7 +170,7 @@ export const EmpleadoLista = () => {
     * Configuración para la tabla de catálogo de cuentas.
     * Define el endpoint, el tipo de solicitud y los permisos necesarios.
     */
-   const tableConfig = useMemo(
+   const configuracionTabla = useMemo(
       () => ({
          urlEndpoint: "empleados", // API endpoint para obtener los datos.
          requestType: "POST", // Método HTTP para la solicitud.
@@ -177,8 +186,8 @@ export const EmpleadoLista = () => {
             },
          },
          columnsLayout: "columns-2", // Diseño de columnas en la tabla.
-         columnsFilter: [0, 1, 2, 3, 4, 5, 6,7,8], // Índices de columnas que se pueden filtrar.
-         columns: getTableColumns(), // Definición de columnas.
+         columnsFilter: [0, 1, 2, 3, 4, 5, 6, 7, 8], // Índices de columnas que se pueden filtrar.
+         columns: obtenerColumnasTabla(), // Definición de columnas.
       }),
       [user?.id_usuario], // Se actualiza si cambia el usuario autenticado.
    );
@@ -192,35 +201,39 @@ export const EmpleadoLista = () => {
       setError,
       setMessage,
       user,
-      tableConfig.urlEndpoint,
-      tableConfig.requestType,
-      tableConfig.transaccion,
-      tableConfig.columnsLayout,
-      tableConfig.columnsFilter,
-      tableConfig.columns,
-      formatData,
+      configuracionTabla.urlEndpoint,
+      configuracionTabla.requestType,
+      configuracionTabla.transaccion,
+      configuracionTabla.columnsLayout,
+      configuracionTabla.columnsFilter,
+      configuracionTabla.columns,
+      formatearDatosEmpleado,
    );
 
    /**
     * Recarga la tabla después de agregar o actualizar una cuenta.
     */
-   const handleUpdated = () => {
+   const recargarTabla = () => {
       if (tableInstanceRef.current) {
          tableInstanceRef.current.ajax.reload();
       }
    };
 
-   const handleRowClick = (rowData) => {
-      // Store the selected row data in local storage
-      localStorage.setItem("selectedEmpleado", JSON.stringify(rowData));
-      // Navigate to the edit page
+   /**
+    * Maneja el clic en una fila de la tabla.
+    * @param {Object} datosFila - Datos de la fila seleccionada.
+    */
+   const manejarClicFila = (datosFila) => {
+      // Almacena los datos de la fila seleccionada en el almacenamiento local
+      localStorage.setItem("selectedEmpleado", JSON.stringify(datosFila));
+      // Navega a la página de edición
       navigate("/empleados/editar");
    };
 
    /**
-    * Abre el diálogo para crear una nueva cuenta contable.
+    * Abre el diálogo para crear un nuevo empleado.
     */
-   const crear = () => {
+   const abrirCrearEmpleado = () => {
       navigate("/empleados/crear");
    };
 
@@ -249,7 +262,7 @@ export const EmpleadoLista = () => {
             >
                <Button
                   variant="contained"
-                  onClick={crear}
+                  onClick={abrirCrearEmpleado}
                   className="user-detail-dialog-buttonSecondary"
                >
                   <i
@@ -276,7 +289,7 @@ export const EmpleadoLista = () => {
             </div>
          </TarjetaRow>
 
-         {selected && handleRowClick(selected)}
+         {selected && manejarClicFila(selected)}
       </>
    );
 };
