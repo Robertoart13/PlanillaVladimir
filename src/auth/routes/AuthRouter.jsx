@@ -2,6 +2,7 @@ import { LoginPage, RecoverPage } from "../pages";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { LoginPrueba } from "../pages/LoginPrueba";
 import Trans from "../pages/Trans";
+import ExitAnimation from "../pages/ShowButton";
 
 export const AuthRouter = () => {
    return (
@@ -34,6 +35,11 @@ export const AuthRouter = () => {
          <Route
             path="/*"
             element={<Navigate to="/auth/login" />}
+         />
+
+         <Route
+            path="ShowButton"
+            element={<ExitAnimation />}
          />
       </Routes>
    );
