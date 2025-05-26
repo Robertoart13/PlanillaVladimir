@@ -1,5 +1,6 @@
 import { SistemLayout } from "../../layout/SistemLayout";
 import { useSelector } from "react-redux";
+import { Link } from "react-router-dom";
 
 export const HomePage = () => {
    const { user } = useSelector((state) => state.auth);
@@ -14,7 +15,7 @@ export const HomePage = () => {
                   <div className="col-md-12">
                      <div className="row">
                         <div className="col-md-12 col-xxl-4">
-                           <a href="">
+                           <Link to="/empleados/lista">
                               <div className="card statistics-card-1">
                                  <div className="card-body">
                                     <img
@@ -43,7 +44,7 @@ export const HomePage = () => {
                                     </div>
                                  </div>
                               </div>
-                           </a>
+                           </Link>
                         </div>
                         <div className="col-md-12 col-xxl-4">
                            <a href="">

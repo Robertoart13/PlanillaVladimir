@@ -88,22 +88,7 @@ export const NavBar = ({ isSidebarOpen, isMobile }) => {
                         </span>
                      </Link>
                   </li>
-                  <li className={`pc-item ${getActiveClass('/clientes')}`}>
-                     <Link
-                        to="/clientes"
-                        className="pc-link"
-                     >
-                        <span className="pc-micon">
-                           <i className="fas fa-user-circle"></i>
-                        </span>
-                        <span
-                           className="pc-mtext"
-                           data-i18n="Clientes"
-                        >
-                           Clientes
-                        </span>
-                     </Link>
-                  </li>
+                 
                   <li className={`pc-item ${getActiveClass('/empresas')}`}>
                      <Link
                         to="/empresas/lista"
@@ -149,6 +134,22 @@ export const NavBar = ({ isSidebarOpen, isMobile }) => {
                            data-i18n="Calendario"
                         >
                            Calendario
+                        </span>
+                     </Link>
+                  </li>
+                  <li className={`pc-item ${getActiveClass('/clientes')}`}>
+                     <Link
+                        to="/clientes"
+                        className="pc-link"
+                     >
+                        <span className="pc-micon">
+                           <i className="fas fa-user-circle"></i>
+                        </span>
+                        <span
+                           className="pc-mtext"
+                           data-i18n="Clientes"
+                        >
+                           Clientes
                         </span>
                      </Link>
                   </li>
