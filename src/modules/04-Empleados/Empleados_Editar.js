@@ -48,7 +48,10 @@ const QUERIES = {
       id_puesto=?,
       id_supervisor=?,
       id_empresa=?,
-      estado_empleado=?
+      estado_empleado=?,
+      ministerio_hacienda_empleado=?,
+      rt_ins_empleado=?,
+      caja_costarricense_seguro_social_empleado =?
       WHERE id_empleado   = ?;    
    `,
    QUERIES_DELETE_CUENTAS: `
@@ -105,6 +108,9 @@ const editarRegistroBd = async (
          datos.id_supervisor,
          datos.id_empresa,
          datos.es_inactivo,
+         datos.ministerio_hacienda_empleado,
+         datos.rt_ins_empleado,
+         datos.caja_costarricense_seguro_social_empleado,
          datos.id_empleado,
          
       ],

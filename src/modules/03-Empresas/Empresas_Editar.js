@@ -28,12 +28,14 @@ const QUERIES = {
       UPDATE 
          empresas_tbl 
       SET 
-        nombre_empresa = ?,
-        rnc_empresa = ?,
-        direccion_empresa = ?,
-        telefono_empresa = ?,
-        correo_empresa = ?,
-        estado_empresa = ?
+         nombre_comercial_empresa = ?,
+         nombre_razon_social_empresa = ?,
+         cedula_juridica_empresa = ?,
+         nombre_contacto_empresa = ?,
+         correo_contacto_empresa = ?,
+         correo_facturacion_empresa = ?,
+         direccion_empresa = ?,
+         estado_empresa = ?
       WHERE id_empresa  = ?;    
    `,
 };
@@ -49,19 +51,17 @@ const QUERIES = {
  * @returns {Promise<Object>} - Resultado de la operación de actualización en la base de datos.
  * ====================================================================================================================================
  */
-const editarRegistroBd = async (
-   datos,
-   database,
-) => {
+const editarRegistroBd = async (datos, database) => {
    return await realizarConsulta(
       QUERIES.QUERIES_UPDATE,
       [
-         
-         datos.nombre_empresa,
-         datos.rnc_empresa,
+         datos.nombre_comercial_empresa,
+         datos.nombre_razon_social_empresa,
+         datos.cedula_juridica_empresa,
+         datos.nombre_contacto_empresa,
+         datos.correo_contacto_empresa,
+         datos.correo_facturacion_empresa,
          datos.direccion_empresa,
-         datos.telefono_empresa,
-         datos.correo_empresa,
          datos.estado_empresa,
          datos.id_empresa,
       ],
@@ -116,13 +116,8 @@ const editarTransaccion = async (req, res) => {
       const errorValidacion = await realizarValidacionesIniciales(res);
       if (errorValidacion) return errorValidacion; // Si hay un error en la validación, lo retorna inmediatamente.
 
-     
-
       // 3. Realizar la edición en la base de datos
-      const resultado = await editarRegistroBd(
-         res?.transaccion.empresa,     
-         res?.database,
-      );
+      const resultado = await editarRegistroBd(res?.transaccion.empresa, res?.database);
 
       // 4. Verificar si la edición fue exitosa.
       if (!esEdicionExitosa(resultado)) {
@@ -142,7 +137,7 @@ const editarTransaccion = async (req, res) => {
  * Este módulo expone la funcionalidad de edición de registros existentes.
  * ====================================================================================================================================
  */
-const Empresas_Editar = {   
+const Empresas_Editar = {
    editarTransaccion,
 };
 

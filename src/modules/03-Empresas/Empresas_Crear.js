@@ -26,13 +26,15 @@ import { crearRespuestaErrorCrear } from "../../hooks/crearRespuestaErrorCrear.j
 const QUERIES = {
    QUERIES_INSERT: `
    INSERT INTO empresas_tbl (
-    nombre_empresa,
-    rnc_empresa,
-    direccion_empresa,
-    telefono_empresa,
-    correo_empresa,
-    estado_empresa
+    nombre_comercial_empresa,
+    nombre_razon_social_empresa,
+    cedula_juridica_empresa,
+    nombre_contacto_empresa,
+    correo_contacto_empresa,
+    correo_facturacion_empresa,
+    direccion_empresa
 ) VALUES (
+    ?,
     ?,
     ?,
     ?,
@@ -59,12 +61,13 @@ const crearNuevoRegistroBd = async (datos, database) => {
    return await realizarConsulta(
       QUERIES.QUERIES_INSERT,
       [
-         datos.nombre_empresa,
-         datos.rnc_empresa,
+         datos.nombre_comercial_empresa,
+         datos.nombre_razon_social_empresa,
+         datos.cedula_juridica_empresa,
+         datos.nombre_contacto_empresa,
+         datos.correo_contacto_empresa,
+         datos.correo_facturacion_empresa,
          datos.direccion_empresa,
-         datos.telefono_empresa,
-         datos.correo_empresa,
-         datos.estado_empresa,
       ],
       database,
    );

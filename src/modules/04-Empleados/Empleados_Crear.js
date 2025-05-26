@@ -45,7 +45,10 @@ const QUERIES = {
       id_departamento,
       id_puesto,
       id_supervisor,
-      id_empresa
+      id_empresa,
+      ministerio_hacienda_empleado,
+      rt_ins_empleado,
+      caja_costarricense_seguro_social_empleado	
 ) VALUES (
       ?,
       ?,
@@ -66,7 +69,10 @@ const QUERIES = {
       ?,
       ?,
       ?,
-      ?
+      ?,
+     ?,
+     ?,
+     ?
 
 );
 `,
@@ -93,7 +99,7 @@ const QUERIES = {
  * @throws {Error} Si ocurre un error durante la inserción en la base de datos.
  * ====================================================================================================================================
  */
-const crearNuevoRegistroBd = async (datos, database) => { 
+const crearNuevoRegistroBd = async (datos, database) => {
    return await realizarConsulta(
       QUERIES.QUERIES_INSERT,
       [
@@ -117,19 +123,18 @@ const crearNuevoRegistroBd = async (datos, database) => {
          datos.id_puesto,
          datos.id_supervisor,
          datos.id_empresa,
+         datos.ministerio_hacienda_empleado,
+         datos.rt_ins_empleado,
+         datos.caja_costarricense_seguro_social_empleado,
       ],
       database,
    );
 };
 
-
 const crearNuevoRegistroBd_cuentas = async (id_empleado, cuentas_bancarias, database) => {
    return await realizarConsulta(
       QUERIES.QUERIES_INSERT_CUENTAS,
-      [
-         id_empleado,
-         cuentas_bancarias,
-      ],
+      [id_empleado, cuentas_bancarias],
       database,
    );
 };
@@ -176,7 +181,6 @@ const esCreacionExitosa = (resultado) => {
  * ====================================================================================================================================
  */
 const crearTransaccion = async (req, res) => {
-   console.log(res?.transaccion?.empleado);
    try {
       // 1. Validar los datos iniciales de la solicitud (por ejemplo, formato y autenticidad de los datos).
       const errorValidacion = await realizarValidacionesIniciales(res);
@@ -185,12 +189,12 @@ const crearTransaccion = async (req, res) => {
       // 3. Crear un nuevo registro en la base de datos
       const resultado = await crearNuevoRegistroBd(res?.transaccion?.empleado, res?.database);
 
-
       // 4. Verificar si la creación fue exitosa.
       if (!esCreacionExitosa(resultado)) {
          return crearRespuestaErrorCrear(`Error al crear el registro: ${resultado.error}`);
-         
       }
+
+   
 
       if (resultado.datos.insertId > 0) {
          for (const cuenta of res?.transaccion?.empleado.cuentas_bancarias) {

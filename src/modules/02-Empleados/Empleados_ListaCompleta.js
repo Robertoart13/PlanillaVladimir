@@ -27,7 +27,7 @@ const QUERIES = {
    QUERIES_SELECT: `
         SELECT 
     e.*,
-    em.nombre_empresa,
+    em.nombre_comercial_empresa as nombre_empresa,
     p.nombre_puesto,
     d.nombre_departamento,
     tc.nombre_tipo_contrato,
@@ -35,16 +35,16 @@ const QUERIES = {
     u.nombre_usuario AS nombre_supervisor,
     GROUP_CONCAT(ci.numero_cuenta_iban SEPARATOR ', ') AS cuentas_iban
 
-FROM empleados_tbl e
-LEFT JOIN empresas_tbl em ON e.id_empresa = em.id_empresa
-LEFT JOIN puestos_tbl p ON e.id_puesto = p.id_puesto
-LEFT JOIN departamentos_tbl d ON e.id_departamento = d.id_departamento
-LEFT JOIN tipos_contrato_tbl tc ON e.id_tipo_contrato = tc.id_tipo_contrato
-LEFT JOIN nacionalidades_tbl n ON e.id_nacionalidad = n.id_nacionalidad
-LEFT JOIN usuarios_tbl u ON e.id_supervisor = u.id_usuario
-LEFT JOIN cuentas_iban_tbl ci ON e.id_empleado = ci.id_empleado
+   FROM empleados_tbl e
+   LEFT JOIN empresas_tbl em ON e.id_empresa = em.id_empresa
+   LEFT JOIN puestos_tbl p ON e.id_puesto = p.id_puesto
+   LEFT JOIN departamentos_tbl d ON e.id_departamento = d.id_departamento
+   LEFT JOIN tipos_contrato_tbl tc ON e.id_tipo_contrato = tc.id_tipo_contrato
+   LEFT JOIN nacionalidades_tbl n ON e.id_nacionalidad = n.id_nacionalidad
+   LEFT JOIN usuarios_tbl u ON e.id_supervisor = u.id_usuario
+   LEFT JOIN cuentas_iban_tbl ci ON e.id_empleado = ci.id_empleado
 
-GROUP BY e.id_empleado;
+   GROUP BY e.id_empleado;
 ;
 
       `,
