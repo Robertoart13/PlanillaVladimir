@@ -10,23 +10,28 @@ import { useNavigate } from 'react-router-dom';
 
 const getTableColumns = () => [
    {
-      data: "nombre_empresa",
-      title: "Nombre",
+      data: "nombre_comercial_empresa",
+      title: "Nombre comercial",
       searchPanes: { show: true },
    },
    {
-      data: "rnc_empresa",
+      data: "nombre_razon_social_empresa",
+      title: "Razón social",
+      searchPanes: { show: true },
+   },
+   {
+      data: "cedula_juridica_empresa",
       title: "identificador fiscal",
       searchPanes: { show: true },
    },
    {
-      data: "telefono_empresa",
-      title: "Telefono",
+      data: "correo_contacto_empresa",
+      title: "Correo contacto",
       searchPanes: { show: true },
    },
    {
-      data: "correo_empresa",
-      title: "Correo",
+      data: "correo_facturacion_empresa",
+      title: "Correo contacto",
       searchPanes: { show: true },
    },
    {
@@ -46,11 +51,13 @@ const getTableColumns = () => [
 
 const formatData = (rowData) => ({
    id_empresa: rowData.id_empresa,
-   nombre_empresa: rowData.nombre_empresa,
-   rnc_empresa: rowData.rnc_empresa,
+   nombre_comercial_empresa: rowData.nombre_comercial_empresa, 
+   nombre_razon_social_empresa: rowData.nombre_razon_social_empresa,
+   cedula_juridica_empresa: rowData.cedula_juridica_empresa,
+   nombre_contacto_empresa: rowData.nombre_contacto_empresa,
+   correo_contacto_empresa: rowData.correo_contacto_empresa,
+   correo_facturacion_empresa: rowData.correo_facturacion_empresa,
    direccion_empresa: rowData.direccion_empresa,
-   telefono_empresa: rowData.telefono_empresa,
-   correo_empresa: rowData.correo_empresa,
    estado_empresa: rowData.estado_empresa,
 });
 
@@ -96,7 +103,7 @@ export const EmpresaLista = () => {
             },
          },
          columnsLayout: "columns-2", // Diseño de columnas en la tabla.
-         columnsFilter: [0, 1, 2, 3, 4], // Índices de columnas que se pueden filtrar.
+         columnsFilter: [0, 1, 2, 3, 4,5], // Índices de columnas que se pueden filtrar.
          columns: getTableColumns(), // Definición de columnas.
       }),
       [user?.id_usuario], // Se actualiza si cambia el usuario autenticado.

@@ -1,7 +1,7 @@
 import { ErrorMessage } from "../../../components/ErrorMessage/ErrorMessage";
 import { TarjetaRow } from "../../../components/TarjetaRow/TarjetaRow";
 import { useMemo, useRef, useState, useEffect } from "react";
-import { TextField, Select, MenuItem, Button, Grid } from "@mui/material";
+import { Switch } from "@mui/material";
 import Swal from "sweetalert2";
 
 import { useDispatch } from "react-redux";
@@ -48,6 +48,9 @@ export const EditarEmpleado = () => {
       nombre_supervisor: "",
       nombre_tipo_contrato: "",
       es_inactivo: 0,
+      ministerio_hacienda: false,
+      rt_ins: false,
+      caja_costarricense_seguro_social: false,
    });
    const [cuentasBancarias, setCuentasBancarias] = useState([""]);
    const [departamentos, setDepartamentos] = useState([]);
@@ -97,6 +100,7 @@ export const EditarEmpleado = () => {
 
    useEffect(() => {
       const formatDate = (dateString) => {
+         if (!dateString) return ""; // Return empty string if dateString is null or undefined
          const date = new Date(dateString);
          const year = date.getFullYear();
          const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -116,7 +120,6 @@ export const EditarEmpleado = () => {
             },
          });
          const existingData = JSON.parse(storedData);
-         console.log(existingData);
          setFormData({
             id_empleado: existingData.id_empleado,
             nombre_empleado: existingData.nombre_empleado,
@@ -152,6 +155,10 @@ export const EditarEmpleado = () => {
             nombre_supervisor: existingData.nombre_supervisor,
             nombre_tipo_contrato: existingData.nombre_tipo_contrato,
             es_inactivo: existingData.estado_empleado,
+
+            ministerio_hacienda: existingData.ministerio_hacienda_empleado,
+            rt_ins: existingData.rt_ins_empleado,
+            caja_costarricense_seguro_social: existingData.caja_costarricense_seguro_social_empleado,
          });
          setCuentasBancarias(existingData.cuentas_iban.split(",").map((cuenta) => cuenta.trim()));
          setLoadingData(false); // End loading
@@ -186,11 +193,13 @@ export const EditarEmpleado = () => {
    const handleSubmit = (e) => {
       e.preventDefault();
       setSubmitted(true);
-      if (Object.values(formData).some((field) => field === "" || field === "default")) {
-         setError(true);
-         setMessage("Todos los campos deben estar llenos.");
-         return;
+      const requiredFields = Object.keys(formData).filter(field => field !== 'fecha_salida_empleado');
+      if (requiredFields.some(field => formData[field] === "" || formData[field] === "default")) {
+          setError(true);
+          setMessage("Todos los campos deben estar llenos.");
+          return;
       }
+
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(formData.correo_empleado)) {
          setError(true);
@@ -262,8 +271,14 @@ export const EditarEmpleado = () => {
                   },
                );
             } else {
-               Swal.close();
+               setError(true);
                setMessage(respuesta.message);
+               Swal.fire({
+                  title: "Error",
+                  text: respuesta.message || "Ocurrió un error inesperado.",
+                  icon: "error",
+                  confirmButtonText: "Aceptar"
+                });
             }
          }
       });
@@ -297,9 +312,6 @@ export const EditarEmpleado = () => {
       setCuentasBancarias(newCuentas);
    };
 
-   const handleCheckboxChange = (e) => {
-      setFormData({ ...formData, es_inactivo: e.target.checked ? 1 : 0 });
-   };
 
    return (
       <TarjetaRow
@@ -317,23 +329,14 @@ export const EditarEmpleado = () => {
             <div className="row">
                <div className="row">
                   <div className="col-md-12">
-                     <div class="form-check mb-4">
-                        <input
-                           className="form-check-input input-primary"
-                           type="checkbox"
-                           id="es_inactivo"
-                           name="es_inactivo"
-                           checked={formData.es_inactivo === 1}
-                           onChange={handleCheckboxChange}
+                     <div className="mb-3">
+                       
+                        <Switch
+                            checked={formData.es_inactivo === 1}
+                            onChange={(e) => setFormData({ ...formData, es_inactivo: e.target.checked ? 1 : 0 })}
                         />
-                        <label
-                           class="form-check-label"
-                           for="customCheckc1"
-                        >
-                           {" "}
-                           Estado del empleado
-                        </label>
-                     </div>
+                         <label>Estado del empleado</label>
+                    </div>
                   </div>
                </div>
 
@@ -769,7 +772,7 @@ export const EditarEmpleado = () => {
                                  key={empresa.id_empresa}
                                  value={empresa.id_empresa}
                               >
-                                 {empresa.nombre_empresa}
+                                 {empresa.nombre_comercial_empresa}
                               </option>
                            ))
                         ) : (
@@ -873,6 +876,32 @@ export const EditarEmpleado = () => {
                      </button>
                   </div>
                </div>
+               <div className="col-md-6">
+                    <div className="mb-3">
+                        
+                        <Switch
+                            checked={formData.ministerio_hacienda}
+                            onChange={(e) => setFormData({ ...formData, ministerio_hacienda: e.target.checked })}
+                        />
+                        <label>Ministerio de Hacienda</label>
+                    </div>
+                    <div className="mb-3">
+                       
+                        <Switch
+                            checked={formData.rt_ins}
+                            onChange={(e) => setFormData({ ...formData, rt_ins: e.target.checked })}
+                        />
+                         <label>RT INS</label>
+                    </div>
+                    <div className="mb-3">
+                       
+                        <Switch
+                            checked={formData.caja_costarricense_seguro_social}
+                            onChange={(e) => setFormData({ ...formData, caja_costarricense_seguro_social: e.target.checked })}
+                        />
+                         <label>Caja Costarricense de Seguro Social</label>
+                    </div>
+                </div>
             </div>
 
             <button

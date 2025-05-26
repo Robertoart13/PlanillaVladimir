@@ -9,16 +9,17 @@ import { useNavigate } from "react-router-dom";
 export const CrearEmpresa = () => {
    const [error, setError] = useState(false);
    const [message, setMessage] = useState("");
-   const [submitted, setSubmitted] = useState(false); // Nuevo estado
+   const [submitted, setSubmitted] = useState(false);
    const dispatch = useDispatch();
    const navigate = useNavigate();
    const [formData, setFormData] = useState({
-      nombre_empresa: "",
-      rnc_empresa: "",
-      direccion_empresa: "",
-      telefono_empresa: "",
-      correo_empresa: "",
-      estado_empresa: 1,
+      nombre_comercial: "",
+      nombre_razon_social: "",
+      cedula_juridica: "",
+      nombre_contacto: "",
+      correo_contacto: "",
+      correo_facturacion: "",
+      direccion: "",
    });
 
    const handleChange = (e) => {
@@ -35,12 +36,11 @@ export const CrearEmpresa = () => {
          return;
       }
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(formData.correo_empresa)) {
+      if (!emailRegex.test(formData.correo_contacto) || !emailRegex.test(formData.correo_facturacion)) {
          setError(true);
-         setMessage("Por favor, ingrese un correo electrónico válido.");
+         setMessage("Por favor, ingrese correos electrónicos válidos.");
          return;
       }
-      // Limpiar mensajes de error si todo es válido
       setError(false);
       setMessage("");
       Swal.fire({
@@ -65,13 +65,14 @@ export const CrearEmpresa = () => {
                Swal.fire("¡Creado!", "La empresa ha sido creada exitosamente.", "success").then(
                   () => {
                      navigate("/empresas/lista");
-
                      setFormData({
-                        nombre_clase: "",
-                        descripcion_clase: "",
-                        codigo_clase: "",
-                        id_externos_clase: "",
-                        es_inactivo: 1,
+                        nombre_comercial: "",
+                        nombre_razon_social: "",
+                        cedula_juridica: "",
+                        nombre_contacto: "",
+                        correo_contacto: "",
+                        correo_facturacion: "",
+                        direccion: "",
                      });
                   },
                );
@@ -87,9 +88,9 @@ export const CrearEmpresa = () => {
       if (submitted && formData[field] === "") {
          return { border: "1px solid red" };
       }
-      if (field === "correo_empresa" && submitted) {
+      if ((field === "correo_contacto" || field === "correo_facturacion") && submitted) {
          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-         if (!emailRegex.test(formData.correo_empresa)) {
+         if (!emailRegex.test(formData[field])) {
             return { border: "1px solid red" };
          }
       }
@@ -114,84 +115,126 @@ export const CrearEmpresa = () => {
                   <div className="mb-3">
                      <label
                         className="form-label"
-                        htmlFor="nombre_empresa"
+                        htmlFor="nombre_comercial"
                      >
-                        Nombre de la empresa
+                        Nombre Comercial
                      </label>
                      <input
                         type="text"
-                        style={getInputStyle("nombre_empresa")}
+                        style={getInputStyle("nombre_comercial")}
                         className="form-control"
-                        id="nombre_empresa"
-                        name="nombre_empresa"
-                        value={formData.nombre_empresa}
+                        id="nombre_comercial"
+                        name="nombre_comercial"
+                        value={formData.nombre_comercial}
                         onChange={handleChange}
-                        placeholder="Enter company name"
+                        placeholder="Enter commercial name"
                      />
                   </div>
                   <div className="mb-3">
                      <label
                         className="form-label"
-                        htmlFor="rnc_empresa"
+                        htmlFor="nombre_razon_social"
                      >
-                        RNC de la empresa
+                        Nombre de Razón Social
                      </label>
                      <input
                         type="text"
-                        style={getInputStyle("rnc_empresa")}
+                        style={getInputStyle("nombre_razon_social")}
                         className="form-control"
-                        id="rnc_empresa"
-                        name="rnc_empresa"
-                        value={formData.rnc_empresa}
+                        id="nombre_razon_social"
+                        name="nombre_razon_social"
+                        value={formData.nombre_razon_social}
                         onChange={handleChange}
-                        placeholder="Enter RNC"
+                        placeholder="Enter social reason name"
+                     />
+                  </div>
+                  <div className="mb-3">
+                     <label
+                        className="form-label"
+                        htmlFor="cedula_juridica"
+                     >
+                        Cédula Jurídica
+                     </label>
+                     <input
+                        type="text"
+                        style={getInputStyle("cedula_juridica")}
+                        className="form-control"
+                        id="cedula_juridica"
+                        name="cedula_juridica"
+                        value={formData.cedula_juridica}
+                        onChange={handleChange}
+                        placeholder="Enter legal ID"
                      />
                   </div>
                </div>
                <div className="col-md-6">
                   <div className="mb-3">
-                     <label className="form-label">Teléfono de la empresa</label>
-                     <input
-                        type="text"
-                        style={getInputStyle("telefono_empresa")}
-                        className="form-control"
-                        name="telefono_empresa"
-                        value={formData.telefono_empresa}
-                        onChange={handleChange}
-                        placeholder="Enter phone number"
-                     />
-                  </div>
-                  <div className="mb-3">
                      <label
                         className="form-label"
-                        htmlFor="correo_empresa"
+                        htmlFor="nombre_contacto"
                      >
-                        Correo de la empresa
+                        Nombre de Contacto
                      </label>
                      <input
                         type="text"
-                        style={getInputStyle("correo_empresa")}
+                        style={getInputStyle("nombre_contacto")}
                         className="form-control"
-                        id="correo_empresa"
-                        name="correo_empresa"
-                        value={formData.correo_empresa}
+                        id="nombre_contacto"
+                        name="nombre_contacto"
+                        value={formData.nombre_contacto}
                         onChange={handleChange}
-                        placeholder="Enter email"
+                        placeholder="Enter contact name"
                      />
                   </div>
                   <div className="mb-3">
                      <label
                         className="form-label"
-                        htmlFor="direccion_empresa"
+                        htmlFor="correo_contacto"
                      >
-                        Dirección de la empresa
+                        Correo de Contacto
+                     </label>
+                     <input
+                        type="text"
+                        style={getInputStyle("correo_contacto")}
+                        className="form-control"
+                        id="correo_contacto"
+                        name="correo_contacto"
+                        value={formData.correo_contacto}
+                        onChange={handleChange}
+                        placeholder="Enter contact email"
+                     />
+                  </div>
+                  <div className="mb-3">
+                     <label
+                        className="form-label"
+                        htmlFor="correo_facturacion"
+                     >
+                        Correo de Facturación
+                     </label>
+                     <input
+                        type="text"
+                        style={getInputStyle("correo_facturacion")}
+                        className="form-control"
+                        id="correo_facturacion"
+                        name="correo_facturacion"
+                        value={formData.correo_facturacion}
+                        onChange={handleChange}
+                        placeholder="Enter billing email"
+                     />
+                  </div>
+                  <div className="mb-3">
+                     <label
+                        className="form-label"
+                        htmlFor="direccion"
+                     >
+                        Dirección
                      </label>
                      <textarea
-                        style={getInputStyle("direccion_empresa")}
+                        style={getInputStyle("direccion")}
                         className="form-control"
-                        id="direccion_empresa"
-                        name="direccion_empresa"
-                        value={formData.direccion_empresa}
+                        id="direccion"
+                        name="direccion"
+                        value={formData.direccion}
                         onChange={handleChange}
                         rows="3"
                      ></textarea>

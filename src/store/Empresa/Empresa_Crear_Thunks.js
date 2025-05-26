@@ -20,12 +20,13 @@ export const Empresa_Crear_Thunks = (formData) => {
                id: parseInt(user.id_usuario), // id usuario auth  
             },
             empresa: { 
-               nombre_empresa: formData.nombre_empresa,
-               rnc_empresa: formData.rnc_empresa,
-               direccion_empresa: formData.direccion_empresa,
-               telefono_empresa: formData.telefono_empresa,
-               correo_empresa: formData.correo_empresa,
-               estado_empresa: formData.estado_empresa
+               nombre_comercial_empresa: formData.nombre_comercial,
+               nombre_razon_social_empresa: formData.nombre_razon_social,
+               cedula_juridica_empresa: formData.cedula_juridica,
+               nombre_contacto_empresa: formData.nombre_contacto,
+               correo_contacto_empresa: formData.correo_contacto,
+               correo_facturacion_empresa: formData.correo_facturacion,
+               direccion_empresa: formData.direccion,
             },
             acceso: {
                type: 0,

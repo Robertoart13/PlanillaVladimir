@@ -42,7 +42,10 @@ export const Empleado_Editar_Thunks = (formData) => {
                id_supervisor: formData.id_supervisor,
                id_empresa: formData.id_empresa,
                cuentas_bancarias: formData.cuentas_bancarias,
-               es_inactivo: formData.es_inactivo
+               es_inactivo: formData.es_inactivo,
+               ministerio_hacienda_empleado: formData.ministerio_hacienda ? 1 : 0,
+               rt_ins_empleado: formData.rt_ins ? 1 : 0,
+               caja_costarricense_seguro_social_empleado: formData.caja_costarricense_seguro_social ? 1 : 0,
             },
             acceso: {
                type: 0,

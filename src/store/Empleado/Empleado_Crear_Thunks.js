@@ -41,7 +41,10 @@ export const Empleado_Crear_Thunks = (formData) => {
                id_puesto: formData.id_puesto,
                id_supervisor: formData.id_supervisor,
                id_empresa: formData.id_empresa,
-               cuentas_bancarias: formData.cuentas_bancarias
+               cuentas_bancarias: formData.cuentas_bancarias,
+               ministerio_hacienda_empleado: formData.ministerio_hacienda ?  1 : 0,
+               rt_ins_empleado: formData.rt_ins ? 1 : 0,
+               caja_costarricense_seguro_social_empleado: formData.caja_costarricense_seguro_social ? 1 : 0,
             },
             acceso: {
                type: 0,

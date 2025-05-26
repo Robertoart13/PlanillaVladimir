@@ -40,6 +40,47 @@ const getTableColumns = () => [
       title: "Supervisor",
       searchPanes: { show: true },
    },
+
+
+   {
+      data: "ministerio_hacienda_empleado",
+      title: "Ministerio de Hacienda",
+      searchPanes: { show: true },
+      render: function (data) {
+         const isActive = data === 1;
+         return `
+           <span class="badge bg-light-${isActive ? "success" : "danger"}">
+              ${isActive ? "Inscrito" : "No Inscrito"}
+           </span>
+        `;
+      },
+   },
+   {
+      data: "rt_ins_empleado",
+      title: "RT-INS",
+      searchPanes: { show: true },
+      render: function (data) {
+         const isActive = data === 1;
+         return `
+           <span class="badge bg-light-${isActive ? "success" : "danger"}">
+              ${isActive ? "Inscrito" : "No Inscrito"}
+           </span>
+        `;
+      },
+   },
+   {
+      data: "caja_costarricense_seguro_social_empleado",
+      title: "ccss",
+      searchPanes: { show: true },
+      render: function (data) {
+         const isActive = data === 1;
+         return `
+           <span class="badge bg-light-${isActive ? "success" : "danger"}">
+              ${isActive ? "Inscrito" : "No Inscrito"}
+           </span>
+        `;
+      },
+   },
    {
       data: "estado_empleado",
       title: "Estado",
@@ -88,6 +129,9 @@ const formatData = (rowData) => (
       nombre_nacionalidad: rowData.nombre_nacionalidad,
       nombre_supervisor: rowData.nombre_supervisor,
       cuentas_iban: rowData.cuentas_iban,
+      ministerio_hacienda_empleado  : rowData.ministerio_hacienda_empleado,
+      rt_ins_empleado   : rowData.rt_ins_empleado,
+      caja_costarricense_seguro_social_empleado : rowData.caja_costarricense_seguro_social_empleado,
    }
 );
 
@@ -133,7 +177,7 @@ export const EmpleadoLista = () => {
             },
          },
          columnsLayout: "columns-2", // Diseño de columnas en la tabla.
-         columnsFilter: [0, 1, 2, 3, 4, 5, 6], // Índices de columnas que se pueden filtrar.
+         columnsFilter: [0, 1, 2, 3, 4, 5, 6,7,8], // Índices de columnas que se pueden filtrar.
          columns: getTableColumns(), // Definición de columnas.
       }),
       [user?.id_usuario], // Se actualiza si cambia el usuario autenticado.

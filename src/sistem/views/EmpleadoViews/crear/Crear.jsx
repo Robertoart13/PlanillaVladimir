@@ -1,7 +1,7 @@
 import { ErrorMessage } from "../../../components/ErrorMessage/ErrorMessage";
 import { TarjetaRow } from "../../../components/TarjetaRow/TarjetaRow";
 import { useMemo, useRef, useState, useEffect } from "react";
-import { TextField, Select, MenuItem, Button, Grid } from "@mui/material";
+import { Switch } from "@mui/material";
 import Swal from "sweetalert2";
 
 import { useDispatch } from "react-redux";
@@ -38,6 +38,9 @@ export const CrearEmpleado = () => {
       id_supervisor: "",
       id_empresa: "",
       cuentas_bancarias: [""],
+      ministerio_hacienda: false,
+      rt_ins: false,
+      caja_costarricense_seguro_social: false,
    });
    const [cuentasBancarias, setCuentasBancarias] = useState([""]);
    const [departamentos, setDepartamentos] = useState([]);
@@ -78,14 +81,14 @@ export const CrearEmpleado = () => {
    const handleSubmit = (e) => {
       e.preventDefault();
       setSubmitted(true);
-      console.log('formData:', formData); // Debugging line
-      // Exclude cuentas_bancarias and id_empleado from empty field validation
+
+      // Exclude cuentas_bancarias, id_empleado, and fecha_salida_empleado from empty field validation
       const fieldsToValidate = { ...formData };
       delete fieldsToValidate.cuentas_bancarias;
       delete fieldsToValidate.id_empleado;
+      delete fieldsToValidate.fecha_salida_empleado;
       const emptyFields = Object.entries(fieldsToValidate).filter(([key, value]) => value === "" || value === "default");
       if (emptyFields.length > 0) {
-         console.log('Empty fields:', emptyFields.map(([key]) => key)); // Log empty fields
          setError(true);
          setMessage("Todos los campos deben estar llenos.");
          return;
@@ -148,15 +151,21 @@ export const CrearEmpleado = () => {
                   },
                );
             } else {
-               Swal.close();
+               setError(true);
                setMessage(respuesta.message);
+               Swal.fire({
+                  title: "Error",
+                  text: respuesta.message || "Ocurrió un error inesperado.",
+                  icon: "error",
+                  confirmButtonText: "Aceptar"
+                });
             }
          }
       });
    };
 
    const getInputStyle = (field) => {
-      if (submitted && formData[field] === "") {
+      if (submitted && formData[field] === "" && field !== "fecha_salida_empleado") {
          return { border: "1px solid red" };
       }
       if (field === "correo_empleado" && submitted) {
@@ -629,7 +638,7 @@ export const CrearEmpleado = () => {
                                  key={empresa.id_empresa}
                                  value={empresa.id_empresa}
                               >
-                                 {empresa.nombre_empresa}
+                                 {empresa.nombre_comercial_empresa}
                               </option>
                            ))
                         ) : (
@@ -733,7 +742,34 @@ export const CrearEmpleado = () => {
                      </button>
                   </div>
                </div>
+               <div className="col-md-6">
+                    <div className="mb-3">
+                        
+                        <Switch
+                            checked={formData.ministerio_hacienda}
+                            onChange={(e) => setFormData({ ...formData, ministerio_hacienda: e.target.checked })}
+                        />
+                        <label>Ministerio de Hacienda</label>
+                    </div>
+                    <div className="mb-3">
+                       
+                        <Switch
+                            checked={formData.rt_ins}
+                            onChange={(e) => setFormData({ ...formData, rt_ins: e.target.checked })}
+                        />
+                         <label>RT INS</label>
+                    </div>
+                    <div className="mb-3">
+                       
+                        <Switch
+                            checked={formData.caja_costarricense_seguro_social}
+                            onChange={(e) => setFormData({ ...formData, caja_costarricense_seguro_social: e.target.checked })}
+                        />
+                         <label>Caja Costarricense de Seguro Social</label>
+                    </div>
+                </div>
             </div>
+
             <button
                onClick={handleSubmit}
                className="btn btn-dark mb-4"
