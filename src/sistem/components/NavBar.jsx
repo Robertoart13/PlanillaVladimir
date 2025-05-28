@@ -141,7 +141,7 @@ export const NavBar = ({ isSidebarOpen, isMobile }) => {
                   </li>
                   <li className={`pc-item ${getActiveClass("/planillas")}`}>
                      <Link
-                        to="/planillas"
+                        to="/planilla/lista"
                         className="pc-link"
                      >
                         <span className="pc-micon">

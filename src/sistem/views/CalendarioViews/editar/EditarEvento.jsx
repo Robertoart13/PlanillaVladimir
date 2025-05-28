@@ -42,8 +42,8 @@ const dateUtils = {
          hora < CONFIG.HORARIO.INICIO
             ? CONFIG.HORARIO.INICIO
             : hora > CONFIG.HORARIO.FIN
-               ? CONFIG.HORARIO.FIN
-               : hora;
+            ? CONFIG.HORARIO.FIN
+            : hora;
       const m = minuto < 30 ? "00" : "30";
       return `${h.toString().padStart(2, "0")}:${m}`;
    },
@@ -124,7 +124,7 @@ const initialFormState = {
 };
 
 /**
- * Componente principal para editar eventos   
+ * Componente principal para editar eventos
  */
 export const EditarEvento = () => {
    const dispatch = useDispatch();
@@ -180,8 +180,6 @@ export const EditarEvento = () => {
                const result = await dispatch(Calendario_Evento_Thunks(eventId));
                if (result.success && result.data) {
                   const evento = result.data.array[0];
-
-    
 
                   // Parse dates and times from ISO string
                   const fechaInicio = new Date(evento.fecha_inicio_evento);
@@ -348,17 +346,19 @@ export const EditarEvento = () => {
       // Si pasa todas las validaciones, mostrar confirmación
       Swal.fire({
          icon: "question",
-         title: "¿Está seguro de editar el evento?",   
+         title: "¿Está seguro de editar el evento?",
          html: `
         <div class="text-left">
           <p><strong>Título:</strong> ${form.titulo_evento}</p>
           <p><strong>Tipo:</strong> ${form.tipo_evento}</p>
-          <p><strong>Inicio:</strong> ${form.fecha_inicio} ${dateUtils.generarOpcionesHora().find((h) => h.value === form.hora_inicio)?.label ||
+          <p><strong>Inicio:</strong> ${form.fecha_inicio} ${
+            dateUtils.generarOpcionesHora().find((h) => h.value === form.hora_inicio)?.label ||
             form.hora_inicio
-            }</p>
-          <p><strong>Fin:</strong> ${form.fecha_fin} ${dateUtils.generarOpcionesHora().find((h) => h.value === form.hora_fin)?.label ||
+         }</p>
+          <p><strong>Fin:</strong> ${form.fecha_fin} ${
+            dateUtils.generarOpcionesHora().find((h) => h.value === form.hora_fin)?.label ||
             form.hora_fin
-            }</p>
+         }</p>
         </div>
       `,
          showCancelButton: true,
@@ -415,8 +415,9 @@ export const EditarEvento = () => {
       const eventId = getEventIdFromUrl();
 
       Swal.fire({
-         title: `¿Está seguro de ${newStatus === "completado" ? "completar" : "cancelar"
-            } el evento?`,
+         title: `¿Está seguro de ${
+            newStatus === "completado" ? "completar" : "cancelar"
+         } el evento?`,
          text: "Esta acción no se puede revertir",
          icon: "warning",
          showCancelButton: true,
@@ -428,12 +429,7 @@ export const EditarEvento = () => {
          if (result.isConfirmed) {
             try {
                // Aquí deberías hacer la llamada a tu API para actualizar el estado
-               const response = await dispatch(
-                  Calendario_Evento_estado_Thunks(
-                     eventId,
-                     newStatus,
-                  ),
-               );
+               const response = await dispatch(Calendario_Evento_estado_Thunks(eventId, newStatus));
                if (response.success) {
                   setForm((prev) => ({
                      ...prev,
@@ -442,7 +438,8 @@ export const EditarEvento = () => {
 
                   Swal.fire(
                      "¡Actualizado!",
-                     `El evento ha sido ${newStatus === "completado" ? "completado" : "cancelado"
+                     `El evento ha sido ${
+                        newStatus === "completado" ? "completado" : "cancelado"
                      } exitosamente.`,
                      "success",
                   );

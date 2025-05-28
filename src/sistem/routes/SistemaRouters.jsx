@@ -4,7 +4,7 @@ import { EmpleadosPage } from "../pages/EmpleadosPage/EmpleadosPage";
 import { EmpresasPage } from "../pages/EmpresasPage/EmpresasPage";
 import { ClientesPage } from "../pages/ClientesPage/ClientePage";
 import { CalendarioPage } from "../pages/CalendarioPage/CalendarioPage";
-
+import { PlanillaPage } from "../pages/PlanillaPage/PlanillaPage";
 // Componente principal de rutas del sistema
 export const SistemaRouters = () => {
    return (
@@ -37,6 +37,12 @@ export const SistemaRouters = () => {
          <Route
             path="/calendario/*"
             element={<CalendarioPage />}
+         />
+
+         {/* Ruta para el Planilla */}  
+         <Route
+            path="/planilla/lista/*" 
+            element={<PlanillaPage />}
          />
 
          {/* Ruta por defecto: redirige a la página de inicio si la ruta no existe */}
