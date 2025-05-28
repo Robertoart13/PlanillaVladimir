@@ -64,10 +64,20 @@ import Empleados_Editar from "../modules/04-Empleados/Empleados_Editar.js";
  * ====================================================================================================================================
  */
 import Clientes_Listar from "../modules/06-Clientes/Clientes_ListaCompleta.js";
+import Clientes_Crear from "../modules/06-Clientes/Cliente_Crear.js";
+import Clientes_Editar from "../modules/06-Clientes/Clientes_Editar.js";
 
 
-
-
+/**
+ * ====================================================================================================================================
+ * Importación de módulos relacionados con la Empleados
+ * Estos módulos manejan la lista de empleados
+ * ====================================================================================================================================
+ */
+import Calendario_Listar from "../modules/07-Calendario/Clalendario_ListaCompleta.js";
+import Calendario_Crear from "../modules/07-Calendario/Calendario_Crear.js";
+import Calendario_Evento from "../modules/07-Calendario/Calendario_Evento.js";   
+import Calendario_Estado from "../modules/07-Calendario/Calendario_Estado.js";
 
 
 /** ====================================================================================================================================
@@ -396,11 +406,54 @@ function getModulesConfig() {
          category: "Cliente", // Nombre del módulo
          model: {
             ...Clientes_Listar,
+            ...Clientes_Crear,
+            ...Clientes_Editar,
          }, // Combinamos ambos modelos
          routes: [
             {
                path: "clientes", // Ruta para la lista de clientes
                method: "obtenerListaCompleta", // Método que se ejecutará
+               isAuthRequired: true, // Requiere autenticación
+            },
+            {
+               path: "cliente/crear", // Ruta para la lista de clientes
+               method: "crearTransaccion", // Método que se ejecutará
+               isAuthRequired: true, // Requiere autenticación
+            },
+            {
+               path: "cliente/editar", // Ruta para la lista de clientes
+               method: "editarTransaccion", // Método que se ejecutará
+               isAuthRequired: true, // Requiere autenticación
+            },
+         ],
+      },
+      {
+         category: "Calendario", // Nombre del módulo
+         model: {
+            ...Calendario_Listar,
+            ...Calendario_Crear,
+            ...Calendario_Evento,   
+            ...Calendario_Estado,
+         }, // Combinamos ambos modelos
+         routes: [
+            {
+               path: "calendario", // Ruta para la lista de calendario
+               method: "obtenerListaCompleta", // Método que se ejecutará
+               isAuthRequired: true, // Requiere autenticación
+            },
+            {
+               path: "calendario/crear", // Ruta para la lista de calendario
+               method: "crearTransaccion", // Método que se ejecutará
+               isAuthRequired: true, // Requiere autenticación
+            },
+            {
+               path: "calendario/id", // Ruta para la lista de calendario
+               method: "obtenerEvento", // Método que se ejecutará
+               isAuthRequired: true, // Requiere autenticación
+            },
+            {
+               path: "calendario/estado", // Ruta para la lista de calendario
+               method: "editarEstado", // Método que se ejecutará
                isAuthRequired: true, // Requiere autenticación
             },
          ],
