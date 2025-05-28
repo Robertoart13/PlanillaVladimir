@@ -78,7 +78,7 @@ import Calendario_Listar from "../modules/07-Calendario/Clalendario_ListaComplet
 import Calendario_Crear from "../modules/07-Calendario/Calendario_Crear.js";
 import Calendario_Evento from "../modules/07-Calendario/Calendario_Evento.js";   
 import Calendario_Estado from "../modules/07-Calendario/Calendario_Estado.js";
-
+import Calendario_Editar from "../modules/07-Calendario/Calendario_Editar.js";
 
 /** ====================================================================================================================================
  * @fileoverview Módulo de configuración de rutas para la aplicación.
@@ -434,6 +434,7 @@ function getModulesConfig() {
             ...Calendario_Crear,
             ...Calendario_Evento,   
             ...Calendario_Estado,
+            ...Calendario_Editar,
          }, // Combinamos ambos modelos
          routes: [
             {
@@ -454,6 +455,11 @@ function getModulesConfig() {
             {
                path: "calendario/estado", // Ruta para la lista de calendario
                method: "editarEstado", // Método que se ejecutará
+               isAuthRequired: true, // Requiere autenticación
+            },
+            {
+               path: "calendario/editar", // Ruta para la lista de calendario
+               method: "editarEvento", // Método que se ejecutará
                isAuthRequired: true, // Requiere autenticación
             },
          ],
