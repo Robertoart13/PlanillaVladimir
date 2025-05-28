@@ -26,7 +26,6 @@ export const VerCalendario = () => {
          setLoading(true);
          const result = await dispatch(Calendario_Lista_Thunks());
 
-         console.log("Eventos cargados:", result.data);
          setEventos(result.data.array || []);
          setLoading(false);
       };

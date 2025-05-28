@@ -3,7 +3,7 @@ import { useDispatch } from "react-redux";
 import { useLocation } from "react-router-dom";
 import { Empleados_Lista_Thunks } from "../../../../store/Empleado/Empleados_Lista_Thunks";
 import Swal from "sweetalert2";
-import { Calendario_Crear_Thunks } from "../../../../store/Calendario/Calendario_Crear_Thunks";
+import { Calendario_Editar_Thunks } from "../../../../store/Calendario/Calendario_Editar_Thunks";
 import { Calendario_Evento_Thunks } from "../../../../store/Calendario/Calendario_Evento_Thunks";
 import { useNavigate } from "react-router-dom";
 import { Calendario_Evento_estado_Thunks } from "../../../../store/Calendario/Calendario_Evento_estado_Thunks";
@@ -124,7 +124,7 @@ const initialFormState = {
 };
 
 /**
- * Componente principal para crear eventos
+ * Componente principal para editar eventos   
  */
 export const EditarEvento = () => {
    const dispatch = useDispatch();
@@ -181,6 +181,8 @@ export const EditarEvento = () => {
                if (result.success && result.data) {
                   const evento = result.data.array[0];
 
+    
+
                   // Parse dates and times from ISO string
                   const fechaInicio = new Date(evento.fecha_inicio_evento);
                   const fechaFin = new Date(evento.fecha_fin_evento);
@@ -194,6 +196,7 @@ export const EditarEvento = () => {
                   const fechaFinStr = fechaFin.toISOString().split("T")[0];
 
                   setForm({
+                     id_evento: evento.id_evento,
                      titulo_evento: evento.titulo_evento,
                      descripcion_evento: evento.descripcion_evento,
                      tipo_evento: evento.tipo_evento,
@@ -345,7 +348,7 @@ export const EditarEvento = () => {
       // Si pasa todas las validaciones, mostrar confirmación
       Swal.fire({
          icon: "question",
-         title: "¿Está seguro de crear el evento?",
+         title: "¿Está seguro de editar el evento?",   
          html: `
         <div class="text-left">
           <p><strong>Título:</strong> ${form.titulo_evento}</p>
@@ -359,14 +362,14 @@ export const EditarEvento = () => {
         </div>
       `,
          showCancelButton: true,
-         confirmButtonText: "Sí, crear evento",
+         confirmButtonText: "Sí, editar evento",
          cancelButtonText: "Cancelar",
          confirmButtonColor: "#28a745",
          cancelButtonColor: "#dc3545",
       }).then(async (result) => {
          if (result.isConfirmed) {
             Swal.fire({
-               title: "Creando evento",
+               title: "Editando evento",
                text: "Por favor espere...",
                allowOutsideClick: false,
                didOpen: () => {
@@ -380,9 +383,9 @@ export const EditarEvento = () => {
                fecha_fin_evento: dateUtils.formatDateTime(form.fecha_fin, form.hora_fin),
             };
 
-            const respuesta = await dispatch(Calendario_Crear_Thunks(eventoData));
+            const respuesta = await dispatch(Calendario_Editar_Thunks(eventoData));
             if (respuesta.success) {
-               Swal.fire("¡Creado!", "El empleado ha sido creado exitosamente.", "success").then(
+               Swal.fire("¡Editado!", "El evento ha sido editado exitosamente.", "success").then(
                   () => {
                      navigate("/calendario/ver");
                   },
