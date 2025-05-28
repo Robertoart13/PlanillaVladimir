@@ -84,7 +84,7 @@ const formatearDatosEmpleado = (datosEmpleado) => ({
    intentos_login_usuario : datosEmpleado.intentos_login_usuario,
    login_usuario : datosEmpleado.login_usuario,
    id_empresa_usuario : datosEmpleado.id_empresa_usuario,
-
+   password_hash_usuario : datosEmpleado.password_hash_usuario,
 });
 
 /**

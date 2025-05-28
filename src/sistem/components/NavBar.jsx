@@ -19,8 +19,9 @@ export const NavBar = ({ isSidebarOpen, isMobile }) => {
 
    return (
       <nav
-         className={`pc-sidebar ${!isSidebarOpen ? "pc-sidebar-hide" : isMobile ? "mob-sidebar-active" : ""
-            }`}
+         className={`pc-sidebar ${
+            !isSidebarOpen ? "pc-sidebar-hide" : isMobile ? "mob-sidebar-active" : ""
+         }`}
       >
          <div className="navbar-wrapper">
             <div className="m-header">
@@ -43,15 +44,16 @@ export const NavBar = ({ isSidebarOpen, isMobile }) => {
                </Link>
             </div>
             <div
-               className={`navbar-content ${isSidebarOpen ? "pc-trigger simplebar-scrollable-y" : ""
-                  }`}
+               className={`navbar-content ${
+                  isSidebarOpen ? "pc-trigger simplebar-scrollable-y" : ""
+               }`}
             >
                <ul className="pc-navbar">
                   <li className="pc-item pc-caption">
                      <label data-i18n="Navigation">Navegación</label>
                      <i className="ph-duotone ph-gauge"></i>
                   </li>
-                  <li className={`pc-item ${getActiveClass('/')}`}>
+                  <li className={`pc-item ${getActiveClass("/")}`}>
                      <Link
                         to="/"
                         className="pc-link"
@@ -72,7 +74,7 @@ export const NavBar = ({ isSidebarOpen, isMobile }) => {
                      <label data-i18n="Menus">Menús</label>
                      <i className="ph-duotone ph-gauge"></i>
                   </li>
-                  <li className={`pc-item ${getActiveClass('/empleados')}`}>
+                  <li className={`pc-item ${getActiveClass("/empleados")}`}>
                      <Link
                         to="/empleados/lista"
                         className="pc-link"
@@ -88,8 +90,8 @@ export const NavBar = ({ isSidebarOpen, isMobile }) => {
                         </span>
                      </Link>
                   </li>
-                 
-                  <li className={`pc-item ${getActiveClass('/empresas')}`}>
+
+                  <li className={`pc-item ${getActiveClass("/empresas")}`}>
                      <Link
                         to="/empresas/lista"
                         className="pc-link"
@@ -105,7 +107,7 @@ export const NavBar = ({ isSidebarOpen, isMobile }) => {
                         </span>
                      </Link>
                   </li>
-                  <li className={`pc-item ${getActiveClass('/clientes')}`}>
+                  <li className={`pc-item ${getActiveClass("/clientes")}`}>
                      <Link
                         to="/clientes/lista"
                         className="pc-link"
@@ -121,7 +123,23 @@ export const NavBar = ({ isSidebarOpen, isMobile }) => {
                         </span>
                      </Link>
                   </li>
-                  <li className={`pc-item ${getActiveClass('/planillas')}`}>
+                  <li className={`pc-item ${getActiveClass("/calendario")}`}>
+                     <Link
+                        to="/calendario/ver"
+                        className="pc-link"
+                     >
+                        <span className="pc-micon">
+                           <i className="fas fa-calendar-alt"></i>
+                        </span>
+                        <span
+                           className="pc-mtext"
+                           data-i18n="Calendario"
+                        >
+                           Calendario
+                        </span>
+                     </Link>
+                  </li>
+                  <li className={`pc-item ${getActiveClass("/planillas")}`}>
                      <Link
                         to="/planillas"
                         className="pc-link"
@@ -137,23 +155,6 @@ export const NavBar = ({ isSidebarOpen, isMobile }) => {
                         </span>
                      </Link>
                   </li>
-                  <li className={`pc-item ${getActiveClass('/calendario')}`}>
-                     <Link
-                        to="/calendario"
-                        className="pc-link"
-                     >
-                        <span className="pc-micon">
-                           <i className="fas fa-calendar-alt"></i>
-                        </span>
-                        <span
-                           className="pc-mtext"
-                           data-i18n="Calendario"
-                        >
-                           Calendario
-                        </span>
-                     </Link>
-                  </li>
-                  
                </ul>
                <div
                   className="card pc-user-card"
@@ -186,11 +187,13 @@ export const NavBar = ({ isSidebarOpen, isMobile }) => {
                               >
                                  <div className="d-flex align-items-center">
                                     <div className="flex-grow-1 me-1">
-                                       <h6 className="mb-0">  {(() => {
-                                          const words = user.name.split(' ');
-                                          if (words.length <= 2) return user.name;
-                                          return words.slice(0, 2).join(' ') + '...';
-                                       })()}
+                                       <h6 className="mb-0">
+                                          {" "}
+                                          {(() => {
+                                             const words = user.name.split(" ");
+                                             if (words.length <= 2) return user.name;
+                                             return words.slice(0, 2).join(" ") + "...";
+                                          })()}
                                        </h6>
                                        <small>Administrator</small>
                                     </div>
@@ -222,7 +225,10 @@ export const NavBar = ({ isSidebarOpen, isMobile }) => {
                                        </a>
                                     </li>
                                     <li>
-                                       <a className="pc-user-links" onClick={handleLogout}>
+                                       <a
+                                          className="pc-user-links"
+                                          onClick={handleLogout}
+                                       >
                                           <i className="ph-duotone ph-power"></i>
                                           <span>Cerrar Sesión</span>
                                        </a>
