@@ -1,180 +1,173 @@
 import { useDispatch, useSelector } from "react-redux";
 import Avatar from "@mui/material/Avatar";
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation } from "react-router-dom";
 import { logout } from "../../store/auth/authThunk";
 
+/**
+ * Componente NavBar
+ * Barra lateral de navegación para el sistema.
+ *
+ * @param {Object} props
+ * @param {boolean} props.isSidebarOpen - Indica si la barra lateral está abierta.
+ * @param {boolean} props.isMobile - Indica si es vista móvil.
+ */
 export const NavBar = ({ isSidebarOpen, isMobile }) => {
    const { user } = useSelector((state) => state.auth);
    const location = useLocation();
    const dispatch = useDispatch();
 
+   /**
+    * Retorna la clase 'active' si la ruta coincide con la actual.
+    * @param {string} path
+    */
    const getActiveClass = (path) => {
-      const currentPath = location.pathname.split('/')[1];
-      return currentPath === path.split('/')[1] ? 'active' : '';
+      if (path === "/") {
+         return location.pathname === "/" ? "active" : "";
+      }
+      return location.pathname.startsWith(path) ? "active" : "";
    };
 
+   /**
+    * Cierra la sesión del usuario.
+    */
    const handleLogout = () => {
-      dispatch(logout({ mensaje: `Se ha cerrado la sesión.` }));
+      dispatch(logout({ mensaje: "Se ha cerrado la sesión." }));
+   };
+
+   /**
+    * Renderiza un ítem del menú de navegación.
+    * @param {Object} item
+    */
+   const MenuItem = ({ to, icon, label, i18n }) => (
+      <li className={`pc-item ${getActiveClass(to)}`}>
+         <Link to={to} className="pc-link">
+            <span className="pc-micon">
+               <i className={icon}></i>
+            </span>
+            <span className="pc-mtext" data-i18n={i18n || label}>
+               {label}
+            </span>
+         </Link>
+      </li>
+   );
+
+   /**
+    * Obtiene las iniciales del usuario.
+    */
+   const getUserInitials = () =>
+      user?.name
+         ?.split(" ")
+         .slice(0, 2)
+         .map((n) => n[0])
+         .join("") || "";
+
+   /**
+    * Obtiene el nombre corto del usuario.
+    */
+   const getShortUserName = () => {
+      const words = user?.name?.split(" ") || [];
+      return words.length <= 2 ? user.name : words.slice(0, 2).join(" ") + "...";
    };
 
    return (
       <nav
          className={`pc-sidebar ${
-            !isSidebarOpen ? "pc-sidebar-hide" : isMobile ? "mob-sidebar-active" : ""
+            !isSidebarOpen
+               ? "pc-sidebar-hide"
+               : isMobile
+               ? "mob-sidebar-active"
+               : ""
          }`}
       >
          <div className="navbar-wrapper">
+            {/* Logo */}
             <div className="m-header">
                <Link
                   to="/"
+                  className="b-brand text-primary"
                   style={{
                      display: "flex",
                      justifyContent: "center",
                      alignItems: "center",
                      paddingTop: "8%",
                   }}
-                  className="b-brand text-primary"
                >
                   <img
                      src="/img/1.png"
-                     style={{ width: "75%", height: "auto" }}
                      alt="Sistema de Planilla"
                      className="logo-lg"
+                     style={{ width: "75%", height: "auto" }}
                   />
                </Link>
             </div>
+
             <div
                className={`navbar-content ${
                   isSidebarOpen ? "pc-trigger simplebar-scrollable-y" : ""
                }`}
             >
                <ul className="pc-navbar">
+                  {/* Sección de navegación */}
                   <li className="pc-item pc-caption">
                      <label data-i18n="Navigation">Navegación</label>
                      <i className="ph-duotone ph-gauge"></i>
                   </li>
-                  <li className={`pc-item ${getActiveClass("/")}`}>
-                     <Link
-                        to="/"
-                        className="pc-link"
-                     >
-                        <span className="pc-micon">
-                           <i className="fas fa-home"></i>
-                        </span>
-                        <span
-                           className="pc-mtext"
-                           data-i18n="Inicio"
-                        >
-                           Inicio
-                        </span>
-                     </Link>
-                  </li>
+                  <MenuItem to="/" icon="fas fa-home" label="Inicio" i18n="Inicio" />
 
+                  {/* Sección de menús */}
                   <li className="pc-item pc-caption">
                      <label data-i18n="Menus">Menús</label>
                      <i className="ph-duotone ph-gauge"></i>
                   </li>
-                  <li className={`pc-item ${getActiveClass("/empleados")}`}>
-                     <Link
-                        to="/empleados/lista"
-                        className="pc-link"
-                     >
-                        <span className="pc-micon">
-                           <i className="fas fa-users"></i>
-                        </span>
-                        <span
-                           className="pc-mtext"
-                           data-i18n="Empleados"
-                        >
-                           Empleados
-                        </span>
-                     </Link>
-                  </li>
-
-                  <li className={`pc-item ${getActiveClass("/empresas")}`}>
-                     <Link
-                        to="/empresas/lista"
-                        className="pc-link"
-                     >
-                        <span className="pc-micon">
-                           <i className="fas fa-toolbox"></i>
-                        </span>
-                        <span
-                           className="pc-mtext"
-                           data-i18n="Empleados"
-                        >
-                           Empresas
-                        </span>
-                     </Link>
-                  </li>
-                  <li className={`pc-item ${getActiveClass("/clientes")}`}>
-                     <Link
-                        to="/clientes/lista"
-                        className="pc-link"
-                     >
-                        <span className="pc-micon">
-                           <i className="fas fa-user-circle"></i>
-                        </span>
-                        <span
-                           className="pc-mtext"
-                           data-i18n="Clientes"
-                        >
-                           Clientes
-                        </span>
-                     </Link>
-                  </li>
-                  <li className={`pc-item ${getActiveClass("/calendario")}`}>
-                     <Link
-                        to="/calendario/ver"
-                        className="pc-link"
-                     >
-                        <span className="pc-micon">
-                           <i className="fas fa-calendar-alt"></i>
-                        </span>
-                        <span
-                           className="pc-mtext"
-                           data-i18n="Calendario"
-                        >
-                           Calendario
-                        </span>
-                     </Link>
-                  </li>
-                  <li className={`pc-item ${getActiveClass("/planillas")}`}>
-                     <Link
-                        to="/planilla/lista"
-                        className="pc-link"
-                     >
-                        <span className="pc-micon">
-                           <i className="fas fa-file-alt"></i>
-                        </span>
-                        <span
-                           className="pc-mtext"
-                           data-i18n="Planillas"
-                        >
-                           Planillas
-                        </span>
-                     </Link>
-                  </li>
+                  <MenuItem
+                     to="/empleados/lista"
+                     icon="fas fa-users"
+                     label="Empleados"
+                     i18n="Empleados"
+                  />
+                  <MenuItem
+                     to="/empresas/lista"
+                     icon="fas fa-toolbox"
+                     label="Empresas"
+                     i18n="Empresas"
+                  />
+                  <MenuItem
+                     to="/clientes/lista"
+                     icon="fas fa-user-circle"
+                     label="Clientes"
+                     i18n="Clientes"
+                  />
+                  <MenuItem
+                     to="/calendario/ver"
+                     icon="fas fa-calendar-alt"
+                     label="Mi Calendario"
+                     i18n="Calendario"
+                  />
+                  <MenuItem
+                     to="/planilla/lista"
+                     icon="fas fa-file-alt"
+                     label="Planillas"
+                     i18n="Planillas"
+                  />
+                  <MenuItem
+                     to="/calendario/planilla"
+                     icon="fas fa-calendar-week"
+                     label="Calendario Planilla"
+                     i18n="Calendario"
+                  />
                </ul>
-               <div
-                  className="card pc-user-card"
-                  style={{ marginTop: "50px" }}
-               >
+
+               {/* Tarjeta de usuario */}
+               <div className="card pc-user-card" style={{ marginTop: "50px" }}>
                   <div className="card-body">
                      <div className="d-flex align-items-center">
                         <div className="flex-shrink-0">
-                           <div className="flex-shrink-0">
-                              <Avatar
-                                 className="user-avtar wid-35 rounded-circle"
-                                 style={{ backgroundColor: "black", color: "white" }}
-                              >
-                                 {user.name
-                                    .split(" ")
-                                    .slice(0, 2)
-                                    .map((n) => n[0])
-                                    .join("")}
-                              </Avatar>
-                           </div>
+                           <Avatar
+                              className="user-avtar wid-35 rounded-circle"
+                              style={{ backgroundColor: "black", color: "white" }}
+                           >
+                              {getUserInitials()}
+                           </Avatar>
                         </div>
                         <div className="flex-grow-1 ms-3">
                            <div className="dropdown">
@@ -187,14 +180,7 @@ export const NavBar = ({ isSidebarOpen, isMobile }) => {
                               >
                                  <div className="d-flex align-items-center">
                                     <div className="flex-grow-1 me-1">
-                                       <h6 className="mb-0">
-                                          {" "}
-                                          {(() => {
-                                             const words = user.name.split(" ");
-                                             if (words.length <= 2) return user.name;
-                                             return words.slice(0, 2).join(" ") + "...";
-                                          })()}
-                                       </h6>
+                                       <h6 className="mb-0">{getShortUserName()}</h6>
                                        <small>Administrator</small>
                                     </div>
                                     <div className="flex-shrink-0">
@@ -209,26 +195,23 @@ export const NavBar = ({ isSidebarOpen, isMobile }) => {
                                     <li>
                                        <a className="pc-user-links">
                                           <i className="ph-duotone ph-user"></i>
-                                          <span>My Account</span>
+                                          <span>Mi Cuenta</span>
                                        </a>
                                     </li>
                                     <li>
                                        <a className="pc-user-links">
                                           <i className="ph-duotone ph-gear"></i>
-                                          <span>Settings</span>
+                                          <span>Configuración</span>
                                        </a>
                                     </li>
                                     <li>
                                        <a className="pc-user-links">
                                           <i className="ph-duotone ph-lock-key"></i>
-                                          <span>Lock Screen</span>
+                                          <span>Bloquear Pantalla</span>
                                        </a>
                                     </li>
                                     <li>
-                                       <a
-                                          className="pc-user-links"
-                                          onClick={handleLogout}
-                                       >
+                                       <a className="pc-user-links" onClick={handleLogout}>
                                           <i className="ph-duotone ph-power"></i>
                                           <span>Cerrar Sesión</span>
                                        </a>

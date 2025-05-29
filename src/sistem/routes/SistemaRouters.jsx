@@ -41,7 +41,7 @@ export const SistemaRouters = () => {
 
          {/* Ruta para el Planilla */}  
          <Route
-            path="/planilla/lista/*" 
+            path="/planilla/*"
             element={<PlanillaPage />}
          />
 

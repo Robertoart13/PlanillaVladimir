@@ -1,6 +1,3 @@
-
-
-
 import { useMemo, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import { useDataTable } from "../../../../hooks/getDataTableConfig";
@@ -25,41 +22,57 @@ const TEXTOS = {
  */
 const obtenerColumnasTabla = () => [
    {
-      data: "nombre_comercial_empresa",
-      title: "Nombre comercial",
+      data: "planilla_codigo",
+      title: "Consecutivo",
       searchPanes: { show: true },
    },
    {
-      data: "nombre_razon_social_empresa",
-      title: "Razón social",
+      data: "nombre_empresa",
+      title: "Nombre Empresa",
       searchPanes: { show: true },
    },
    {
-      data: "cedula_juridica_empresa",
-      title: "Identificador fiscal",
+      data: "nombre_usuario",
+      title: "Creado por",
       searchPanes: { show: true },
    },
    {
-      data: "correo_contacto_empresa",
-      title: "Correo contacto",
+      data: "planilla_tipo",
+      title: "Tipo Planilla",
       searchPanes: { show: true },
    },
    {
-      data: "correo_facturacion_empresa",
-      title: "Correo facturación",
+      data: "planilla_fecha_inicio",
+      title: "Fecha Inicio",
       searchPanes: { show: true },
+      render: (data) => data ? String(data).split('T')[0] : "",
    },
    {
-      data: "estado_empresa",
+      data: "planilla_fecha_fin",
+      title: "Fecha Fin",
+      searchPanes: { show: true },
+      render: (data) => data ? String(data).split('T')[0] : "",
+   },
+
+   {
+      data: "planilla_estado",
       title: "Estado",
       searchPanes: { show: true },
       render: (data) => {
-         const isActive = data === 1;
+         // Mapea cada estado a un color y texto descriptivo
+         const estados = {
+            "En Proceso": { color: "secondary", texto: "En Proceso" },    // Fase inicial de edición
+            "Activa":     { color: "success",   texto: "Activa" },        // Lista para carga de datos
+            "Cerrada":    { color: "warning",   texto: "Cerrada" },       // Solo revisión o validación
+            "Procesada":  { color: "primary",   texto: "Procesada" },     // Lista para pagar o archivar
+            "Cancelada":  { color: "danger",    texto: "Cancelada" },     // Descartada
+         };
+         const estado = estados[data] || { color: "secondary", texto: data };
          return `
-           <span class="badge bg-light-${isActive ? "success" : "danger"}">
-              ${isActive ? "Activo" : "Inactivo"}
-           </span>
-        `;
+            <span class="badge bg-light-${estado.color}">
+               ${estado.texto}
+            </span>
+         `;
       },
    },
 ];
@@ -87,7 +100,7 @@ const formatearDatosFila = (datosFila) => ({
  * @returns {Object} Configuración de la tabla.
  */
 const crearConfiguracionTabla = (usuario) => ({
-   urlEndpoint: "empresas", // API endpoint para obtener los datos.
+   urlEndpoint: "planilla", // API endpoint para obtener los datos.
    requestType: "POST", // Método HTTP para la solicitud.
    transaccion: {
       user: {
@@ -111,7 +124,7 @@ const crearConfiguracionTabla = (usuario) => ({
  */
 const manejarClicFila = (datosFila, navigate) => {
    localStorage.setItem('selectedEmpresa', JSON.stringify(datosFila));
-   navigate('/empresas/editar');
+   navigate('/planilla/editar');
 };
 
 /**
@@ -119,12 +132,12 @@ const manejarClicFila = (datosFila, navigate) => {
  * @param {Function} navigate - Función de navegación de React Router.
  */
 const navegarCrearEmpresa = (navigate) => {
-   navigate('/empresas/crear');
+   navigate('/planilla/crear');
 };
 
 /**
- * Componente principal que muestra la lista de empresas.
- * @returns {JSX.Element} Componente de lista de empresas.
+ * Componente principal que muestra la lista de planilla.
+ * @returns {JSX.Element} Componente de lista de planilla.
  */
 export const PlanillaLista = () => {
    // Obtener el usuario autenticado desde Redux.
