@@ -83,15 +83,16 @@ const obtenerColumnasTabla = () => [
  * @returns {Object} Datos formateados de la fila.
  */
 const formatearDatosFila = (datosFila) => ({
-   id_empresa: datosFila.id_empresa,
-   nombre_comercial_empresa: datosFila.nombre_comercial_empresa, 
-   nombre_razon_social_empresa: datosFila.nombre_razon_social_empresa,
-   cedula_juridica_empresa: datosFila.cedula_juridica_empresa,
-   nombre_contacto_empresa: datosFila.nombre_contacto_empresa,
-   correo_contacto_empresa: datosFila.correo_contacto_empresa,
-   correo_facturacion_empresa: datosFila.correo_facturacion_empresa,
-   direccion_empresa: datosFila.direccion_empresa,
-   estado_empresa: datosFila.estado_empresa,
+   planilla_id: datosFila.planilla_id,
+   planilla_codigo: datosFila.planilla_codigo,
+   empresa_id: datosFila.empresa_id,
+   planilla_tipo: datosFila.planilla_tipo,
+   planilla_descripcion: datosFila.planilla_descripcion,
+   planilla_estado: datosFila.planilla_estado,
+   planilla_fecha_inicio: datosFila.planilla_fecha_inicio,
+   planilla_fecha_fin: datosFila.planilla_fecha_fin,
+   planilla_fecha_creacion: datosFila.planilla_fecha_creacion,
+   planilla_creado_por: datosFila.planilla_creado_por,
 });
 
 /**
@@ -114,7 +115,7 @@ const crearConfiguracionTabla = (usuario) => ({
       },
    },
    columnsLayout: "columns-2", // Diseño de columnas en la tabla.
-   columnsFilter: [0, 1, 2, 3, 4, 5], // Índices de columnas que se pueden filtrar.
+   columnsFilter: [0, 1, 2, 3,6], // Índices de columnas que se pueden filtrar.
    columns: obtenerColumnasTabla(), // Definición de columnas.
 });
 
@@ -123,7 +124,7 @@ const crearConfiguracionTabla = (usuario) => ({
  * @param {Object} datosFila - Datos de la fila seleccionada.
  */
 const manejarClicFila = (datosFila, navigate) => {
-   localStorage.setItem('selectedEmpresa', JSON.stringify(datosFila));
+   localStorage.setItem('selectedPlanilla', JSON.stringify(datosFila));
    navigate('/planilla/editar');
 };
 
