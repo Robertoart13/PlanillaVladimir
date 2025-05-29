@@ -90,6 +90,7 @@ import Calendario_Editar from "../modules/07-Calendario/Calendario_Editar.js";
  */
 import Planilla_Listar from "../modules/08-planilla/Planilla_ListaCompleta.js";
 import Planilla_Crear from "../modules/08-planilla/Planilla_Crear.js";  
+import Planilla_Editar from "../modules/08-planilla/Planilla_Editar.js";
 
 /** ====================================================================================================================================
  * @fileoverview Módulo de configuración de rutas para la aplicación.
@@ -480,6 +481,7 @@ function getModulesConfig() {
          model: {
             ...Planilla_Listar,
             ...Planilla_Crear,
+            ...Planilla_Editar,
          }, // Combinamos ambos modelos
          routes: [
             {
@@ -492,6 +494,11 @@ function getModulesConfig() {
                method: "crearTransaccion", // Método que se ejecutará
                isAuthRequired: true, // Requiere autenticación
             },
+            {
+               path: "planilla/editar", // Ruta para la lista de planilla
+               method: "editarTransaccion", // Método que se ejecutará
+               isAuthRequired: true, // Requiere autenticación
+            }, 
          ],
       },
    ];
