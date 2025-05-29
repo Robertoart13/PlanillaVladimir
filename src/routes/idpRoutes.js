@@ -80,6 +80,17 @@ import Calendario_Evento from "../modules/07-Calendario/Calendario_Evento.js";
 import Calendario_Estado from "../modules/07-Calendario/Calendario_Estado.js";
 import Calendario_Editar from "../modules/07-Calendario/Calendario_Editar.js";
 
+
+   
+/**
+ * ====================================================================================================================================
+ * Importación de módulos relacionados con la Empleados
+ * Estos módulos manejan la lista de empleados
+ * ====================================================================================================================================
+ */
+import Planilla_Listar from "../modules/08-planilla/Planilla_ListaCompleta.js";
+import Planilla_Crear from "../modules/08-planilla/Planilla_Crear.js";  
+
 /** ====================================================================================================================================
  * @fileoverview Módulo de configuración de rutas para la aplicación.
  * Este archivo maneja la configuración de rutas, autenticación y gestión de solicitudes HTTP.
@@ -460,6 +471,25 @@ function getModulesConfig() {
             {
                path: "calendario/editar", // Ruta para la lista de calendario
                method: "editarEvento", // Método que se ejecutará
+               isAuthRequired: true, // Requiere autenticación
+            },
+         ],
+      },
+      {
+         category: "Planilla", // Nombre del módulo
+         model: {
+            ...Planilla_Listar,
+            ...Planilla_Crear,
+         }, // Combinamos ambos modelos
+         routes: [
+            {
+               path: "planilla", // Ruta para la lista de planilla
+               method: "obtenerListaCompleta", // Método que se ejecutará
+               isAuthRequired: true, // Requiere autenticación
+            },
+            {
+               path: "planilla/crear", // Ruta para la lista de planilla
+               method: "crearTransaccion", // Método que se ejecutará
                isAuthRequired: true, // Requiere autenticación
             },
          ],
