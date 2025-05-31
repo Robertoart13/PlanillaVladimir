@@ -44,6 +44,7 @@ import Empresas_Listar_select from "../modules/05-Selects/Empresas_Lista.js";
 import Puesto_Listar_select from "../modules/05-Selects/Puestos_Lista.js";
 import TipoContrato_Listar_select from "../modules/05-Selects/TipoContrato.js";
 import Supervisor_Listar_select from "../modules/05-Selects/Supervisores.js";
+import Planilla_Listar_select from "../modules/05-Selects/Planilla_Lista.js";
 
 
 
@@ -361,6 +362,7 @@ function getModulesConfig() {
             ...Puesto_Listar_select,
             ...TipoContrato_Listar_select,
             ...Supervisor_Listar_select,
+            ...Planilla_Listar_select,
          }, // Combinamos ambos modelos
          routes: [
             {
@@ -391,6 +393,11 @@ function getModulesConfig() {
             {
                path: "supervisores/select", // Ruta para la lista de supervisores
                method: "Supervisores_Listar_select", // Método que se ejecutará
+               isAuthRequired: true, // Requiere autenticación
+            },
+            {
+               path: "planilla/select", // Ruta para la lista de planilla
+               method: "Planilla_Listar_select", // Método que se ejecutará
                isAuthRequired: true, // Requiere autenticación
             },
          ],
