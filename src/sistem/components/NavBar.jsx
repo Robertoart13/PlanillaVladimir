@@ -155,6 +155,12 @@ export const NavBar = ({ isSidebarOpen, isMobile }) => {
                      label="Calendario Planilla"
                      i18n="Calendario"
                   />
+                  <MenuItem
+                     to="/planilla/generar"
+                     icon="fas fa-file-powerpoint"
+                     label="Generar Planilla"
+                     i18n="Calendario"
+                  />
                </ul>
 
                {/* Tarjeta de usuario */}

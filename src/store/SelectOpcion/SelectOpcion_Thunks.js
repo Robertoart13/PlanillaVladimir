@@ -4,7 +4,7 @@ import { ApiProvider } from "../providerApi/providerApi";
 import { crearRespuestaExitosa } from "../../hooks/crearRespuestaExitosa";
 
 
-export const SelectOpcion_Thunks = (url) => { 
+export const SelectOpcion_Thunks = (url, id="") => { 
    return async (dispatch, getState) => {
       try {
          // Obtener datos del usuario autenticado desde el estado de la aplicación
@@ -19,7 +19,7 @@ export const SelectOpcion_Thunks = (url) => {
                id: parseInt(user.id_usuario), // id usuario auth
             },
             data: {
-               
+               id: id, // id del select a editar, si es nuevo se deja vacío
              },
              acceso: {
                type: 0,
