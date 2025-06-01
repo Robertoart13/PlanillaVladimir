@@ -121,7 +121,10 @@ function PayrollTable({
     selectedRows,
     onCheckboxChange,
     onInputChange,
-    startIdx
+    startIdx,
+    disabled,
+    planillaEstado,
+    empleadosRaw
 }) {
     return (
         <table
@@ -147,10 +150,17 @@ function PayrollTable({
                 {pageRows.map((row, idx) => {
                     const globalIdx = startIdx + idx;
                     const isSelected = selectedRows.includes(globalIdx);
+                    // Lógica de deshabilitado por fila
+                    let rowDisabled = disabled;
+                    if (planillaEstado === 'Activa' && empleadosRaw) {
+                        const raw = empleadosRaw[globalIdx];
+                        rowDisabled = raw && raw.marca_epd === 1;
+                    }
                     return (
                         <tr
                             key={globalIdx}
                             className={isSelected ? "fila-seleccionada" : ""}
+                            style={rowDisabled ? { pointerEvents: 'none', opacity: 0.7, background: '#f5f5f5' } : {}}
                         >
                             <td style={{ textAlign: "center" }}>
                                 <input
@@ -158,6 +168,7 @@ function PayrollTable({
                                     checked={isSelected}
                                     onChange={() => onCheckboxChange(idx)}
                                     aria-label={`Seleccionar fila ${globalIdx + 1}`}
+                                    disabled={rowDisabled}
                                 />
                             </td>
                             {columns.map(col => (
@@ -174,6 +185,7 @@ function PayrollTable({
                                             className="form-control form-control-sm"
                                             style={{ minWidth: col.style?.minWidth || 80, background: "#fdfdfd" }}
                                             aria-label={col.label}
+                                            disabled={rowDisabled}
                                         />
                                     ) : (
                                         row[col.key]
@@ -588,6 +600,15 @@ export const PayrollGenerator = () => {
         }
     }, [empresaSeleccionada, planillaSeleccionada, dispatch]);
 
+    // Obtener el estado de la planilla seleccionada
+    const selectedPlanilla = planillas.find(p => String(p.planilla_id) === String(planillaSeleccionada));
+    const planillaEstado = selectedPlanilla?.planilla_estado;
+
+    // Handler para aplicar planilla
+    const handleAplicarPlanilla = () => {
+        alert(`Aplicar Planilla\nID Planilla: ${planillaSeleccionada}\nID Empresa: ${empresaSeleccionada}`);
+    };
+
     // Handlers
     const handleCheckbox = useHandleCheckbox({
         rows,
@@ -617,7 +638,13 @@ export const PayrollGenerator = () => {
     const handlePlanillaChange = useCallback(e => {
         setLoading(true);
         setPlanillaSeleccionada(e.target.value);
-    }, []);
+        // Buscar el estado de la planilla seleccionada y mostrarlo en un alert
+        const selectedId = e.target.value;
+        const planilla = planillas.find(p => String(p.planilla_id) === String(selectedId));
+        if (planilla && planilla.planilla_estado !== undefined) {
+            // alert(`Estado de la planilla seleccionada: ${planilla.planilla_estado}`);
+        }
+    }, [planillas]);
 
     // Derivados
     const totalPages = Math.ceil(rows.length / pageSize);
@@ -705,6 +732,23 @@ export const PayrollGenerator = () => {
                                     ))}
                                 </select>
                             </div>
+                            {/* Botón o alerta debajo del select de tipo de planilla */}
+                            {planillaSeleccionada && (
+                                (planillaEstado === 'En Proceso' || planillaEstado === 'Activa') ? (
+                                    <div className="mb-3">
+                                        <button
+                                            className="btn btn-success"
+                                            onClick={handleAplicarPlanilla}
+                                        >
+                                            Aplicar Planilla
+                                        </button>
+                                    </div>
+                                ) : planillaEstado === 'Procesada' ? (
+                                    <div className="alert alert-success mb-3">
+                                        Esta planilla ya fue aplicada.
+                                    </div>
+                                ) : null
+                            )}
 
                             {/* Mostrar preload si está cargando */}
                             {loading && (
@@ -728,9 +772,12 @@ export const PayrollGenerator = () => {
                                                     rows={rows}
                                                     pageRows={pageRows}
                                                     selectedRows={selectedRows}
-                                                    onCheckboxChange={handleCheckbox}
-                                                    onInputChange={handleInputChange}
+                                                    onCheckboxChange={planillaEstado === 'En Proceso' || planillaEstado === 'Activa' ? handleCheckbox : () => {}}
+                                                    onInputChange={planillaEstado === 'En Proceso' || planillaEstado === 'Activa' ? handleInputChange : () => {}}
                                                     startIdx={startIdx}
+                                                    disabled={planillaEstado !== 'En Proceso'}
+                                                    planillaEstado={planillaEstado}
+                                                    empleadosRaw={empleadosRaw}
                                                 />
                                             </div>
                                         </div>
