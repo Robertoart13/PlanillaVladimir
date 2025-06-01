@@ -8,12 +8,32 @@ import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { SelectOpcion_Thunks } from "../../../../store/SelectOpcion/SelectOpcion_Thunks";
 import { Empleado_Editar_Thunks } from "../../../../store/Empleado/Empleado_Editar_Thunks";
+import { usePermiso } from "../../../../hooks/usePermisos";
 
 /**
  * Componente principal para editar un empleado.
  * @returns {JSX.Element} Componente de edición de empleado.
  */
 export const EditarEmpleado = () => {
+
+      const tienePermiso = usePermiso(3);
+      if (!tienePermiso) {
+         return (
+            <TarjetaRow
+               texto="Editar Empleado"
+               subtitulo="No tienes permiso para ver esta sección."
+            >
+               <div
+                  className="alert alert-danger"
+                  role="alert"
+               >
+                  No tiene permiso para editar empleados del sistema. Por favor, contacta al
+                  administrador del sistema para solicitar acceso.
+               </div>
+            </TarjetaRow>
+         );
+      }
+   
    // Estados para manejar errores, mensajes y datos del formulario
    const [error, setError] = useState(false);
    const [mensajeError, setMensajeError] = useState("");

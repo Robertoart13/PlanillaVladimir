@@ -7,6 +7,7 @@ import { TarjetaRow } from "../../../components/TarjetaRow/TarjetaRow";
 import "../../../styles/customstyles.css";
 import { Button, Stack } from "@mui/material";
 import { useNavigate } from "react-router-dom";
+import { usePermiso } from "../../../../hooks/usePermisos";
 
 /**
  * Obtiene las columnas de la tabla configuradas.
@@ -149,6 +150,25 @@ const formatearDatosEmpleado = (datosEmpleado) => ({
 export const EmpleadoLista = () => {
    // Obtener el usuario autenticado desde Redux.
    const { user } = useSelector((state) => state.auth);
+
+   const tienePermiso = usePermiso(1);
+
+   if (!tienePermiso) {
+      return (
+         <TarjetaRow
+            texto="Lista de Empleados"
+            subtitulo="No tienes permiso para ver esta sección."
+         >
+            <div
+               className="alert alert-danger"
+               role="alert"
+            >
+               No tiene permiso para ver lista de  empleados del sistema. Por favor, contacta al
+               administrador del sistema para solicitar acceso.
+            </div>
+         </TarjetaRow>
+      );
+   }
 
    const navigate = useNavigate();
 

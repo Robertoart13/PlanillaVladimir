@@ -8,6 +8,7 @@ import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { SelectOpcion_Thunks } from "../../../../store/SelectOpcion/SelectOpcion_Thunks";
 import { Empleado_Crear_Thunks } from "../../../../store/Empleado/Empleado_Crear_Thunks";
+import { usePermiso } from "../../../../hooks/usePermisos";
 
 // Función para inicializar el estado del formulario
 const inicializarEstadoFormulario = () => ({
@@ -41,9 +42,10 @@ const inicializarEstadoFormulario = () => ({
 
 // Función para validar campos vacíos
 const validarCamposVacios = (campos) => {
-   const camposExcluidos = ['cuentas_bancarias', 'id_empleado', 'fecha_salida_empleado'];
-   return Object.entries(campos)
-      .filter(([key, value]) => !camposExcluidos.includes(key) && (value === "" || value === "default"));
+   const camposExcluidos = ["cuentas_bancarias", "id_empleado", "fecha_salida_empleado"];
+   return Object.entries(campos).filter(
+      ([key, value]) => !camposExcluidos.includes(key) && (value === "" || value === "default"),
+   );
 };
 
 // Función para validar el formato del correo electrónico
@@ -59,7 +61,17 @@ const manejarCambioFormulario = (e, setFormData, formData) => {
 };
 
 // Función para manejar el envío del formulario
-const manejarEnvioFormulario = async (e, formData, setError, setMessage, dispatch, navigate, setFormData, cuentasBancarias, setSubmitted) => {
+const manejarEnvioFormulario = async (
+   e,
+   formData,
+   setError,
+   setMessage,
+   dispatch,
+   navigate,
+   setFormData,
+   cuentasBancarias,
+   setSubmitted,
+) => {
    e.preventDefault();
    setSubmitted(true);
    const camposVacios = validarCamposVacios(formData);
@@ -70,7 +82,7 @@ const manejarEnvioFormulario = async (e, formData, setError, setMessage, dispatc
          title: "Error",
          text: "Todos los campos deben estar llenos. el campo de fecha de salida del empleado es opcional.",
          icon: "error",
-         confirmButtonText: "Aceptar"
+         confirmButtonText: "Aceptar",
       });
       return;
    }
@@ -98,12 +110,16 @@ const manejarEnvioFormulario = async (e, formData, setError, setMessage, dispatc
                Swal.showLoading();
             },
          });
-         const respuesta = await dispatch(Empleado_Crear_Thunks({ ...formData, cuentas_bancarias: cuentasBancarias }));
+         const respuesta = await dispatch(
+            Empleado_Crear_Thunks({ ...formData, cuentas_bancarias: cuentasBancarias }),
+         );
          if (respuesta.success) {
-            Swal.fire("¡Creado!", "El empleado ha sido creado exitosamente.", "success").then(() => {
-               navigate("/empleados/lista");
-               setFormData(inicializarEstadoFormulario());
-            });
+            Swal.fire("¡Creado!", "El empleado ha sido creado exitosamente.", "success").then(
+               () => {
+                  navigate("/empleados/lista");
+                  setFormData(inicializarEstadoFormulario());
+               },
+            );
          } else {
             setError(true);
             setMessage(respuesta.message);
@@ -111,7 +127,7 @@ const manejarEnvioFormulario = async (e, formData, setError, setMessage, dispatc
                title: "Error",
                text: respuesta.message || "Ocurrió un error inesperado.",
                icon: "error",
-               confirmButtonText: "Aceptar"
+               confirmButtonText: "Aceptar",
             });
          }
       }
@@ -150,6 +166,24 @@ const eliminarCuentaBancaria = (index, cuentasBancarias, setCuentasBancarias) =>
 };
 
 export const CrearEmpleado = () => {
+   const tienePermiso = usePermiso(3);
+   if (!tienePermiso) {
+      return (
+         <TarjetaRow
+            texto="Crear Empleado"
+            subtitulo="No tienes permiso para ver esta sección."
+         >
+            <div
+               className="alert alert-danger"
+               role="alert"
+            >
+               No tiene permiso para crear empleados del sistema. Por favor, contacta al
+               administrador del sistema para solicitar acceso.
+            </div>
+         </TarjetaRow>
+      );
+   }
+
    const [error, setError] = useState(false);
    const [message, setMessage] = useState("");
    const [submitted, setSubmitted] = useState(false);

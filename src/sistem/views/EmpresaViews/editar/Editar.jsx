@@ -6,12 +6,31 @@ import { Empresa_Editar_Thunks } from "../../../../store/Empresa/Empresa_Editar_
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import Switch from '@mui/material/Switch';
+import { usePermiso } from "../../../../hooks/usePermisos";
 
 /**
  * Componente principal para editar una empresa existente.
  * @returns {JSX.Element} El componente de edición de empresa.
  */
 export const EditarEmpresa = () => {
+
+     const tienePermiso = usePermiso(5);
+        if (!tienePermiso) {
+             return (
+                <TarjetaRow
+                   texto="Editar Empresas"
+                   subtitulo="No tienes permiso para ver esta sección."
+                >
+                   <div
+                      className="alert alert-danger"
+                      role="alert"
+                   >
+                      No tiene permiso para editar  empresas del sistema. Por favor, contacta al
+                      administrador del sistema para solicitar acceso.
+                   </div>
+                </TarjetaRow>
+             );
+     }
     // Estado para manejar errores y mensajes
     const [error, setError] = useState(false);
     const [message, setMessage] = useState("");

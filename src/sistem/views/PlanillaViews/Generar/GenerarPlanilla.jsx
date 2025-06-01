@@ -1,8 +1,10 @@
 import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { useDispatch } from "react-redux";
+import Swal from "sweetalert2";
 import { SelectOpcion_Thunks } from "../../../../store/SelectOpcion/SelectOpcion_Thunks";
 import { Planilla_Lista_Empleado_Thunks } from "../../../../store/Planilla/Planilla_Lista_Empleado_Thunks";
 import { Planilla_Insertar_Empleado_Planilla_Thunks } from "../../../../store/Planilla/Planilla_Insertar_Empleado_Planilla_Thunks";
+import { Planilla_Aplicar_Thunks } from "../../../../store/Planilla/Planilla_Aplicar_Thunks";
 
 
 /**
@@ -43,10 +45,11 @@ const PAGE_SIZES = [5,10, 30, 60, 80, 100];
  */
 
 /**
- * Returns the style object for table cells.
- * @param {object} col - Column definition.
- * @param {boolean} isSelected - If the row is selected.
- * @param {number} idx - Row index.
+ * Devuelve el estilo para las celdas de la tabla.
+ * @param {object} col - Definición de la columna.
+ * @param {boolean} isSelected - Si la fila está seleccionada.
+ * @param {number} idx - Índice de la fila.
+ * @returns {object} Objeto de estilo CSS.
  */
 function getTableCellStyle(col, isSelected, idx) {
     return {
@@ -58,8 +61,9 @@ function getTableCellStyle(col, isSelected, idx) {
 }
 
 /**
- * Returns the style object for table headers.
- * @param {object} col - Column definition.
+ * Devuelve el estilo para los encabezados de la tabla.
+ * @param {object} col - Definición de la columna.
+ * @returns {object} Objeto de estilo CSS.
  */
 function getTableHeaderStyle(col) {
     return {
@@ -72,8 +76,9 @@ function getTableHeaderStyle(col) {
 }
 
 /**
- * Returns the style object for summary table cells.
- * @param {string} type - Type of cell (header, total, etc).
+ * Devuelve el estilo para las celdas de la tabla de resumen.
+ * @param {string} type - Tipo de celda (header, total, etc).
+ * @returns {object} Objeto de estilo CSS.
  */
 function getSummaryCellStyle(type) {
     switch (type) {
@@ -95,10 +100,10 @@ function getSummaryCellStyle(type) {
  */
 
 /**
- * Sums a numeric field for all rows.
- * @param {Array<Object>} rows
- * @param {string} field
- * @returns {number}
+ * Suma un campo numérico para todas las filas.
+ * @param {Array<Object>} rows - Arreglo de filas con datos
+ * @param {string} field - Nombre del campo a sumar
+ * @returns {number} - Suma total del campo especificado
  */
 function sumColumn(rows, field) {
     return rows.reduce((acc, row) => acc + (parseFloat(row[field]) || 0), 0);
@@ -149,13 +154,8 @@ function PayrollTable({
             <tbody>
                 {pageRows.map((row, idx) => {
                     const globalIdx = startIdx + idx;
-                    const isSelected = selectedRows.includes(globalIdx);
-                    // Lógica de deshabilitado por fila
-                    let rowDisabled = disabled;
-                    if (planillaEstado === 'Activa' && empleadosRaw) {
-                        const raw = empleadosRaw[globalIdx];
-                        rowDisabled = raw && raw.marca_epd === 1;
-                    }
+                    const isSelected = selectedRows.includes(globalIdx);                    // Lógica de deshabilitado por fila usando nuestra función de utilidad
+                    const rowDisabled = esFilaDeshabilitada(planillaEstado, empleadosRaw, globalIdx) || disabled;
                     return (
                         <tr
                             key={globalIdx}
@@ -460,13 +460,32 @@ function getCurrentWeekNumber() {
 /**
  * Obtiene empleados desde la API y actualiza los estados.
  */
-async function fetchAndSetEmpleados({ dispatch, planillaSeleccionada, empresaSeleccionada, setRows, setEmpleadosRaw, setSelectedRows, setLoading }) {
+/**
+ * Obtiene empleados desde la API y actualiza los estados.
+ * @param {Object} params - Parámetros de la función
+ * @param {Function} params.dispatch - Función dispatch de Redux
+ * @param {string} params.planillaSeleccionada - ID de la planilla seleccionada
+ * @param {string} params.empresaSeleccionada - ID de la empresa seleccionada
+ * @param {Function} params.setRows - Setter para filas de la tabla
+ * @param {Function} params.setEmpleadosRaw - Setter para datos crudos de empleados
+ * @param {Function} params.setSelectedRows - Setter para filas seleccionadas
+ * @param {Function} params.setLoading - Setter para estado de carga
+ */
+async function fetchAndSetEmpleados({ 
+    dispatch, 
+    planillaSeleccionada, 
+    empresaSeleccionada, 
+    setRows, 
+    setEmpleadosRaw, 
+    setSelectedRows, 
+    setLoading 
+}) {
     setLoading(true);
     try {
         const empleadosRow = await dispatch(
             Planilla_Lista_Empleado_Thunks(planillaSeleccionada, empresaSeleccionada)
         );
-        if (empleadosRow && empleadosRow.data && Array.isArray(empleadosRow.data.array)) {
+        if (empleadosRow?.data?.array) {
             const semanaActual = getCurrentWeekNumber();
             const empleados = empleadosRow.data.array.map((emp, i) => mapEmpleadoToRow(emp, i, semanaActual));
             setRows(empleados);
@@ -477,21 +496,29 @@ async function fetchAndSetEmpleados({ dispatch, planillaSeleccionada, empresaSel
             setSelectedRows(seleccionados);
         }
     } catch (error) {
-        console.error('Error fetching empleados:', error);
+        console.error('Error al obtener empleados:', error);
     } finally {
         setLoading(false);
     }
 }
 
 
+/**
+ * Inserta un empleado en la planilla seleccionada.
+ * @param {Object} params - Parámetros de la función
+ * @param {Function} params.dispatch - Función dispatch de Redux
+ * @param {string} params.planillaSeleccionada - ID de la planilla seleccionada
+ * @param {string} params.empresaSeleccionada - ID de la empresa seleccionada
+ * @param {Object} params.datos - Datos del empleado a insertar
+ * @returns {Promise<void>}
+ */
 async function insertartEmpleadoPlanilla({ dispatch, planillaSeleccionada, empresaSeleccionada, datos }) {
-
     try {
         await dispatch(
             Planilla_Insertar_Empleado_Planilla_Thunks(planillaSeleccionada, empresaSeleccionada, datos),
         );
     } catch (error) {
-        console.error('Error fetching empleados:', error);
+        console.error('Error al insertar empleado en planilla:', error);
     }
 }
 /**
@@ -537,13 +564,30 @@ function useHandleCheckbox({ rows, empleadosRaw, selectedRows, startIdx, planill
 
 /**
  * Maneja el cambio de input en una fila.
+ * @param {Object} params - Parámetros para el hook
+ * @param {number} params.startIdx - Índice inicial para la paginación
+ * @param {Function} params.setRows - Función para actualizar las filas
+ * @param {Function} params.setSelectedRows - Función para actualizar las filas seleccionadas
+ * @returns {Function} Función callback para manejar cambios en los inputs
  */
 function useHandleInputChange({ startIdx, setRows, setSelectedRows }) {
     return useCallback((e, idx) => {
         const { name, value } = e.target;
         const globalIdx = startIdx + idx;
-        setRows(prev => prev.map((row, i) => i === globalIdx ? { ...row, [name]: value } : row));
-        setSelectedRows(prev => prev.includes(globalIdx) ? prev.filter(i => i !== globalIdx) : prev);
+        
+        // Actualiza el valor en la fila correspondiente
+        setRows(prevRows => 
+            prevRows.map((row, i) => 
+                i === globalIdx ? { ...row, [name]: value } : row
+            )
+        );
+        
+        // Si la fila estaba seleccionada, la deselecciona al editarla
+        setSelectedRows(prevSelected => 
+            prevSelected.includes(globalIdx) 
+                ? prevSelected.filter(i => i !== globalIdx) 
+                : prevSelected
+        );
     }, [startIdx, setRows, setSelectedRows]);
 }
 
@@ -602,19 +646,93 @@ export const PayrollGenerator = () => {
 
     // Obtener el estado de la planilla seleccionada
     const selectedPlanilla = planillas.find(p => String(p.planilla_id) === String(planillaSeleccionada));
-    const planillaEstado = selectedPlanilla?.planilla_estado;
+    const planillaEstado = selectedPlanilla?.planilla_estado;    // Handler para aplicar planilla
+    const handleAplicarPlanilla = async () => {
+        // Mostrar diálogo de confirmación con SweetAlert
+        const result = await Swal.fire({
+            title: '¿Aplicar planilla?',
+            html: `¿Está seguro que desea aplicar la planilla actual?<br>
+                   <small class="text-danger fw-bold">IMPORTANTE: Una vez aplicada la planilla, no se podrán editar 
+                   los empleados ni realizar otras acciones adicionales sin permisos especiales.</small>`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Sí, aplicar',
+            cancelButtonText: 'Cancelar',
+            allowOutsideClick: false
+        });
 
-    // Handler para aplicar planilla
-    const handleAplicarPlanilla = () => {
-        alert(`Aplicar Planilla\nID Planilla: ${planillaSeleccionada}\nID Empresa: ${empresaSeleccionada}`);
+        // Si el usuario confirma, aplicar la planilla
+        if (result.isConfirmed) {
+            // Mostrar indicador de carga
+            Swal.fire({
+                title: 'Aplicando planilla',
+                html: 'Por favor espere...',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });            try {
+                // Aplicar la planilla
+                await dispatch(Planilla_Aplicar_Thunks(planillaSeleccionada, empresaSeleccionada, "Activa"));
+                
+                // Notificar éxito
+                await Swal.fire({
+                    title: 'Completado',
+                    text: 'La planilla ha sido aplicada exitosamente',
+                    icon: 'success',
+                    confirmButtonColor: '#3085d6'
+                });
+                
+                // Recargamos la información de la planilla para obtener su nuevo estado
+                const planillasActualizadas = await dispatch(SelectOpcion_Thunks("planilla/select", empresaSeleccionada));
+                if (planillasActualizadas && planillasActualizadas.data && Array.isArray(planillasActualizadas.data.array)) {
+                    setPlanillas(planillasActualizadas.data.array);
+                }
+                
+                // Recargar datos de empleados
+                await fetchAndSetEmpleados({
+                    dispatch,
+                    planillaSeleccionada,
+                    empresaSeleccionada,
+                    setRows,
+                    setEmpleadosRaw,
+                    setSelectedRows,
+                    setLoading
+                });
+            } catch (error) {
+                // Notificar error
+                Swal.fire({
+                    title: 'Error',
+                    text: 'Ocurrió un error al aplicar la planilla',
+                    icon: 'error',
+                    confirmButtonColor: '#3085d6'
+                });
+                console.error('Error al aplicar planilla:', error);
+            }
+        }
     };
 
-    // Handlers
+    // Calculamos el índice inicial para la paginación
+    const startIdx = (currentPage - 1) * pageSize;
+    
+    // Derivados de los datos
+    const totalPages = Math.ceil(rows.length / pageSize);
+    const pageRows = rows.slice(startIdx, startIdx + pageSize);
+    const totalTarifa = useMemo(() => montoPorOperario * rows.length, [montoPorOperario, rows.length]);
+    const montoTarifa = totalTarifa;
+    const montoRemuneraciones = useMemo(() => sumColumn(rows, "deposito"), [rows]);
+    const subtotal = montoTarifa - montoRemuneraciones;
+    const iva = subtotal * 0.13;
+    const montoTotal = subtotal + iva;
+
+    // Handler para gestionar los checkboxes
     const handleCheckbox = useHandleCheckbox({
         rows,
         empleadosRaw,
         selectedRows,
-        startIdx: (currentPage - 1) * pageSize,
+        startIdx,
         planillaSeleccionada,
         empresaSeleccionada,
         dispatch,
@@ -623,39 +741,33 @@ export const PayrollGenerator = () => {
         setSelectedRows,
         setLoading
     });
+    
+    // Handler para gestionar los cambios en inputs
     const handleInputChange = useHandleInputChange({
-        startIdx: (currentPage - 1) * pageSize,
+        startIdx,
         setRows,
         setSelectedRows
     });
+    
+    // Handler para cambiar el tamaño de página
     const handlePageSizeChange = useCallback(e => {
         setPageSize(Number(e.target.value));
-        setCurrentPage(1);
+        setCurrentPage(1); // Reinicia a la primera página al cambiar el tamaño
     }, []);
+    
+    // Handler para cambio de página
     const handlePageChange = useCallback(page => {
-        if (page >= 1 && page <= Math.ceil(rows.length / pageSize)) setCurrentPage(page);
-    }, [rows.length, pageSize]);
+        if (page >= 1 && page <= Math.ceil(rows.length / pageSize)) {
+            setCurrentPage(page);
+        }
+    }, [rows.length, pageSize]);    // Handler para cambio de planilla
     const handlePlanillaChange = useCallback(e => {
         setLoading(true);
         setPlanillaSeleccionada(e.target.value);
-        // Buscar el estado de la planilla seleccionada y mostrarlo en un alert
-        const selectedId = e.target.value;
-        const planilla = planillas.find(p => String(p.planilla_id) === String(selectedId));
-        if (planilla && planilla.planilla_estado !== undefined) {
-            // alert(`Estado de la planilla seleccionada: ${planilla.planilla_estado}`);
-        }
-    }, [planillas]);
-
-    // Derivados
-    const totalPages = Math.ceil(rows.length / pageSize);
-    const startIdx = (currentPage - 1) * pageSize;
-    const pageRows = rows.slice(startIdx, startIdx + pageSize);
-    const totalTarifa = useMemo(() => montoPorOperario * rows.length, [montoPorOperario, rows.length]);
-    const montoTarifa = totalTarifa;
-    const montoRemuneraciones = useMemo(() => sumColumn(rows, "deposito"), [rows]);
-    const subtotal = montoTarifa - montoRemuneraciones;
-    const iva = subtotal * 0.13;
-    const montoTotal = subtotal + iva;
+        
+        // Al seleccionar una planilla, se inicia un proceso de carga y los datos
+        // se obtienen automáticamente mediante efectos
+    }, []);
 
     // Cuando se selecciona tipo de planilla, simula carga de datos
     useEffect(() => {
@@ -672,19 +784,21 @@ export const PayrollGenerator = () => {
 
     // IDs únicos para accesibilidad
     const empresaSelectId = "empresaSelect";
-    const planillaSelectId = "planillaSelect";
-
+    const planillaSelectId = "planillaSelect";    // Renderizamos la interfaz de usuario
     return (
         <div className="container-fluid">
-            {/* Estilos globales para tablas */}
+            {/* Estilos globales para tablas - Definidos en línea para asegurar que se apliquen */}
             <style>
                 {`
+                /* Efecto hover para filas de tablas */
                 .table-hover tbody tr:hover {
                     background-color: #e2e6ea !important;
                 }
+                /* Alineación vertical para celdas */
                 .table th, .table td {
                     vertical-align: middle !important;
                 }
+                /* Estilo para filas seleccionadas */
                 .fila-seleccionada {
                     background-color: #b6fcb6 !important;
                 }
@@ -713,8 +827,7 @@ export const PayrollGenerator = () => {
                                         </option>
                                     ))}
                                 </select>
-                            </div>
-                            {/* Payroll type select */}
+                            </div>                            {/* Select de tipo de planilla */}
                             <div className="mb-3">
                                 <label htmlFor={planillaSelectId} className="form-label">Tipo de Planilla</label>
                                 <select
@@ -731,10 +844,9 @@ export const PayrollGenerator = () => {
                                         </option>
                                     ))}
                                 </select>
-                            </div>
-                            {/* Botón o alerta debajo del select de tipo de planilla */}
+                            </div>                            {/* Botón o alerta debajo del select de tipo de planilla */}
                             {planillaSeleccionada && (
-                                (planillaEstado === 'En Proceso' || planillaEstado === 'Activa') ? (
+                                planillaEstado === 'En Proceso' ? (
                                     <div className="mb-3">
                                         <button
                                             className="btn btn-success"
@@ -742,6 +854,19 @@ export const PayrollGenerator = () => {
                                         >
                                             Aplicar Planilla
                                         </button>
+                                        <div className="alert alert-dark mt-2">
+                                            <strong>Estado: En Proceso</strong> - La edición es libre. Modifique los campos 
+                                            de los empleados según se requiera. Al finalizar, presione "Aplicar Planilla". 
+                                            Una vez aplicada, no se podrán editar empleados sin permisos adicionales.
+                                        </div>
+                                    </div>                                ) : planillaEstado === 'Activa' ? (
+                                    <div className="mb-3">
+                                        <div className="alert alert-danger">
+                                            <strong>Estado: Activa</strong> - La planilla ya ha sido aplicada y está disponible 
+                                            para el administrador. Solo puede modificar los empleados <u>no marcados</u>. 
+                                            Si necesita editar empleados marcados, contacte al administrador para obtener permisos.
+                                            Nota: Cuando la planilla pase a estado "Cerrada", no se podrá modificar sin permisos especiales.
+                                        </div>
                                     </div>
                                 ) : planillaEstado === 'Procesada' ? (
                                     <div className="alert alert-success mb-3">
@@ -763,7 +888,7 @@ export const PayrollGenerator = () => {
                             {/* Mostrar tablas solo si ambos están seleccionados y no está cargando */}
                             {!loading && empresaSeleccionada && planillaSeleccionada && (
                                 <>
-                                    {/* Main payroll table */}
+                                    {/* Tabla principal de planilla */}
                                     <div className="table-responsive" style={{ overflowX: "auto" }}>
                                         <div className="datatable-wrapper datatable-loading no-footer searchable fixed-columns">
                                             <div className="datatable-container">
@@ -771,18 +896,17 @@ export const PayrollGenerator = () => {
                                                     columns={PAYROLL_COLUMNS}
                                                     rows={rows}
                                                     pageRows={pageRows}
-                                                    selectedRows={selectedRows}
-                                                    onCheckboxChange={planillaEstado === 'En Proceso' || planillaEstado === 'Activa' ? handleCheckbox : () => {}}
+                                                    selectedRows={selectedRows}                                                    onCheckboxChange={planillaEstado === 'En Proceso' || planillaEstado === 'Activa' ? handleCheckbox : () => {}}
                                                     onInputChange={planillaEstado === 'En Proceso' || planillaEstado === 'Activa' ? handleInputChange : () => {}}
                                                     startIdx={startIdx}
-                                                    disabled={planillaEstado !== 'En Proceso'}
+                                                    disabled={false}
                                                     planillaEstado={planillaEstado}
                                                     empleadosRaw={empleadosRaw}
                                                 />
                                             </div>
                                         </div>
                                     </div>
-                                    {/* Pagination above summary tables */}
+                                    {/* Paginación encima de las tablas de resumen */}
                                     <TablePagination
                                         pageSize={pageSize}
                                         pageSizes={PAGE_SIZES}
@@ -791,7 +915,7 @@ export const PayrollGenerator = () => {
                                         onPageSizeChange={handlePageSizeChange}
                                         onPageChange={handlePageChange}
                                     />
-                                    {/* Summary tables side by side */}
+                                    {/* Tablas de resumen lado a lado */}
                                     <div className="d-flex gap-3 mb-3">
                                         <SummaryTable
                                             rows={rows}
@@ -820,6 +944,29 @@ export const PayrollGenerator = () => {
 };
 
 /**
- * Export with the expected name for compatibility.
+ * Exportamos también con el nombre original para mantener compatibilidad
+ * con otros componentes del sistema que esperen este nombre.
  */
 export const GenerarPlanilla = PayrollGenerator;
+
+/**
+ * Determina si una fila debe estar deshabilitada basado en el estado de la planilla y datos del empleado
+ * @param {string} planillaEstado - Estado de la planilla seleccionada ('En Proceso', 'Activa', 'Procesada')
+ * @param {Array} empleadosRaw - Datos crudos de empleados
+ * @param {number} index - Índice global del empleado
+ * @returns {boolean} - True si la fila debe estar deshabilitada
+ */
+function esFilaDeshabilitada(planillaEstado, empleadosRaw, index) {
+    // Si la planilla está en estado "Procesada", todas las filas están deshabilitadas
+    if (planillaEstado === 'Procesada') {
+        return true;
+    }
+    
+    // Si la planilla está "Activa", solo se deshabilitan las filas con marca_epd = 1 (con check)
+    if (planillaEstado === 'Activa' && empleadosRaw && empleadosRaw[index]) {
+        return empleadosRaw[index].marca_epd === 1;
+    }
+    
+    // Para estado "En Proceso" o cualquier otro estado, no se deshabilitan las filas
+    return false;
+}

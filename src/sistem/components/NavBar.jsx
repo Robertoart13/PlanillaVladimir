@@ -2,7 +2,8 @@ import { useDispatch, useSelector } from "react-redux";
 import Avatar from "@mui/material/Avatar";
 import { Link, useLocation } from "react-router-dom";
 import { logout } from "../../store/auth/authThunk";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { Permisos_Thunks } from "../../store/Permisos/Permisos_Thunks";
 
 /**
  * Componente NavBar
@@ -14,9 +15,29 @@ import { useState } from "react";
  */
 export const NavBar = ({ isSidebarOpen, isMobile }) => {
    const { user } = useSelector((state) => state.auth);
+   const { listaPermisos } = useSelector((state) => state.permisos);
+
    const location = useLocation();
    const dispatch = useDispatch();
    const [openSubMenu, setOpenSubMenu] = useState(null);
+
+   useEffect(() => {
+      const fetchPermisos = async () => {
+         await dispatch(Permisos_Thunks("permisos/select"));
+      };
+
+      fetchPermisos();
+   }, [dispatch]);
+
+   /**
+    * Verifica si el usuario tiene un permiso específico
+    * @param {number} permisoId - ID del permiso a verificar
+    * @returns {boolean} - true si tiene permiso, false si no
+    */
+   const tienePermiso = (permisoId) => {
+      if (!listaPermisos || !Array.isArray(listaPermisos)) return false;
+      return listaPermisos.some((permiso) => permiso.id_perm_usuario_perm === permisoId);
+   };
 
    /**
     * Retorna la clase 'active' si la ruta coincide con la actual.
@@ -137,24 +158,27 @@ export const NavBar = ({ isSidebarOpen, isMobile }) => {
                      label="Inicio"
                      i18n="Inicio"
                   />
-
-                  {/* Sección de menús */}
+                  {/* Sección de menús */}{" "}
                   <li className="pc-item pc-caption">
                      <label data-i18n="Menus">Menús</label>
                      <i className="ph-duotone ph-gauge"></i>
                   </li>
-                  <MenuItem
-                     to="/empleados/lista"
-                     icon="fas fa-users"
-                     label="Empleados"
-                     i18n="Empleados"
-                  />
-                  <MenuItem
-                     to="/empresas/lista"
-                     icon="fas fa-toolbox"
-                     label="Empresas"
-                     i18n="Empresas"
-                  />
+                  {tienePermiso(1) && (
+                     <MenuItem
+                        to="/empleados/lista"
+                        icon="fas fa-users"
+                        label="Empleados"
+                        i18n="Empleados"
+                     />
+                  )}
+                  {tienePermiso(4) && (
+                     <MenuItem
+                        to="/empresas/lista"
+                        icon="fas fa-toolbox"
+                        label="Empresas"
+                        i18n="Empresas"
+                     />
+                  )}
                   <MenuItem
                      to="/clientes/lista"
                      icon="fas fa-user-circle"
@@ -217,8 +241,8 @@ export const NavBar = ({ isSidebarOpen, isMobile }) => {
                            <MenuItem
                               to="/planilla/listaGeneradas"
                               icon="fas fa-list"
-                              label="Planillas Generadas"
-                              i18n="Planillas Generadas"
+                              label="Planillas Aplicadas"
+                              i18n="Planillas Aplicadas"
                            />
                         </ul>
                      )}

@@ -6,12 +6,31 @@ import Swal from "sweetalert2";
 import { Empresa_Crear_Thunks } from "../../../../store/Empresa/Empresa_Crear_Thunks";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { usePermiso } from "../../../../hooks/usePermisos";
 
 /**
  * Componente principal para crear una nueva empresa.
  * @returns {JSX.Element} El componente de creación de empresa.
  */
 export const CrearEmpresa = () => {
+   const tienePermiso = usePermiso(6);
+   if (!tienePermiso) {
+      return (
+         <TarjetaRow
+            texto="Crear Empresas"
+            subtitulo="No tienes permiso para ver esta sección."
+         >
+            <div
+               className="alert alert-danger"
+               role="alert"
+            >
+               No tiene permiso para crear empresas del sistema. Por favor, contacta al
+               administrador del sistema para solicitar acceso.
+            </div>
+         </TarjetaRow>
+      );
+   }
+
    // Estado para manejar errores y mensajes
    const [error, setError] = useState(false);
    const [message, setMessage] = useState("");
@@ -56,7 +75,10 @@ export const CrearEmpresa = () => {
          return false;
       }
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(formData.correo_contacto) || !emailRegex.test(formData.correo_facturacion)) {
+      if (
+         !emailRegex.test(formData.correo_contacto) ||
+         !emailRegex.test(formData.correo_facturacion)
+      ) {
          setError(true);
          setMessage("Por favor, ingrese correos electrónicos válidos.");
          return false;
@@ -153,14 +175,26 @@ export const CrearEmpresa = () => {
          <div className="card-body">
             <div className="row">
                <div className="col-md-6">
-                  {renderInputField("nombre_comercial", "Nombre Comercial", "Enter commercial name")}
-                  {renderInputField("nombre_razon_social", "Nombre de Razón Social", "Enter social reason name")}
+                  {renderInputField(
+                     "nombre_comercial",
+                     "Nombre Comercial",
+                     "Enter commercial name",
+                  )}
+                  {renderInputField(
+                     "nombre_razon_social",
+                     "Nombre de Razón Social",
+                     "Enter social reason name",
+                  )}
                   {renderInputField("cedula_juridica", "Cédula Jurídica", "Enter legal ID")}
                </div>
                <div className="col-md-6">
                   {renderInputField("nombre_contacto", "Nombre de Contacto", "Enter contact name")}
                   {renderInputField("correo_contacto", "Correo de Contacto", "Enter contact email")}
-                  {renderInputField("correo_facturacion", "Correo de Facturación", "Enter billing email")}
+                  {renderInputField(
+                     "correo_facturacion",
+                     "Correo de Facturación",
+                     "Enter billing email",
+                  )}
                   {renderTextAreaField("direccion", "Dirección", "Enter address")}
                </div>
             </div>
@@ -184,7 +218,12 @@ export const CrearEmpresa = () => {
    function renderInputField(field, label, placeholder) {
       return (
          <div className="mb-3">
-            <label className="form-label" htmlFor={field}>{label}</label>
+            <label
+               className="form-label"
+               htmlFor={field}
+            >
+               {label}
+            </label>
             <input
                type="text"
                style={getInputStyle(field)}
@@ -209,7 +248,12 @@ export const CrearEmpresa = () => {
    function renderTextAreaField(field, label, placeholder) {
       return (
          <div className="mb-3">
-            <label className="form-label" htmlFor={field}>{label}</label>
+            <label
+               className="form-label"
+               htmlFor={field}
+            >
+               {label}
+            </label>
             <textarea
                style={getInputStyle(field)}
                className="form-control"

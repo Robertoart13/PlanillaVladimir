@@ -7,6 +7,7 @@ import { TarjetaRow } from "../../../components/TarjetaRow/TarjetaRow";
 import "../../../styles/customstyles.css";
 import { Button, Stack } from "@mui/material";
 import { useNavigate } from 'react-router-dom';
+import { usePermiso } from "../../../../hooks/usePermisos";
 
 // Constantes para los textos
 const TEXTOS = {
@@ -126,6 +127,26 @@ const navegarCrearEmpresa = (navigate) => {
 export const EmpresaLista = () => {
    // Obtener el usuario autenticado desde Redux.
    const { user } = useSelector((state) => state.auth);
+
+   
+      const tienePermiso = usePermiso(4);
+   
+      if (!tienePermiso) {
+         return (
+            <TarjetaRow
+               texto="Lista de Empresas"
+               subtitulo="No tienes permiso para ver esta sección."
+            >
+               <div
+                  className="alert alert-danger"
+                  role="alert"
+               >
+                  No tiene permiso para ver lista de  empresas del sistema. Por favor, contacta al
+                  administrador del sistema para solicitar acceso.
+               </div>
+            </TarjetaRow>
+         );
+      }
 
    const navigate = useNavigate();
 
