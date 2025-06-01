@@ -2,6 +2,7 @@ import { useDispatch, useSelector } from "react-redux";
 import Avatar from "@mui/material/Avatar";
 import { Link, useLocation } from "react-router-dom";
 import { logout } from "../../store/auth/authThunk";
+import { useState } from "react";
 
 /**
  * Componente NavBar
@@ -15,6 +16,7 @@ export const NavBar = ({ isSidebarOpen, isMobile }) => {
    const { user } = useSelector((state) => state.auth);
    const location = useLocation();
    const dispatch = useDispatch();
+   const [openSubMenu, setOpenSubMenu] = useState(null);
 
    /**
     * Retorna la clase 'active' si la ruta coincide con la actual.
@@ -24,7 +26,7 @@ export const NavBar = ({ isSidebarOpen, isMobile }) => {
       if (path === "/") {
          return location.pathname === "/" ? "active" : "";
       }
-      return location.pathname.startsWith(path) ? "active" : "";
+      return location.pathname === path ? "active" : "";
    };
 
    /**
@@ -40,11 +42,27 @@ export const NavBar = ({ isSidebarOpen, isMobile }) => {
     */
    const MenuItem = ({ to, icon, label, i18n }) => (
       <li className={`pc-item ${getActiveClass(to)}`}>
-         <Link to={to} className="pc-link">
+         <Link
+            to={to}
+            className="pc-link"
+            onClick={() => {
+               // Si el submenú está abierto y el menú no es parte de Gestión de Planillas, ciérralo
+               if (openSubMenu === "gestion-planillas" && !to.startsWith("/planilla/")) {
+                  setOpenSubMenu(null);
+               }
+               // Si el menú es /planilla/lista, también cierra el submenú
+               if (openSubMenu === "gestion-planillas" && to === "/planilla/lista") {
+                  setOpenSubMenu(null);
+               }
+            }}
+         >
             <span className="pc-micon">
                <i className={icon}></i>
             </span>
-            <span className="pc-mtext" data-i18n={i18n || label}>
+            <span
+               className="pc-mtext"
+               data-i18n={i18n || label}
+            >
                {label}
             </span>
          </Link>
@@ -69,14 +87,15 @@ export const NavBar = ({ isSidebarOpen, isMobile }) => {
       return words.length <= 2 ? user.name : words.slice(0, 2).join(" ") + "...";
    };
 
+   // Maneja la apertura/cierre de submenús
+   const handleSubMenuToggle = (menu) => {
+      setOpenSubMenu((prev) => (prev === menu ? null : menu));
+   };
+
    return (
       <nav
          className={`pc-sidebar ${
-            !isSidebarOpen
-               ? "pc-sidebar-hide"
-               : isMobile
-               ? "mob-sidebar-active"
-               : ""
+            !isSidebarOpen ? "pc-sidebar-hide" : isMobile ? "mob-sidebar-active" : ""
          }`}
       >
          <div className="navbar-wrapper">
@@ -112,7 +131,12 @@ export const NavBar = ({ isSidebarOpen, isMobile }) => {
                      <label data-i18n="Navigation">Navegación</label>
                      <i className="ph-duotone ph-gauge"></i>
                   </li>
-                  <MenuItem to="/" icon="fas fa-home" label="Inicio" i18n="Inicio" />
+                  <MenuItem
+                     to="/"
+                     icon="fas fa-home"
+                     label="Inicio"
+                     i18n="Inicio"
+                  />
 
                   {/* Sección de menús */}
                   <li className="pc-item pc-caption">
@@ -149,22 +173,63 @@ export const NavBar = ({ isSidebarOpen, isMobile }) => {
                      label="Planillas"
                      i18n="Planillas"
                   />
-                  <MenuItem
-                     to="/calendario/planilla"
-                     icon="fas fa-calendar-week"
-                     label="Calendario Planilla"
-                     i18n="Calendario"
-                  />
-                  <MenuItem
-                     to="/planilla/generar"
-                     icon="fas fa-file-powerpoint"
-                     label="Generar Planilla"
-                     i18n="Calendario"
-                  />
+                  {/* Submenú Gestión de Planillas */}
+                  <li
+                     className={`pc-item pc-submenu ${
+                        openSubMenu === "gestion-planillas" ? "open" : ""
+                     }`}
+                  >
+                     <div
+                        className="pc-link pc-submenu-toggle d-flex align-items-center justify-content-between"
+                        style={{ cursor: "pointer", width: "100%" }}
+                        onClick={() => handleSubMenuToggle("gestion-planillas")}
+                     >
+                        <span className="d-flex align-items-center">
+                           <span className="pc-micon">
+                              <i className="fas fa-file-powerpoint"></i>
+                           </span>
+                           <span
+                              className="pc-mtext"
+                              data-i18n="Gestión de Planillas"
+                           >
+                              Gestión de Planillas
+                           </span>
+                        </span>
+                        <span className="submenu-arrow ms-auto">
+                           <i
+                              className={`fas fa-chevron-${
+                                 openSubMenu === "gestion-planillas" ? "down" : "right"
+                              }`}
+                           ></i>
+                        </span>
+                     </div>
+                     {openSubMenu === "gestion-planillas" && (
+                        <ul
+                           className="pc-navbar"
+                           style={{ paddingLeft: "10px", margin: 0 }}
+                        >
+                           <MenuItem
+                              to="/planilla/generar"
+                              icon="fas fa-plus-circle"
+                              label="Generar Planilla"
+                              i18n="Generar Planilla"
+                           />
+                           <MenuItem
+                              to="/planilla/listaGeneradas"
+                              icon="fas fa-list"
+                              label="Planillas Generadas"
+                              i18n="Planillas Generadas"
+                           />
+                        </ul>
+                     )}
+                  </li>
                </ul>
 
                {/* Tarjeta de usuario */}
-               <div className="card pc-user-card" style={{ marginTop: "50px" }}>
+               <div
+                  className="card pc-user-card"
+                  style={{ marginTop: "50px" }}
+               >
                   <div className="card-body">
                      <div className="d-flex align-items-center">
                         <div className="flex-shrink-0">
@@ -217,7 +282,10 @@ export const NavBar = ({ isSidebarOpen, isMobile }) => {
                                        </a>
                                     </li>
                                     <li>
-                                       <a className="pc-user-links" onClick={handleLogout}>
+                                       <a
+                                          className="pc-user-links"
+                                          onClick={handleLogout}
+                                       >
                                           <i className="ph-duotone ph-power"></i>
                                           <span>Cerrar Sesión</span>
                                        </a>

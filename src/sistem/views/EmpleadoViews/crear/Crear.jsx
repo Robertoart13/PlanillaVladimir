@@ -36,6 +36,7 @@ const inicializarEstadoFormulario = () => ({
    ministerio_hacienda: false,
    rt_ins: false,
    caja_costarricense_seguro_social: false,
+   asegurado_empleado: "0",
 });
 
 // Función para validar campos vacíos
@@ -370,7 +371,11 @@ export const CrearEmpleado = () => {
                      </label>
                      <input
                         type="date"
-                        style={obtenerEstiloEntrada("fecha_vencimiento_cedula_empleado", formData, submitted)}
+                        style={obtenerEstiloEntrada(
+                           "fecha_vencimiento_cedula_empleado",
+                           formData,
+                           submitted,
+                        )}
                         className="form-control"
                         id="fecha_vencimiento_cedula_empleado"
                         name="fecha_vencimiento_cedula_empleado"
@@ -391,7 +396,11 @@ export const CrearEmpleado = () => {
                      </label>
                      <input
                         type="date"
-                        style={obtenerEstiloEntrada("fecha_nacimiento_empleado", formData, submitted)}
+                        style={obtenerEstiloEntrada(
+                           "fecha_nacimiento_empleado",
+                           formData,
+                           submitted,
+                        )}
                         className="form-control"
                         id="fecha_nacimiento_empleado"
                         name="fecha_nacimiento_empleado"
@@ -691,13 +700,37 @@ export const CrearEmpleado = () => {
                      </label>
                      <input
                         type="text"
-                        style={obtenerEstiloEntrada("jornada_laboral_empleado", formData, submitted)}
+                        style={obtenerEstiloEntrada(
+                           "jornada_laboral_empleado",
+                           formData,
+                           submitted,
+                        )}
                         className="form-control"
                         id="jornada_laboral_empleado"
                         name="jornada_laboral_empleado"
                         value={formData.jornada_laboral_empleado}
                         onChange={(e) => manejarCambioFormulario(e, setFormData, formData)}
                         placeholder="Enter work schedule"
+                     />
+                  </div>
+               </div>
+               <div className="col-md-6">
+                  <div className="mb-3">
+                     <label
+                        className="form-label"
+                        htmlFor="asegurado_empleado"
+                     >
+                        Número asegurado empleado
+                     </label>
+                     <input
+                        type="text"
+                        style={obtenerEstiloEntrada("asegurado_empleado", formData, submitted)}
+                        className="form-control"
+                        id="asegurado_empleado"
+                        name="asegurado_empleado"
+                        value={formData.asegurado_empleado}
+                        onChange={(e) => manejarCambioFormulario(e, setFormData, formData)}
+                        placeholder="Ingrese el número de asegurado"
                      />
                   </div>
                </div>
@@ -715,13 +748,26 @@ export const CrearEmpleado = () => {
                               type="text"
                               className="form-control"
                               value={cuenta}
-                              onChange={(e) => manejarCambioCuenta(index, e.target.value, cuentasBancarias, setCuentasBancarias)}
+                              onChange={(e) =>
+                                 manejarCambioCuenta(
+                                    index,
+                                    e.target.value,
+                                    cuentasBancarias,
+                                    setCuentasBancarias,
+                                 )
+                              }
                               placeholder="Enter bank account"
                            />
                            <button
                               type="button"
                               className="btn btn-danger ms-2"
-                              onClick={() => eliminarCuentaBancaria(index, cuentasBancarias, setCuentasBancarias)}
+                              onClick={() =>
+                                 eliminarCuentaBancaria(
+                                    index,
+                                    cuentasBancarias,
+                                    setCuentasBancarias,
+                                 )
+                              }
                            >
                               -
                            </button>
@@ -740,7 +786,9 @@ export const CrearEmpleado = () => {
                   <div className="mb-3">
                      <Switch
                         checked={formData.ministerio_hacienda}
-                        onChange={(e) => setFormData({ ...formData, ministerio_hacienda: e.target.checked })}
+                        onChange={(e) =>
+                           setFormData({ ...formData, ministerio_hacienda: e.target.checked })
+                        }
                      />
                      <label>Ministerio de Hacienda</label>
                   </div>
@@ -754,7 +802,12 @@ export const CrearEmpleado = () => {
                   <div className="mb-3">
                      <Switch
                         checked={formData.caja_costarricense_seguro_social}
-                        onChange={(e) => setFormData({ ...formData, caja_costarricense_seguro_social: e.target.checked })}
+                        onChange={(e) =>
+                           setFormData({
+                              ...formData,
+                              caja_costarricense_seguro_social: e.target.checked,
+                           })
+                        }
                      />
                      <label>Caja Costarricense de Seguro Social</label>
                   </div>
@@ -762,7 +815,19 @@ export const CrearEmpleado = () => {
             </div>
 
             <button
-               onClick={(e) => manejarEnvioFormulario(e, formData, setError, setMessage, dispatch, navigate, setFormData, cuentasBancarias, setSubmitted)}
+               onClick={(e) =>
+                  manejarEnvioFormulario(
+                     e,
+                     formData,
+                     setError,
+                     setMessage,
+                     dispatch,
+                     navigate,
+                     setFormData,
+                     cuentasBancarias,
+                     setSubmitted,
+                  )
+               }
                className="btn btn-dark mb-4"
             >
                Crear Registro

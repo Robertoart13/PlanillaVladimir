@@ -1,6 +1,9 @@
 import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { SelectOpcion_Thunks } from "../../../../store/SelectOpcion/SelectOpcion_Thunks";
+import { Planilla_Lista_Empleado_Thunks } from "../../../../store/Planilla/Planilla_Lista_Empleado_Thunks";
+import { Planilla_Insertar_Empleado_Planilla_Thunks } from "../../../../store/Planilla/Planilla_Insertar_Empleado_Planilla_Thunks";
+
 
 /**
  * =========================
@@ -29,18 +32,9 @@ const PAYROLL_COLUMNS = [
     { key: "neta", label: "Remuneración Neta", type: "number" }
 ];
 
-const COMPANIES = [
-    { id: 1, name: "Empresa A" },
-    { id: 2, name: "Empresa B" },
-    { id: 3, name: "Empresa C" }
-];
 
-const PAYROLL_TYPES = [
-    { id: 1, name: "Planilla Mensual" },
-    { id: 2, name: "Planilla Quincenal" }
-];
 
-const PAGE_SIZES = [10, 30, 60, 80, 100];
+const PAGE_SIZES = [5,10, 30, 60, 80, 100];
 
 /**
  * ================
@@ -99,33 +93,6 @@ function getSummaryCellStyle(type) {
  * UTILITY FUNCTIONS
  * =========================
  */
-
-/**
- * Generates initial payroll rows for demonstration.
- * @param {number} count - Number of rows to generate.
- * @returns {Array<Object>}
- */
-function generateInitialRows(count = 5) {
-    return Array.from({ length: count }, (_, i) => ({
-        nombre: `Usuario ${i + 1}`,
-        cedula: `${10000000 + i}`,
-        cuenta: `0001234${i}`,
-        asegurado: `${900000 + i}`,
-        can: `CAN${(i % 5) + 1}`,
-        semana: `${22 + (i % 4)}`,
-        bruta: `${500000 + i * 1000}`,
-        fcl: `${10000 + i * 10}`,
-        rebajosCliente: `${5000 + i * 5}`,
-        reintegroCliente: `${2000 + i * 2}`,
-        deposito: `${1000 + i * 3}`,
-        cuota: `${3000 + i * 4}`,
-        rebajosOPU: `${500 + i}`,
-        reintegrosOPU: `${200 + i}`,
-        totalDeducciones: `${21700 + i * 20}`,
-        totalReintegros: `${2200 + i * 2}`,
-        neta: `${480500 + i * 900}`
-    }));
-}
 
 /**
  * Sums a numeric field for all rows.
@@ -426,62 +393,242 @@ function SummaryTable({ rows, montoPorOperario, setMontoPorOperario, totalTarifa
 }
 
 /**
+ * =========================
+ * HELPERS & MAPPERS
+ * =========================
+ */
+
+/**
+ * Mapea un objeto de empleado de la API al formato de la tabla.
+ * @param {object} emp - Objeto de empleado de la API
+ * @param {number} i - Índice del empleado
+ * @returns {object}
+ */
+function mapEmpleadoToRow(emp, i, semanaActual) {
+    return {
+       nombre: `${emp.nombre_empleado_emp_tbl || emp.nombre_empleado || ""} ${
+          emp.apellidos_empleado_emp_tbl || emp.apellidos_empleado || ""
+       }`.trim(),
+       cedula: emp.cedula_empleado_emp_tbl || emp.cedula_empleado || "",
+       cuenta: "Ver empleado",
+       asegurado: emp.asegurado_empleado || 0,
+       can: `CAN${(i % 5) + 1}`,
+       semana: emp.semana_epd_tbl == null || emp.semana_epd_tbl === '' ? semanaActual.toString() : emp.semana_epd_tbl,
+       bruta: emp.remuneracion_bruta_epd_tbl ?? "0.00",
+       fcl: emp.fcl_1_5_epd_tbl ?? "0.00",
+       rebajosCliente: emp.rebajos_cliente_epd_tbl ?? "0.00",
+       reintegroCliente: emp.reintegro_cliente_epd_tbl ?? "0.00",
+       deposito: emp.deposito_x_tecurso_epd_tbl ?? "0.00",
+       cuota: emp.cuota_ccss_epd_tbl ?? "0.00",
+       rebajosOPU: emp.rebajos_opu_epd_tbl ?? "0.00",
+       reintegrosOPU: emp.reintegro_opu_epd_tbl ?? "0.00",
+       totalDeducciones: emp.total_deducciones_epd_tbl ?? "0.00",
+       totalReintegros: emp.total_reintegros_epd_tbl ?? "0.00",
+       neta: emp.remuneracion_neta_epd_tbl ?? "0",
+       marca_epd: emp.marca_epd ?? 0,
+    };
+}
+
+/**
+ * Calcula el número de semana actual del año
+ */
+function getCurrentWeekNumber() {
+    const now = new Date();
+    const startOfYear = new Date(now.getFullYear(), 0, 1);
+    const dayOfWeek = startOfYear.getDay() || 7; // 1 (lunes) ... 7 (domingo)
+    const firstMonday = new Date(startOfYear);
+    if (dayOfWeek !== 1) {
+        firstMonday.setDate(startOfYear.getDate() + (8 - dayOfWeek));
+    }
+    const diff = now - firstMonday;
+    const oneWeek = 1000 * 60 * 60 * 24 * 7;
+    return diff >= 0 ? Math.ceil(diff / oneWeek) + 1 : 1;
+}
+
+/**
+ * Obtiene empleados desde la API y actualiza los estados.
+ */
+async function fetchAndSetEmpleados({ dispatch, planillaSeleccionada, empresaSeleccionada, setRows, setEmpleadosRaw, setSelectedRows, setLoading }) {
+    setLoading(true);
+    try {
+        const empleadosRow = await dispatch(
+            Planilla_Lista_Empleado_Thunks(planillaSeleccionada, empresaSeleccionada)
+        );
+        if (empleadosRow && empleadosRow.data && Array.isArray(empleadosRow.data.array)) {
+            const semanaActual = getCurrentWeekNumber();
+            const empleados = empleadosRow.data.array.map((emp, i) => mapEmpleadoToRow(emp, i, semanaActual));
+            setRows(empleados);
+            setEmpleadosRaw(empleadosRow.data.array);
+            const seleccionados = empleadosRow.data.array
+                .map((emp, i) => emp.marca_epd === 1 ? i : null)
+                .filter(i => i !== null);
+            setSelectedRows(seleccionados);
+        }
+    } catch (error) {
+        console.error('Error fetching empleados:', error);
+    } finally {
+        setLoading(false);
+    }
+}
+
+
+async function insertartEmpleadoPlanilla({ dispatch, planillaSeleccionada, empresaSeleccionada, datos }) {
+
+    try {
+        await dispatch(
+            Planilla_Insertar_Empleado_Planilla_Thunks(planillaSeleccionada, empresaSeleccionada, datos),
+        );
+    } catch (error) {
+        console.error('Error fetching empleados:', error);
+    }
+}
+/**
+ * Maneja el cambio de selección de una fila (checkbox).
+ */
+function useHandleCheckbox({ rows, empleadosRaw, selectedRows, startIdx, planillaSeleccionada, empresaSeleccionada, dispatch, setRows, setEmpleadosRaw, setSelectedRows, setLoading }) {
+    return useCallback(async (idx) => {
+        const globalIdx = startIdx + idx;
+        if (!selectedRows.includes(globalIdx)) {
+            // Marcar: mostrar datos de la fila y los campos extra SOLO una vez
+            const rowData = rows[globalIdx];
+            const rawData = empleadosRaw[globalIdx];
+            const idEmpleado = 
+                    rawData?.id_empleado_emp_tbl ?? 
+                    rawData?.id_empleado ?? 
+                    rawData?.id_empleado_epd_tbl ?? 
+                    rowData?.id_empleado_epd_tbl;
+
+            await insertartEmpleadoPlanilla({
+                dispatch,
+                planillaSeleccionada,
+                empresaSeleccionada,
+                datos: {
+                    ...rowData,
+                    id_empleado_emp_tbl: idEmpleado,
+                }
+            });
+            await fetchAndSetEmpleados({
+                dispatch,
+                planillaSeleccionada,
+                empresaSeleccionada,
+                setRows,
+                setEmpleadosRaw,
+                setSelectedRows,
+                setLoading
+            });
+            setSelectedRows(prev => [...prev, globalIdx]);
+        } else {
+            setSelectedRows(prev => prev.filter(i => i !== globalIdx));
+        }
+    }, [rows, empleadosRaw, selectedRows, startIdx, planillaSeleccionada, empresaSeleccionada, dispatch, setRows, setEmpleadosRaw, setSelectedRows, setLoading]);
+}
+
+/**
+ * Maneja el cambio de input en una fila.
+ */
+function useHandleInputChange({ startIdx, setRows, setSelectedRows }) {
+    return useCallback((e, idx) => {
+        const { name, value } = e.target;
+        const globalIdx = startIdx + idx;
+        setRows(prev => prev.map((row, i) => i === globalIdx ? { ...row, [name]: value } : row));
+        setSelectedRows(prev => prev.includes(globalIdx) ? prev.filter(i => i !== globalIdx) : prev);
+    }, [startIdx, setRows, setSelectedRows]);
+}
+
+/**
  * PayrollGenerator
  * Componente principal de la vista de generación de planilla.
  */
 export const PayrollGenerator = () => {
     // Estados principales
-    const [rows, setRows] = useState(generateInitialRows(5));
+    const [rows, setRows] = useState([]);
+    const [empleadosRaw, setEmpleadosRaw] = useState([]);
     const [selectedRows, setSelectedRows] = useState([]);
     const [pageSize, setPageSize] = useState(PAGE_SIZES[0]);
     const [currentPage, setCurrentPage] = useState(1);
     const [montoPorOperario, setMontoPorOperario] = useState(5669.23);
-
-    // Estado para empresas
     const [empresas, setEmpresas] = useState([]);
-    const [empresaSeleccionada, setEmpresaSeleccionada] = useState(""); // Nuevo estado
-    const [planillas, setPlanillas] = useState([]); // Nuevo estado para planillas
-    const [planillaSeleccionada, setPlanillaSeleccionada] = useState(""); // Nuevo estado para la planilla seleccionada
+    const [empresaSeleccionada, setEmpresaSeleccionada] = useState("");
+    const [planillas, setPlanillas] = useState([]);
+    const [planillaSeleccionada, setPlanillaSeleccionada] = useState("");
     const [loading, setLoading] = useState(false);
     const dispatch = useDispatch();
 
-    /**
-     * fetchEmpresas
-     * Obtiene la lista de empresas desde la API y actualiza el estado.
-     * Se ejecuta automáticamente al montar el componente.
-     */
-    const fetchEmpresas = useCallback(async () => {
-        const empresasData = await dispatch(SelectOpcion_Thunks("empresas/select"));
-        // Asegúrate de que empresasData.data.array sea el array de empresas
-        if (empresasData && empresasData.data) {
-            setEmpresas(empresasData.data.array || []);
-        }
+    // Fetch empresas solo una vez
+    useEffect(() => {
+        (async () => {
+            const empresasData = await dispatch(SelectOpcion_Thunks("empresas/select"));
+            if (empresasData && empresasData.data) setEmpresas(empresasData.data.array || []);
+        })();
     }, [dispatch]);
 
-    // Ejecutar fetchEmpresas al cargar el componente
+    // Fetch planillas al cambiar empresa
     useEffect(() => {
-        fetchEmpresas();
-    }, [fetchEmpresas]);
-
-    // Nuevo useEffect para consultar planillas al seleccionar empresa
-    useEffect(() => {
-        setPlanillas([]); // Limpia el select al cambiar de empresa
-        setPlanillaSeleccionada(""); // Limpia la selección
+        setPlanillas([]);
+        setPlanillaSeleccionada("");
         if (empresaSeleccionada) {
             dispatch(SelectOpcion_Thunks("planilla/select", empresaSeleccionada)).then(res => {
-                if (res && res.data && Array.isArray(res.data.array)) {
-                    setPlanillas(res.data.array);
-                }
+                if (res && res.data && Array.isArray(res.data.array)) setPlanillas(res.data.array);
             });
         }
     }, [empresaSeleccionada, dispatch]);
 
-    // Handler para seleccionar tipo de planilla y mostrar el preload suavemente
-    const handlePlanillaChange = useCallback((e) => {
-        const value = e.target.value;
-        setLoading(true); // Activa el preload antes de cambiar la selección
-        setPlanillaSeleccionada(value);
+    // Fetch empleados al cambiar empresa o planilla
+    useEffect(() => {
+        if (empresaSeleccionada && planillaSeleccionada) {
+            fetchAndSetEmpleados({
+                dispatch,
+                planillaSeleccionada,
+                empresaSeleccionada,
+                setRows,
+                setEmpleadosRaw,
+                setSelectedRows,
+                setLoading
+            });
+        }
+    }, [empresaSeleccionada, planillaSeleccionada, dispatch]);
+
+    // Handlers
+    const handleCheckbox = useHandleCheckbox({
+        rows,
+        empleadosRaw,
+        selectedRows,
+        startIdx: (currentPage - 1) * pageSize,
+        planillaSeleccionada,
+        empresaSeleccionada,
+        dispatch,
+        setRows,
+        setEmpleadosRaw,
+        setSelectedRows,
+        setLoading
+    });
+    const handleInputChange = useHandleInputChange({
+        startIdx: (currentPage - 1) * pageSize,
+        setRows,
+        setSelectedRows
+    });
+    const handlePageSizeChange = useCallback(e => {
+        setPageSize(Number(e.target.value));
+        setCurrentPage(1);
     }, []);
+    const handlePageChange = useCallback(page => {
+        if (page >= 1 && page <= Math.ceil(rows.length / pageSize)) setCurrentPage(page);
+    }, [rows.length, pageSize]);
+    const handlePlanillaChange = useCallback(e => {
+        setLoading(true);
+        setPlanillaSeleccionada(e.target.value);
+    }, []);
+
+    // Derivados
+    const totalPages = Math.ceil(rows.length / pageSize);
+    const startIdx = (currentPage - 1) * pageSize;
+    const pageRows = rows.slice(startIdx, startIdx + pageSize);
+    const totalTarifa = useMemo(() => montoPorOperario * rows.length, [montoPorOperario, rows.length]);
+    const montoTarifa = totalTarifa;
+    const montoRemuneraciones = useMemo(() => sumColumn(rows, "deposito"), [rows]);
+    const subtotal = montoTarifa - montoRemuneraciones;
+    const iva = subtotal * 0.13;
+    const montoTotal = subtotal + iva;
 
     // Cuando se selecciona tipo de planilla, simula carga de datos
     useEffect(() => {
@@ -495,46 +642,6 @@ export const PayrollGenerator = () => {
             setLoading(false); // Si se deselecciona, quita el loading
         }
     }, [planillaSeleccionada]);
-
-    // Derivados
-    const totalPages = Math.ceil(rows.length / pageSize);
-    const startIdx = (currentPage - 1) * pageSize;
-    const pageRows = rows.slice(startIdx, startIdx + pageSize);
-    const totalTarifa = useMemo(() => montoPorOperario * rows.length, [montoPorOperario, rows.length]);
-    const montoTarifa = totalTarifa;
-    const montoRemuneraciones = useMemo(() => sumColumn(rows, "deposito"), [rows]);
-    const subtotal = montoTarifa - montoRemuneraciones;
-    const iva = subtotal * 0.13;
-    const montoTotal = subtotal + iva;
-
-    // Handlers
-    const handleCheckbox = useCallback((idx) => {
-        const globalIdx = startIdx + idx;
-        setSelectedRows(prev =>
-            prev.includes(globalIdx)
-                ? prev.filter(i => i !== globalIdx)
-                : [...prev, globalIdx]
-        );
-    }, [startIdx]);
-
-    const handleInputChange = useCallback((e, idx) => {
-        const { name, value } = e.target;
-        const globalIdx = startIdx + idx;
-        setRows(prev =>
-            prev.map((row, i) =>
-                i === globalIdx ? { ...row, [name]: value } : row
-            )
-        );
-    }, [startIdx]);
-
-    const handlePageSizeChange = useCallback(e => {
-        setPageSize(Number(e.target.value));
-        setCurrentPage(1);
-    }, []);
-
-    const handlePageChange = useCallback(page => {
-        if (page >= 1 && page <= totalPages) setCurrentPage(page);
-    }, [totalPages]);
 
     // IDs únicos para accesibilidad
     const empresaSelectId = "empresaSelect";

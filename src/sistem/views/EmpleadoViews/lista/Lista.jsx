@@ -137,7 +137,9 @@ const formatearDatosEmpleado = (datosEmpleado) => ({
    cuentas_iban: datosEmpleado.cuentas_iban,
    ministerio_hacienda_empleado: datosEmpleado.ministerio_hacienda_empleado,
    rt_ins_empleado: datosEmpleado.rt_ins_empleado,
-   caja_costarricense_seguro_social_empleado: datosEmpleado.caja_costarricense_seguro_social_empleado,
+   caja_costarricense_seguro_social_empleado:
+      datosEmpleado.caja_costarricense_seguro_social_empleado,
+   asegurado_empleado: datosEmpleado.asegurado_empleado,
 });
 
 /**

@@ -17,10 +17,10 @@ export const Empleado_Editar_Thunks = (formData) => {
          // Construcción de la transacción para la creación del nuevo usuario
          const transaccion = {
             user: {
-               id: parseInt(user.id_usuario), // id usuario auth  
+               id: parseInt(user.id_usuario), // id usuario auth
             },
-            empleado: { 
-               id_empleado: formData.id_empleado, 
+            empleado: {
+               id_empleado: formData.id_empleado,
                nombre_empleado: formData.nombre_empleado,
                apellidos_empleado: formData.apellidos_empleado,
                cedula_empleado: formData.cedula_empleado,
@@ -45,7 +45,10 @@ export const Empleado_Editar_Thunks = (formData) => {
                es_inactivo: formData.es_inactivo,
                ministerio_hacienda_empleado: formData.ministerio_hacienda ? 1 : 0,
                rt_ins_empleado: formData.rt_ins ? 1 : 0,
-               caja_costarricense_seguro_social_empleado: formData.caja_costarricense_seguro_social ? 1 : 0,
+               caja_costarricense_seguro_social_empleado: formData.caja_costarricense_seguro_social
+                  ? 1
+                  : 0,
+               asegurado_empleado : formData.asegurado_empleado,
             },
             acceso: {
                type: 0,

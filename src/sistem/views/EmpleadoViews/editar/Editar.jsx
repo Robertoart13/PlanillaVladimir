@@ -79,6 +79,7 @@ export const EditarEmpleado = () => {
          ministerio_hacienda: false,
          rt_ins: false,
          caja_costarricense_seguro_social: false,
+         asegurado_empleado: "0",
       };
    }
 
@@ -194,6 +195,7 @@ export const EditarEmpleado = () => {
          ministerio_hacienda: datosExistentes.ministerio_hacienda_empleado,
          rt_ins: datosExistentes.rt_ins_empleado,
          caja_costarricense_seguro_social: datosExistentes.caja_costarricense_seguro_social_empleado,
+         asegurado_empleado: datosExistentes.asegurado_empleado || "0",
       };
    }
 
@@ -895,6 +897,26 @@ export const EditarEmpleado = () => {
                         value={datosFormulario.jornada_laboral_empleado}
                         onChange={manejarCambioFormulario}
                         placeholder="Enter work schedule"
+                     />
+                  </div>
+               </div>
+               <div className="col-md-6">
+                  <div className="mb-3">
+                     <label
+                        className="form-label"
+                        htmlFor="asegurado_empleado"
+                     >
+                        Número asegurado empleado
+                     </label>
+                     <input
+                        type="text"
+                        style={obtenerEstiloEntrada("asegurado_empleado")}
+                        className="form-control"
+                        id="asegurado_empleado"
+                        name="asegurado_empleado"
+                        value={datosFormulario.asegurado_empleado}
+                        onChange={manejarCambioFormulario}
+                        placeholder="Ingrese el número de asegurado"
                      />
                   </div>
                </div>
