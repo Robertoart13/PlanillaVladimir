@@ -45,7 +45,7 @@ import Puesto_Listar_select from "../modules/05-Selects/Puestos_Lista.js";
 import TipoContrato_Listar_select from "../modules/05-Selects/TipoContrato.js";
 import Supervisor_Listar_select from "../modules/05-Selects/Supervisores.js";
 import Planilla_Listar_select from "../modules/05-Selects/Planilla_Lista.js";
-
+   
 
 
 /**
@@ -82,6 +82,13 @@ import Calendario_Estado from "../modules/07-Calendario/Calendario_Estado.js";
 import Calendario_Editar from "../modules/07-Calendario/Calendario_Editar.js";
 
 
+/**
+ * ====================================================================================================================================
+ * Importación de módulos relacionados con la Empleados
+ * Estos módulos manejan la lista de empleados
+ * ====================================================================================================================================
+ */
+import Permisos_Listar_select from "../modules/05-Selects/Permisos_Lista.js";
    
 /**
  * ====================================================================================================================================
@@ -94,6 +101,7 @@ import Planilla_Crear from "../modules/08-planilla/Planilla_Crear.js";
 import Planilla_Editar from "../modules/08-planilla/Planilla_Editar.js";
 import Planilla_Listar_Empleados from "../modules/08-planilla/Planilla_Lista_empleados.js";
 import Planilla_Insertar_Empleado from "../modules/08-planilla/Planilla_Insertar_Empleado.js";
+import Planilla_AplicarPlanilla from "../modules/08-planilla/Planilla_AplicarPlanilla.js";
 
 /** ====================================================================================================================================
  * @fileoverview Módulo de configuración de rutas para la aplicación.
@@ -365,6 +373,7 @@ function getModulesConfig() {
             ...TipoContrato_Listar_select,
             ...Supervisor_Listar_select,
             ...Planilla_Listar_select,
+            ...Permisos_Listar_select,
          }, // Combinamos ambos modelos
          routes: [
             {
@@ -400,6 +409,11 @@ function getModulesConfig() {
             {
                path: "planilla/select", // Ruta para la lista de planilla
                method: "Planilla_Listar_select", // Método que se ejecutará
+               isAuthRequired: true, // Requiere autenticación
+            },
+            {
+               path: "permisos/select", // Ruta para la lista de permisos
+               method: "Permisos_Listar_select", // Método que se ejecutará
                isAuthRequired: true, // Requiere autenticación
             },
          ],
@@ -493,6 +507,7 @@ function getModulesConfig() {
             ...Planilla_Editar,
             ...Planilla_Listar_Empleados,
             ...Planilla_Insertar_Empleado,
+            ...Planilla_AplicarPlanilla,
          }, // Combinamos ambos modelos
          routes: [
             {
@@ -518,6 +533,11 @@ function getModulesConfig() {
             {
                path: "planilla/insertar_empleado_planilla", // Ruta para la lista de planilla
                method: "Planilla_Insertar_Empleado", // Método que se ejecutará
+               isAuthRequired: true, // Requiere autenticación
+            }, 
+            {
+               path: "planilla/aplicar_planilla", // Ruta para la lista de planilla
+               method: "aplicarPlanilla", // Método que se ejecutará
                isAuthRequired: true, // Requiere autenticación
             }, 
          ],
