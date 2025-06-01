@@ -40,7 +40,7 @@ export const Permisos_Thunks = (url, datos = "") => {
          const error = verificarErroresRespuesta(resultado);
          if (error) return error; // Si hay un error, devolver la respuesta de error
 
-         console.log("Resultado de la creación de permisos:", resultado);
+   
 
          dispatch(cargarPermisosExito(resultado?.data.array|| []));
 

@@ -1,0 +1,239 @@
+/* Estilos para la tabla de remuneración */
+
+.remuneraciones-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--tarjetas-por-fila, 3), 1fr);
+  gap: 15px;
+  font-family: Arial, sans-serif;
+  margin: 20px;
+}
+
+.remuneracion-card {
+  border: 1px solid #ddd;
+  margin-bottom: 15px;
+  padding: 5px;
+  font-size: 12px; /* Texto más pequeño */
+  max-width: 100%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+/* Estado no aplicado - colores oscuros */
+.remuneracion-card.no-aplicado {
+  border-color: #333;
+}
+
+.no-aplicado .remuneracion-header {
+  background-color: #333;
+  color: white;
+}
+
+.no-aplicado .remuneracion-table td {
+  background-color: #f0f0f0; /* Color gris para campos */
+}
+
+.no-aplicado .section-header {
+  background-color: #555 !important;
+  color: white;
+}
+
+/* Estado aplicado - colores verdes como antes */
+.remuneracion-card.aplicado {
+  border-color: #a0d9a3;
+}
+
+.aplicado .remuneracion-header {
+  background-color: #a0d9a3;
+  color: black;
+}
+
+.aplicado .remuneracion-table td {
+  background-color: #d9f0db;
+}
+
+.aplicado .section-header {
+  background-color: #a0d9a3 !important;
+  color: black;
+}
+
+.remuneracion-header {
+  padding: 5px;
+  text-align: center;
+  font-weight: bold;
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+
+.remuneracion-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 10px;
+}
+
+.remuneracion-table td {
+  border: 1px solid #ddd;
+  padding: 4px;
+  font-size: 11px;
+}
+
+.section-header {
+  font-weight: bold;
+}
+
+.amount {
+  text-align: right;
+}
+
+/* Estilos para estados de inscripción */
+.inscrito {
+  color: #4CAF50;
+  font-weight: bold;
+}
+
+.no-inscrito {
+  color: #f44336;
+  font-weight: bold;
+}
+
+/* Estilos para el botón de aplicar */
+.boton-container {
+  text-align: center;
+  margin-top: 10px;
+}
+
+.boton-aplicar {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 12px;
+  margin: 4px 2px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.3s;
+}
+
+.boton-aplicar:hover {
+  background-color: #45a049;
+}
+
+.boton-aplicar:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+/* Estilos para el botón ver perfil */
+.boton-perfil-container {
+  margin-bottom: 10px;
+}
+
+.boton-ver-perfil {
+  background-color:rgb(8, 8, 8);
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 12px;
+  margin: 4px 2px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.3s;
+}
+
+.boton-ver-perfil:hover {
+  background-color:rgb(6, 6, 6);
+}
+
+/* Estilos para los controles */
+.controles {
+  margin-bottom: 15px;
+}
+
+.selector-tarjetas {
+  margin-left: 10px;
+  padding: 3px;
+}
+
+/* Mensaje de carga */
+.cargando-mensaje {
+  text-align: center;
+  padding: 20px;
+  font-size: 16px;
+  color: #666;
+}
+
+/* Estilos para la información de la planilla */
+.info-planilla {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 15px;
+  margin-bottom: 20px;
+}
+
+.info-planilla h3 {
+  color: #333;
+  font-size: 18px;
+  margin-top: 0;
+  margin-bottom: 15px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 8px;
+}
+
+.info-planilla-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+}
+
+.info-planilla-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.info-label {
+  font-weight: bold;
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 3px;
+}
+
+.info-value {
+  font-size: 14px;
+  color: #333;
+}
+
+.estado-activo {
+  color: #4CAF50;
+  font-weight: bold;
+}
+
+/* Responsive para la información de planilla */
+@media (max-width: 900px) {
+  .info-planilla-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .info-planilla-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 1200px) {
+  .remuneraciones-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .remuneraciones-grid {
+    grid-template-columns: 1fr;
+  }
+}

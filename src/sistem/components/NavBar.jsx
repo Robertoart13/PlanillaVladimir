@@ -239,7 +239,7 @@ export const NavBar = ({ isSidebarOpen, isMobile }) => {
                               i18n="Generar Planilla"
                            />
                            <MenuItem
-                              to="/planilla/listaGeneradas"
+                              to="/planilla/aplicadas"
                               icon="fas fa-list"
                               label="Planillas Aplicadas"
                               i18n="Planillas Aplicadas"
