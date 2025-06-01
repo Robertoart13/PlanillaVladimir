@@ -102,6 +102,7 @@ import Planilla_Editar from "../modules/08-planilla/Planilla_Editar.js";
 import Planilla_Listar_Empleados from "../modules/08-planilla/Planilla_Lista_empleados.js";
 import Planilla_Insertar_Empleado from "../modules/08-planilla/Planilla_Insertar_Empleado.js";
 import Planilla_AplicarPlanilla from "../modules/08-planilla/Planilla_AplicarPlanilla.js";
+import Planilla_Listar_aplicadas from "../modules/08-planilla/Planilla_ListaCompletaAplicadas.js";
 
 /** ====================================================================================================================================
  * @fileoverview Módulo de configuración de rutas para la aplicación.
@@ -309,7 +310,6 @@ function getModulesConfig() {
          category: "Usuario", // Nombre del módulo
          model: {
             ...usuarioAuth,
-
          }, // Combinamos ambos modelos
          routes: [
             // Definición de rutas asociadas al módulo
@@ -339,7 +339,7 @@ function getModulesConfig() {
                isAuthRequired: true, // Requiere autenticación
             },
             {
-               path: "empresa/crear", // Ruta para la lista de empresas 
+               path: "empresa/crear", // Ruta para la lista de empresas
                method: "crearTransaccion", // Método que se ejecutará
                isAuthRequired: true, // Requiere autenticación
             },
@@ -467,7 +467,7 @@ function getModulesConfig() {
          model: {
             ...Calendario_Listar,
             ...Calendario_Crear,
-            ...Calendario_Evento,   
+            ...Calendario_Evento,
             ...Calendario_Estado,
             ...Calendario_Editar,
          }, // Combinamos ambos modelos
@@ -508,6 +508,7 @@ function getModulesConfig() {
             ...Planilla_Listar_Empleados,
             ...Planilla_Insertar_Empleado,
             ...Planilla_AplicarPlanilla,
+            ...Planilla_Listar_aplicadas,
          }, // Combinamos ambos modelos
          routes: [
             {
@@ -524,22 +525,27 @@ function getModulesConfig() {
                path: "planilla/editar", // Ruta para la lista de planilla
                method: "editarTransaccion", // Método que se ejecutará
                isAuthRequired: true, // Requiere autenticación
-            }, 
+            },
             {
                path: "planilla/lista_empleado", // Ruta para la lista de planilla
                method: "Planilla_Listar_Empleados", // Método que se ejecutará
                isAuthRequired: true, // Requiere autenticación
-            }, 
+            },
             {
                path: "planilla/insertar_empleado_planilla", // Ruta para la lista de planilla
                method: "Planilla_Insertar_Empleado", // Método que se ejecutará
                isAuthRequired: true, // Requiere autenticación
-            }, 
+            },
             {
                path: "planilla/aplicar_planilla", // Ruta para la lista de planilla
                method: "aplicarPlanilla", // Método que se ejecutará
                isAuthRequired: true, // Requiere autenticación
-            }, 
+            },
+            {
+               path: "planilla/listaAplicadas", // Ruta para la lista de planilla
+               method: "Planilla_Listar_aplicadas", // Método que se ejecutará
+               isAuthRequired: true, // Requiere autenticación
+            },
          ],
       },
    ];
