@@ -48,7 +48,8 @@ const QUERIES = {
       id_empresa,
       ministerio_hacienda_empleado,
       rt_ins_empleado,
-      caja_costarricense_seguro_social_empleado	
+      caja_costarricense_seguro_social_empleado,
+      asegurado_empleado
 ) VALUES (
       ?,
       ?,
@@ -70,6 +71,7 @@ const QUERIES = {
       ?,
       ?,
       ?,
+     ?,
      ?,
      ?,
      ?
@@ -126,6 +128,7 @@ const crearNuevoRegistroBd = async (datos, database) => {
          datos.ministerio_hacienda_empleado,
          datos.rt_ins_empleado,
          datos.caja_costarricense_seguro_social_empleado,
+         datos.asegurado_empleado,
       ],
       database,
    );

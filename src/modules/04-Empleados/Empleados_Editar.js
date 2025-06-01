@@ -26,8 +26,8 @@ import { crearRespuestaErrorCrear } from "../../hooks/crearRespuestaErrorCrear.j
 const QUERIES = {
    QUERIES_UPDATE: `
       UPDATE 
-         empleados_tbl 
-      SET 
+         empleados_tbl
+      SET
       nombre_empleado=?,
       apellidos_empleado=?,
       cedula_empleado=?,
@@ -51,7 +51,8 @@ const QUERIES = {
       estado_empleado=?,
       ministerio_hacienda_empleado=?,
       rt_ins_empleado=?,
-      caja_costarricense_seguro_social_empleado =?
+      caja_costarricense_seguro_social_empleado =?,
+      asegurado_empleado =?
       WHERE id_empleado   = ?;    
    `,
    QUERIES_DELETE_CUENTAS: `
@@ -86,7 +87,6 @@ const editarRegistroBd = async (
    return await realizarConsulta(
       QUERIES.QUERIES_UPDATE,
       [
-         
          datos.nombre_empleado,
          datos.apellidos_empleado,
          datos.cedula_empleado,
@@ -111,8 +111,8 @@ const editarRegistroBd = async (
          datos.ministerio_hacienda_empleado,
          datos.rt_ins_empleado,
          datos.caja_costarricense_seguro_social_empleado,
+         datos.asegurado_empleado,
          datos.id_empleado,
-         
       ],
       database,
    );
