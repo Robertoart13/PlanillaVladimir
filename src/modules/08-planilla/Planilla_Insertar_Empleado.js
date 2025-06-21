@@ -105,6 +105,9 @@ const crearNuevoRegistroBd = async (datos, userID, database) => {
       database,
    );
 
+   let isSelected = datos.isSelected ? 0 : 1 || false
+
+
    // Si no existe, insertar
    if (result.datos.length === 0) {
       result = await realizarConsulta(
@@ -138,25 +141,25 @@ const crearNuevoRegistroBd = async (datos, userID, database) => {
       result = await realizarConsulta(
          QUERIES.UPDATE_INSERT,
          [
-            userID,                          // id_usuario_creador_epd
-            datos.datos.semana,              // semana_epd
-            datos.datos.bruta,               // remuneracion_bruta_epd
-            datos.datos.fcl,                 // fcl_1_5_epd
-            "0",                            // rob_3_25_epd
-            datos.datos.rebajosCliente,      // rebajos_cliente_epd
-            datos.datos.cuota,               // cuota_ccss_epd
-            datos.datos.rebajosOPU,          // rebajos_opu_epd
-            datos.datos.reintegroCliente,    // reintegro_cliente_epd
-            datos.datos.reintegrosOPU,       // reintegro_opu_epd
-            datos.datos.deposito,            // deposito_x_tecurso_epd
-            datos.datos.totalDeducciones,    // total_deducciones_epd
-            datos.datos.totalReintegros,     // total_reintegros_epd
-            datos.datos.neta,                // remuneracion_neta_epd
-            "pendiente",                    // estado_epd
-            "1",                            // marca_epd
+            userID, // id_usuario_creador_epd
+            datos.datos.semana, // semana_epd
+            datos.datos.bruta, // remuneracion_bruta_epd
+            datos.datos.fcl, // fcl_1_5_epd
+            "0", // rob_3_25_epd
+            datos.datos.rebajosCliente, // rebajos_cliente_epd
+            datos.datos.cuota, // cuota_ccss_epd
+            datos.datos.rebajosOPU, // rebajos_opu_epd
+            datos.datos.reintegroCliente, // reintegro_cliente_epd
+            datos.datos.reintegrosOPU, // reintegro_opu_epd
+            datos.datos.deposito, // deposito_x_tecurso_epd
+            datos.datos.totalDeducciones, // total_deducciones_epd
+            datos.datos.totalReintegros, // total_reintegros_epd
+            datos.datos.neta, // remuneracion_neta_epd
+            "pendiente", // estado_epd
+            isSelected, // marca_epd
             datos.datos.id_empleado_emp_tbl, // WHERE id_empleado_epd
-            datos.id_empresa,                // WHERE id_empresa_epd
-            datos.id_planilla,               // WHERE planilla_id_epd
+            datos.id_empresa, // WHERE id_empresa_epd
+            datos.id_planilla, // WHERE planilla_id_epd
          ],
          database,
       );
