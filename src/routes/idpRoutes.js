@@ -105,6 +105,7 @@ import Planilla_AplicarPlanilla from "../modules/08-planilla/Planilla_AplicarPla
 import Planilla_Listar_aplicadas from "../modules/08-planilla/Planilla_ListaCompletaAplicadas.js";
 
 import Planil_Empleado_Aplicadas_Empleado from "../modules/08-planilla/Planil_Empleado_Aplicadas_Empleado.js";
+import Planilla_Aplicado from "../modules/08-planilla/Planilla_Aplicado.js";
 
 
 /** ====================================================================================================================================
@@ -513,6 +514,7 @@ function getModulesConfig() {
             ...Planilla_AplicarPlanilla,
             ...Planilla_Listar_aplicadas,
             ...Planil_Empleado_Aplicadas_Empleado,
+            ...Planilla_Aplicado,
          }, // Combinamos ambos modelos
          routes: [
             {
@@ -553,6 +555,11 @@ function getModulesConfig() {
             {
                path: "planilla/lista_empleado_planilla", // Ruta para la lista de planilla
                method: "ListaPlanilla", // Método que se ejecutará
+               isAuthRequired: true, // Requiere autenticación
+            },
+            {
+               path: "planilla/Planilla_Aplicado", // Ruta para la lista de planilla
+               method: "Planilla_Aplicado", // Método que se ejecutará
                isAuthRequired: true, // Requiere autenticación
             },
          ],
