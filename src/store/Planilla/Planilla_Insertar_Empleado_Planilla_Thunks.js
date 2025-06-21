@@ -4,7 +4,7 @@ import { crearRespuestaExitosa } from "../../hooks/crearRespuestaExitosa";
 import { ApiProvider } from "../providerApi/providerApi";
 
 
-export const Planilla_Insertar_Empleado_Planilla_Thunks = (id_planilla, id_empresa, datos) => {
+export const Planilla_Insertar_Empleado_Planilla_Thunks = (id_planilla, id_empresa, datos, isSelected) => {
 
    return async (dispatch, getState) => {
       try {
@@ -23,12 +23,12 @@ export const Planilla_Insertar_Empleado_Planilla_Thunks = (id_planilla, id_empre
                id_planilla,
                id_empresa,
                datos,
+               isSelected,
             },
             acceso: {
                type: 0,
                permiso: 0,
-               details:
-                  "",
+               details: "",
             },
          };
 

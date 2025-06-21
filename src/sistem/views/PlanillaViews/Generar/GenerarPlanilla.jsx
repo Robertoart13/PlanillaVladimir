@@ -6,7 +6,6 @@ import { Planilla_Lista_Empleado_Thunks } from "../../../../store/Planilla/Plani
 import { Planilla_Insertar_Empleado_Planilla_Thunks } from "../../../../store/Planilla/Planilla_Insertar_Empleado_Planilla_Thunks";
 import { Planilla_Aplicar_Thunks } from "../../../../store/Planilla/Planilla_Aplicar_Thunks";
 
-
 /**
  * =========================
  * CONSTANTS & CONFIGURATION
@@ -15,28 +14,25 @@ import { Planilla_Aplicar_Thunks } from "../../../../store/Planilla/Planilla_Apl
 
 /** Payroll table column definitions */
 const PAYROLL_COLUMNS = [
-    { key: "nombre", label: "Nombre", style: { minWidth: 180 } },
-    { key: "cedula", label: "Cédula", style: { minWidth: 100 } },
-    { key: "cuenta", label: "# De cuenta", style: { minWidth: 120 } },
-    { key: "asegurado", label: "# De Asegurado" },
-    { key: "can", label: "CAN" },
-    { key: "semana", label: "Semana" },
-    { key: "bruta", label: "Remuneración Bruta", type: "number" },
-    { key: "fcl", label: "FCL 1,5% ROB 3,25%", type: "number" },
-    { key: "rebajosCliente", label: "Rebajos de Cliente", type: "number" },
-    { key: "reintegroCliente", label: "Reintegro de Cliente", type: "number" },
-    { key: "deposito", label: "Deposito X Tecurso", type: "number" },
-    { key: "cuota", label: "Cuota CC.SS", type: "number" },
-    { key: "rebajosOPU", label: "Rebajos OPU", type: "number" },
-    { key: "reintegrosOPU", label: "Reintegros OPU", type: "number" },
-    { key: "totalDeducciones", label: "Total de Deducciones", type: "number" },
-    { key: "totalReintegros", label: "Total de Reintegros", type: "number" },
-    { key: "neta", label: "Remuneración Neta", type: "number" }
+   { key: "nombre", label: "Nombre", style: { minWidth: 180 } },
+   { key: "cedula", label: "Cédula", style: { minWidth: 100 } },
+   { key: "asegurado", label: "# De Asegurado" },
+   { key: "can", label: "CAN" },
+   { key: "semana", label: "Semana", type: "number" },
+   { key: "bruta", label: "Remuneración Bruta", type: "number" },
+   { key: "fcl", label: "FCL 1,5% ROB 3,25%", type: "number" },
+   { key: "rebajosCliente", label: "Rebajos de Cliente", type: "number" },
+   { key: "reintegroCliente", label: "Reintegro de Cliente", type: "number" },
+   { key: "deposito", label: "Deposito X Tecurso", type: "number" },
+   { key: "cuota", label: "Cuota CC.SS", type: "number" },
+   { key: "rebajosOPU", label: "Rebajos OPU", type: "number" },
+   { key: "reintegrosOPU", label: "Reintegros OPU", type: "number" },
+   { key: "totalDeducciones", label: "Total de Deducciones", type: "number" },
+   { key: "totalReintegros", label: "Total de Reintegros", type: "number" },
+   { key: "neta", label: "Remuneración Neta", type: "number" },
 ];
 
-
-
-const PAGE_SIZES = [5,10, 30, 60, 80, 100];
+const PAGE_SIZES = [5, 10, 30, 60, 80, 100];
 
 /**
  * ================
@@ -52,12 +48,12 @@ const PAGE_SIZES = [5,10, 30, 60, 80, 100];
  * @returns {object} Objeto de estilo CSS.
  */
 function getTableCellStyle(col, isSelected, idx) {
-    return {
-        ...col.style,
-        borderRight: "1px solid #dee2e6",
-        borderLeft: "1px solid #dee2e6",
-        background: !isSelected && idx % 2 !== 0 ? "#f8f9fa" : undefined
-    };
+   return {
+      ...col.style,
+      borderRight: "1px solid #dee2e6",
+      borderLeft: "1px solid #dee2e6",
+      background: !isSelected && idx % 2 !== 0 ? "#f8f9fa" : undefined,
+   };
 }
 
 /**
@@ -66,13 +62,13 @@ function getTableCellStyle(col, isSelected, idx) {
  * @returns {object} Objeto de estilo CSS.
  */
 function getTableHeaderStyle(col) {
-    return {
-        ...col.style,
-        background: "#e9ecef",
-        borderBottom: "2px solid #adb5bd",
-        borderTop: "2px solid #adb5bd",
-        textAlign: "center"
-    };
+   return {
+      ...col.style,
+      background: "#e9ecef",
+      borderBottom: "2px solid #adb5bd",
+      borderTop: "2px solid #adb5bd",
+      textAlign: "center",
+   };
 }
 
 /**
@@ -81,16 +77,16 @@ function getTableHeaderStyle(col) {
  * @returns {object} Objeto de estilo CSS.
  */
 function getSummaryCellStyle(type) {
-    switch (type) {
-        case "header":
-            return { background: "#a3bde3" };
-        case "total":
-            return { fontSize: "1.2rem", color: "#fff", background: "#4a74b5" };
-        case "totalLabel":
-            return { background: "#a3bde3", fontSize: "1.1rem" };
-        default:
-            return {};
-    }
+   switch (type) {
+      case "header":
+         return { background: "#a3bde3" };
+      case "total":
+         return { fontSize: "1.2rem", color: "#fff", background: "#4a74b5" };
+      case "totalLabel":
+         return { background: "#a3bde3", fontSize: "1.1rem" };
+      default:
+         return {};
+   }
 }
 
 /**
@@ -106,7 +102,7 @@ function getSummaryCellStyle(type) {
  * @returns {number} - Suma total del campo especificado
  */
 function sumColumn(rows, field) {
-    return rows.reduce((acc, row) => acc + (parseFloat(row[field]) || 0), 0);
+   return rows.reduce((acc, row) => acc + (parseFloat(row[field]) || 0), 0);
 }
 
 /**
@@ -120,98 +116,115 @@ function sumColumn(rows, field) {
  * Tabla principal editable con selección de filas.
  */
 function PayrollTable({
-    columns,
-    rows,
-    pageRows,
-    selectedRows,
-    onCheckboxChange,
-    onInputChange,
-    startIdx,
-    disabled,
-    planillaEstado,
-    empleadosRaw
+   columns,
+   rows,
+   pageRows,
+   selectedRows,
+   onCheckboxChange,
+   onInputChange,
+   startIdx,
+   disabled,
+   planillaEstado,
+   empleadosRaw,
 }) {
-    return (
-        <table
-            className="table table-hover table-bordered table-striped datatable-table align-middle"
-            style={{
-                minWidth: 1200,
-                fontSize: "0.95rem",
-                borderCollapse: "separate",
-                borderSpacing: 0
-            }}
-        >
-            <thead className="table-light sticky-top" style={{ zIndex: 2 }}>
-                <tr>
-                    <th style={{ width: 40, textAlign: "center" }}></th>
-                    {columns.map(col => (
-                        <th key={col.key} style={getTableHeaderStyle(col)}>
-                            {col.label}
-                        </th>
-                    ))}
-                </tr>
-            </thead>
-            <tbody>
-                {pageRows.map((row, idx) => {
-                    const globalIdx = startIdx + idx;
-                    const isSelected = selectedRows.includes(globalIdx);                    // Lógica de deshabilitado por fila usando nuestra función de utilidad
-                    const rowDisabled = esFilaDeshabilitada(planillaEstado, empleadosRaw, globalIdx) || disabled;
-                    return (
-                        <tr
-                            key={globalIdx}
-                            className={isSelected ? "fila-seleccionada" : ""}
-                            style={rowDisabled ? { pointerEvents: 'none', opacity: 0.7, background: '#f5f5f5' } : {}}
+   return (
+      <table
+         className="table table-hover table-bordered table-striped datatable-table align-middle"
+         style={{
+            minWidth: 1200,
+            fontSize: "0.95rem",
+            borderCollapse: "separate",
+            borderSpacing: 0,
+         }}
+      >
+         <thead
+            className="table-light sticky-top"
+            style={{ zIndex: 2 }}
+         >
+            <tr>
+               <th style={{ width: 40, textAlign: "center" }}></th>
+               {columns.map((col) => (
+                  <th
+                     key={col.key}
+                     style={getTableHeaderStyle(col)}
+                  >
+                     {col.label}
+                  </th>
+               ))}
+            </tr>
+         </thead>
+         <tbody>
+            {pageRows.map((row, idx) => {
+               const globalIdx = startIdx + idx;
+               const isSelected = selectedRows.includes(globalIdx); // Lógica de deshabilitado por fila usando nuestra función de utilidad
+               const rowDisabled =
+                  esFilaDeshabilitada(planillaEstado, empleadosRaw, globalIdx) || disabled;
+               return (
+                  <tr
+                     key={globalIdx}
+                     className={isSelected ? "fila-seleccionada" : ""}
+                     style={
+                        rowDisabled
+                           ? { pointerEvents: "none", opacity: 0.7, background: "#f5f5f5" }
+                           : {}
+                     }
+                  >
+                     <td style={{ textAlign: "center" }}>
+                        <input
+                           type="checkbox"
+                           checked={isSelected}
+                           onChange={() => onCheckboxChange(idx)}
+                           aria-label={`Seleccionar fila ${globalIdx + 1}`}
+                           disabled={rowDisabled}
+                        />
+                     </td>
+                     {columns.map((col) => (
+                        <td
+                           key={col.key}
+                           style={getTableCellStyle(col, isSelected, idx)}
                         >
-                            <td style={{ textAlign: "center" }}>
-                                <input
-                                    type="checkbox"
-                                    checked={isSelected}
-                                    onChange={() => onCheckboxChange(idx)}
-                                    aria-label={`Seleccionar fila ${globalIdx + 1}`}
-                                    disabled={rowDisabled}
-                                />
-                            </td>
-                            {columns.map(col => (
-                                <td
-                                    key={col.key}
-                                    style={getTableCellStyle(col, isSelected, idx)}
-                                >
-                                    {col.type === "number" ? (
-                                        <input
-                                            type="number"
-                                            name={col.key}
-                                            value={row[col.key]}
-                                            onChange={e => onInputChange(e, idx)}
-                                            className="form-control form-control-sm"
-                                            style={{ minWidth: col.style?.minWidth || 80, background: "#fdfdfd" }}
-                                            aria-label={col.label}
-                                            disabled={rowDisabled}
-                                        />
-                                    ) : (
-                                        row[col.key]
-                                    )}
-                                </td>
-                            ))}
-                        </tr>
-                    );
-                })}
-            </tbody>
-            <tfoot>
-                <tr style={{ background: "#f8f9fa", fontWeight: "bold" }}>
-                    <td></td>
-                    {columns.map(col =>
-                        col.type === "number" ? (
-                            <td key={col.key} style={col.key === "neta" ? { color: "#198754", fontWeight: "bold" } : {}}>
-                                {sumColumn(rows, col.key)}
-                            </td>
-                        ) : (
-                            <td key={col.key}></td>
-                        )
-                    )}
-                </tr>
-            </tfoot>
-        </table>
-    );
+                           {col.type === "number" ? (
+                              <input
+                                 type="number"
+                                 name={col.key}
+                                 value={row[col.key]}
+                                 onChange={(e) => onInputChange(e, idx)}
+                                 className="form-control form-control-sm"
+                                 style={{
+                                    minWidth: col.style?.minWidth || 80,
+                                    background: "#fdfdfd",
+                                 }}
+                                 aria-label={col.label}
+                                 disabled={rowDisabled}
+                              />
+                           ) : (
+                              row[col.key]
+                           )}
+                        </td>
+                     ))}
+                  </tr>
+               );
+            })}
+         </tbody>
+         <tfoot>
+            <tr style={{ background: "#f8f9fa", fontWeight: "bold" }}>
+               <td></td>
+               {columns.map((col) =>
+                  col.type === "number" ? (
+                     <td
+                        key={col.key}
+                        style={col.key === "neta" ? { color: "#198754", fontWeight: "bold" } : {}}
+                     >
+                        {sumColumn(rows, col.key)}
+                     </td>
+                  ) : (
+                     <td key={col.key}></td>
+                  ),
+               )}
+            </tr>
+         </tfoot>
+      </table>
+   );
 }
 
 /**
@@ -219,95 +232,116 @@ function PayrollTable({
  * Componente de paginación reutilizable.
  */
 function TablePagination({
-    pageSize,
-    pageSizes,
-    currentPage,
-    totalPages,
-    onPageSizeChange,
-    onPageChange
+   pageSize,
+   pageSizes,
+   currentPage,
+   totalPages,
+   onPageSizeChange,
+   onPageChange,
 }) {
-    const pages = useMemo(() => {
-        const arr = [];
-        for (let i = 1; i <= totalPages; i++) {
-            arr.push(
-                <li key={i} className={`dt-paging-button page-item${currentPage === i ? " active" : ""}`}>
-                    <button
-                        className="page-link"
-                        type="button"
-                        aria-current={currentPage === i ? "page" : undefined}
-                        onClick={() => onPageChange(i)}
-                    >
-                        {i}
-                    </button>
-                </li>
-            );
-        }
-        return arr;
-    }, [currentPage, totalPages, onPageChange]);
-
-    return (
-        <div className="d-flex justify-content-end align-items-center mt-2 mb-2">
-            <label className="me-2 mb-0" htmlFor="pageSizeSelect">Filas por página:</label>
-            <select
-                id="pageSizeSelect"
-                value={pageSize}
-                onChange={onPageSizeChange}
-                className="form-select d-inline-block me-3"
-                style={{ width: 90 }}
+   const pages = useMemo(() => {
+      const arr = [];
+      for (let i = 1; i <= totalPages; i++) {
+         arr.push(
+            <li
+               key={i}
+               className={`dt-paging-button page-item${currentPage === i ? " active" : ""}`}
             >
-                {pageSizes.map(size => (
-                    <option key={size} value={size}>{size}</option>
-                ))}
-            </select>
-            <ul className="pagination justify-content-center my-2 mb-0">
-                <li className={`dt-paging-button page-item${currentPage === 1 ? " disabled" : ""}`}>
-                    <button
-                        className="page-link"
-                        type="button"
-                        aria-label="First"
-                        onClick={() => onPageChange(1)}
-                        disabled={currentPage === 1}
-                    >
-                        «
-                    </button>
-                </li>
-                <li className={`dt-paging-button page-item${currentPage === 1 ? " disabled" : ""}`}>
-                    <button
-                        className="page-link"
-                        type="button"
-                        aria-label="Previous"
-                        onClick={() => onPageChange(currentPage - 1)}
-                        disabled={currentPage === 1}
-                    >
-                        ‹
-                    </button>
-                </li>
-                {pages}
-                <li className={`dt-paging-button page-item${currentPage === totalPages ? " disabled" : ""}`}>
-                    <button
-                        className="page-link"
-                        type="button"
-                        aria-label="Next"
-                        onClick={() => onPageChange(currentPage + 1)}
-                        disabled={currentPage === totalPages}
-                    >
-                        ›
-                    </button>
-                </li>
-                <li className={`dt-paging-button page-item${currentPage === totalPages ? " disabled" : ""}`}>
-                    <button
-                        className="page-link"
-                        type="button"
-                        aria-label="Last"
-                        onClick={() => onPageChange(totalPages)}
-                        disabled={currentPage === totalPages}
-                    >
-                        »
-                    </button>
-                </li>
-            </ul>
-        </div>
-    );
+               <button
+                  className="page-link"
+                  type="button"
+                  aria-current={currentPage === i ? "page" : undefined}
+                  onClick={() => onPageChange(i)}
+               >
+                  {i}
+               </button>
+            </li>,
+         );
+      }
+      return arr;
+   }, [currentPage, totalPages, onPageChange]);
+
+   return (
+      <div className="d-flex justify-content-end align-items-center mt-2 mb-2">
+         <label
+            className="me-2 mb-0"
+            htmlFor="pageSizeSelect"
+         >
+            Filas por página:
+         </label>
+         <select
+            id="pageSizeSelect"
+            value={pageSize}
+            onChange={onPageSizeChange}
+            className="form-select d-inline-block me-3"
+            style={{ width: 90 }}
+         >
+            {pageSizes.map((size) => (
+               <option
+                  key={size}
+                  value={size}
+               >
+                  {size}
+               </option>
+            ))}
+         </select>
+         <ul className="pagination justify-content-center my-2 mb-0">
+            <li className={`dt-paging-button page-item${currentPage === 1 ? " disabled" : ""}`}>
+               <button
+                  className="page-link"
+                  type="button"
+                  aria-label="First"
+                  onClick={() => onPageChange(1)}
+                  disabled={currentPage === 1}
+               >
+                  «
+               </button>
+            </li>
+            <li className={`dt-paging-button page-item${currentPage === 1 ? " disabled" : ""}`}>
+               <button
+                  className="page-link"
+                  type="button"
+                  aria-label="Previous"
+                  onClick={() => onPageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+               >
+                  ‹
+               </button>
+            </li>
+            {pages}
+            <li
+               className={`dt-paging-button page-item${
+                  currentPage === totalPages ? " disabled" : ""
+               }`}
+            >
+               <button
+                  className="page-link"
+                  type="button"
+                  aria-label="Next"
+                  onClick={() => onPageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+               >
+                  ›
+               </button>
+            </li>
+            <li
+               className={`dt-paging-button page-item${
+                  currentPage === totalPages ? " disabled" : ""
+               }`}
+            >
+               <button
+                  className="page-link"
+                  type="button"
+                  aria-label="Last"
+                  onClick={() => onPageChange(totalPages)}
+                  disabled={currentPage === totalPages}
+               >
+                  »
+               </button>
+            </li>
+         </ul>
+      </div>
+   );
 }
 
 /**
@@ -315,93 +349,188 @@ function TablePagination({
  * Tabla resumen reutilizable para operarios o datos financieros.
  */
 function SummaryTable({ rows, montoPorOperario, setMontoPorOperario, totalTarifa, financialData }) {
-    if (financialData) {
-        const { montoTarifa, montoRemuneraciones, subtotal, iva, montoTotal } = financialData;
-        return (
-            <div style={{ maxWidth: 350 }}>
-                <table className="table table-bordered" style={{ background: "#bcd2f7" }}>
-                    <tbody>
-                        <tr>
-                            <td className="fw-bold" style={getSummaryCellStyle("header")}>Monto de tarifa</td>
-                            <td className="text-end">₡{montoTarifa.toLocaleString("es-CR", { minimumFractionDigits: 2 })}</td>
-                        </tr>
-                        <tr>
-                            <td className="fw-bold" style={getSummaryCellStyle("header")}>Monto de Remuneraciones</td>
-                            <td className="text-end">₡{montoRemuneraciones ? montoRemuneraciones.toLocaleString("es-CR", { minimumFractionDigits: 2 }) : '-'}</td>
-                        </tr>
-                        <tr>
-                            <td className="fw-bold" style={getSummaryCellStyle("header")}>Subtotal</td>
-                            <td className="text-end">₡{subtotal.toLocaleString("es-CR", { minimumFractionDigits: 2 })}</td>
-                        </tr>
-                        <tr>
-                            <td className="fw-bold" style={getSummaryCellStyle("header")}>I V A</td>
-                            <td className="text-end">₡{iva.toLocaleString("es-CR", { minimumFractionDigits: 2 })}</td>
-                        </tr>
-                        <tr>
-                            <td className="fw-bold text-center" colSpan={2} style={getSummaryCellStyle("totalLabel")}>Monto Total</td>
-                        </tr>
-                        <tr>
-                            <td className="fw-bold text-end" colSpan={2} style={getSummaryCellStyle("total")}>
-                                ₡{montoTotal.toLocaleString("es-CR", { minimumFractionDigits: 2 })}
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        );
-    }
-
-    // Tabla de resumen de operarios
-    const totalOperarios = rows.length;
-    return (
-        <div style={{ maxWidth: 300 }}>
-            <table className="table table-bordered" style={{ background: "#bcd2f7" }}>
-                <tbody>
-                    <tr>
-                        <td colSpan={2} className="text-center fw-bold" style={getSummaryCellStyle("header")}>Cantidad de Operarios</td>
-                    </tr>
-                    <tr>
-                        <td colSpan={2} className="text-center">{totalOperarios}</td>
-                    </tr>
-                    <tr>
-                        <td colSpan={2} className="text-center fw-bold" style={getSummaryCellStyle("header")}>Por administración</td>
-                    </tr>
-                    <tr>
-                        <td colSpan={2} className="text-center">0</td>
-                    </tr>
-                    <tr>
-                        <td colSpan={2} className="text-center fw-bold" style={getSummaryCellStyle("header")}>Total de Operarios</td>
-                    </tr>
-                    <tr>
-                        <td colSpan={2} className="text-center">{totalOperarios}</td>
-                    </tr>
-                    <tr>
-                        <td className="fw-bold" style={getSummaryCellStyle("header")}>Monto X Operario</td>
-                        <td className="text-end fw-bold">
-                            <input
-                                type="number"
-                                min="0"
-                                step="0.01"
-                                value={montoPorOperario}
-                                onChange={e => setMontoPorOperario(Number(e.target.value))}
-                                className="form-control form-control-sm text-end"
-                                style={{ background: "#eaf1fb", fontWeight: "bold" }}
-                                aria-label="Monto por operario"
-                            />
-                        </td>
-                    </tr>
-                    <tr>
-                        <td className="fw-bold text-center" colSpan={2} style={getSummaryCellStyle("totalLabel")}>Total de Tarifa</td>
-                    </tr>
-                    <tr>
-                        <td className="fw-bold text-end" colSpan={2} style={getSummaryCellStyle("total")}>
-                            ₡{totalTarifa.toLocaleString("es-CR", { minimumFractionDigits: 2 })}
-                        </td>
-                    </tr>
-                </tbody>
+   if (financialData) {
+      const { montoTarifa, montoRemuneraciones, subtotal, iva, montoTotal } = financialData;
+      return (
+         <div style={{ maxWidth: 350 }}>
+            <table
+               className="table table-bordered"
+               style={{ background: "#bcd2f7" }}
+            >
+               <tbody>
+                  <tr>
+                     <td
+                        className="fw-bold"
+                        style={getSummaryCellStyle("header")}
+                     >
+                        Monto de tarifa
+                     </td>
+                     <td className="text-end">
+                        ₡{montoTarifa.toLocaleString("es-CR", { minimumFractionDigits: 2 })}
+                     </td>
+                  </tr>
+                  <tr>
+                     <td
+                        className="fw-bold"
+                        style={getSummaryCellStyle("header")}
+                     >
+                        Monto de Remuneraciones
+                     </td>
+                     <td className="text-end">
+                        ₡
+                        {montoRemuneraciones
+                           ? montoRemuneraciones.toLocaleString("es-CR", {
+                                minimumFractionDigits: 2,
+                             })
+                           : "-"}
+                     </td>
+                  </tr>
+                  <tr>
+                     <td
+                        className="fw-bold"
+                        style={getSummaryCellStyle("header")}
+                     >
+                        Subtotal
+                     </td>
+                     <td className="text-end">
+                        ₡{subtotal.toLocaleString("es-CR", { minimumFractionDigits: 2 })}
+                     </td>
+                  </tr>
+                  <tr>
+                     <td
+                        className="fw-bold"
+                        style={getSummaryCellStyle("header")}
+                     >
+                        I V A
+                     </td>
+                     <td className="text-end">
+                        ₡{iva.toLocaleString("es-CR", { minimumFractionDigits: 2 })}
+                     </td>
+                  </tr>
+                  <tr>
+                     <td
+                        className="fw-bold text-center"
+                        colSpan={2}
+                        style={getSummaryCellStyle("totalLabel")}
+                     >
+                        Monto Total
+                     </td>
+                  </tr>
+                  <tr>
+                     <td
+                        className="fw-bold text-end"
+                        colSpan={2}
+                        style={getSummaryCellStyle("total")}
+                     >
+                        ₡{montoTotal.toLocaleString("es-CR", { minimumFractionDigits: 2 })}
+                     </td>
+                  </tr>
+               </tbody>
             </table>
-        </div>
-    );
+         </div>
+      );
+   }
+
+   // Tabla de resumen de operarios
+   const totalOperarios = rows.length;
+   return (
+      <div style={{ maxWidth: 300 }}>
+         <table
+            className="table table-bordered"
+            style={{ background: "#bcd2f7" }}
+         >
+            <tbody>
+               <tr>
+                  <td
+                     colSpan={2}
+                     className="text-center fw-bold"
+                     style={getSummaryCellStyle("header")}
+                  >
+                     Cantidad de Operarios
+                  </td>
+               </tr>
+               <tr>
+                  <td
+                     colSpan={2}
+                     className="text-center"
+                  >
+                     {totalOperarios}
+                  </td>
+               </tr>
+               <tr>
+                  <td
+                     colSpan={2}
+                     className="text-center fw-bold"
+                     style={getSummaryCellStyle("header")}
+                  >
+                     Por administración
+                  </td>
+                  <td
+                     colSpan={2}
+                     className="text-center"
+                  >
+                     0
+                  </td>
+               </tr>
+               <tr>
+                  <td
+                     colSpan={2}
+                     className="text-center fw-bold"
+                     style={getSummaryCellStyle("header")}
+                  >
+                     Total de Operarios
+                  </td>
+               </tr>
+               <tr>
+                  <td
+                     colSpan={2}
+                     className="text-center"
+                  >
+                     {totalOperarios}
+                  </td>
+               </tr>
+               <tr>
+                  <td
+                     className="fw-bold"
+                     style={getSummaryCellStyle("header")}
+                  >
+                     Monto X Operario
+                  </td>
+                  <td className="text-end fw-bold">
+                     <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={montoPorOperario}
+                        onChange={(e) => setMontoPorOperario(Number(e.target.value))}
+                        className="form-control form-control-sm text-end"
+                        style={{ background: "#eaf1fb", fontWeight: "bold" }}
+                        aria-label="Monto por operario"
+                     />
+                  </td>
+               </tr>
+               <tr>
+                  <td
+                     className="fw-bold text-center"
+                     colSpan={2}
+                     style={getSummaryCellStyle("totalLabel")}
+                  >
+                     Total de Tarifa
+                  </td>
+               </tr>
+               <tr>
+                  <td
+                     className="fw-bold text-end"
+                     colSpan={2}
+                     style={getSummaryCellStyle("total")}
+                  >
+                     ₡{totalTarifa.toLocaleString("es-CR", { minimumFractionDigits: 2 })}
+                  </td>
+               </tr>
+            </tbody>
+         </table>
+      </div>
+   );
 }
 
 /**
@@ -416,45 +545,63 @@ function SummaryTable({ rows, montoPorOperario, setMontoPorOperario, totalTarifa
  * @param {number} i - Índice del empleado
  * @returns {object}
  */
-function mapEmpleadoToRow(emp, i, semanaActual) {
-    return {
-       nombre: `${emp.nombre_empleado_emp_tbl || emp.nombre_empleado || ""} ${
-          emp.apellidos_empleado_emp_tbl || emp.apellidos_empleado || ""
-       }`.trim(),
-       cedula: emp.cedula_empleado_emp_tbl || emp.cedula_empleado || "",
-       cuenta: "Ver empleado",
-       asegurado: emp.asegurado_empleado || 0,
-       can: `CAN${(i % 5) + 1}`,
-       semana: emp.semana_epd_tbl == null || emp.semana_epd_tbl === '' ? semanaActual.toString() : emp.semana_epd_tbl,
-       bruta: emp.remuneracion_bruta_epd_tbl ?? "0.00",
-       fcl: emp.fcl_1_5_epd_tbl ?? "0.00",
-       rebajosCliente: emp.rebajos_cliente_epd_tbl ?? "0.00",
-       reintegroCliente: emp.reintegro_cliente_epd_tbl ?? "0.00",
-       deposito: emp.deposito_x_tecurso_epd_tbl ?? "0.00",
-       cuota: emp.cuota_ccss_epd_tbl ?? "0.00",
-       rebajosOPU: emp.rebajos_opu_epd_tbl ?? "0.00",
-       reintegrosOPU: emp.reintegro_opu_epd_tbl ?? "0.00",
-       totalDeducciones: emp.total_deducciones_epd_tbl ?? "0.00",
-       totalReintegros: emp.total_reintegros_epd_tbl ?? "0.00",
-       neta: emp.remuneracion_neta_epd_tbl ?? "0",
-       marca_epd: emp.marca_epd ?? 0,
-    };
+function mapEmpleadoToRow(emp, i, semanaActual) {   // Calcular valores numéricos base
+   const bruta = parseFloat(emp.remuneracion_bruta_epd_tbl) || 0;
+   const fcl = parseFloat(emp.fcl_1_5_epd_tbl) || 0;
+   const rebajosCliente = parseFloat(emp.rebajos_cliente_epd_tbl) || 0;
+   const reintegroCliente = parseFloat(emp.reintegro_cliente_epd_tbl) || 0;
+   const cuota = parseFloat(emp.cuota_ccss_epd_tbl) || 0;
+   
+   // Calcular deposito según la fórmula: Bruta + FCL - Rebajos + Reintegro
+   // Asegurar que todos los valores son positivos para la fórmula
+   const deposito = Math.abs(bruta) + Math.abs(fcl) - Math.abs(rebajosCliente) + Math.abs(reintegroCliente);
+   
+   // Calcular total deducciones según la fórmula: Rebajos de Cliente + Cuota CC.SS
+   const totalDeducciones = rebajosCliente + cuota;
+   
+   // Total de Reintegros es igual a Reintegro de Cliente
+   const totalReintegros = reintegroCliente;
+   
+   return {
+      nombre: `${emp.nombre_empleado_emp_tbl || emp.nombre_empleado || ""} ${
+         emp.apellidos_empleado_emp_tbl || emp.apellidos_empleado || ""
+      }`.trim(),
+      cedula: emp.cedula_empleado_emp_tbl || emp.cedula_empleado || "",
+      asegurado: emp.asegurado_empleado || 0,
+      can: `CAN${(i % 5) + 1}`,
+      semana:
+         emp.semana_epd_tbl == null || emp.semana_epd_tbl === ""
+            ? semanaActual.toString()
+            : emp.semana_epd_tbl,
+      bruta: emp.remuneracion_bruta_epd_tbl ?? "0.00",
+      fcl: emp.fcl_1_5_epd_tbl ?? "0.00",
+      rebajosCliente: emp.rebajos_cliente_epd_tbl ?? "0.00",
+      reintegroCliente: emp.reintegro_cliente_epd_tbl ?? "0.00",
+      deposito: emp.deposito_x_tecurso_epd_tbl ?? deposito.toFixed(2),
+      cuota: emp.cuota_ccss_epd_tbl ?? "0.00",
+      rebajosOPU: emp.rebajos_opu_epd_tbl ?? "0.00",
+      reintegrosOPU: emp.reintegro_opu_epd_tbl ?? "0.00",
+      totalDeducciones: emp.total_deducciones_epd_tbl ?? totalDeducciones.toFixed(2),
+      totalReintegros: emp.total_reintegros_epd_tbl ?? totalReintegros.toFixed(2),
+      neta: emp.remuneracion_neta_epd_tbl ?? "0",
+      marca_epd: emp.marca_epd ?? 0,
+   };
 }
 
 /**
  * Calcula el número de semana actual del año
  */
 function getCurrentWeekNumber() {
-    const now = new Date();
-    const startOfYear = new Date(now.getFullYear(), 0, 1);
-    const dayOfWeek = startOfYear.getDay() || 7; // 1 (lunes) ... 7 (domingo)
-    const firstMonday = new Date(startOfYear);
-    if (dayOfWeek !== 1) {
-        firstMonday.setDate(startOfYear.getDate() + (8 - dayOfWeek));
-    }
-    const diff = now - firstMonday;
-    const oneWeek = 1000 * 60 * 60 * 24 * 7;
-    return diff >= 0 ? Math.ceil(diff / oneWeek) + 1 : 1;
+   const now = new Date();
+   const startOfYear = new Date(now.getFullYear(), 0, 1);
+   const dayOfWeek = startOfYear.getDay() || 7; // 1 (lunes) ... 7 (domingo)
+   const firstMonday = new Date(startOfYear);
+   if (dayOfWeek !== 1) {
+      firstMonday.setDate(startOfYear.getDate() + (8 - dayOfWeek));
+   }
+   const diff = now - firstMonday;
+   const oneWeek = 1000 * 60 * 60 * 24 * 7;
+   return diff >= 0 ? Math.ceil(diff / oneWeek) + 1 : 1;
 }
 
 /**
@@ -471,37 +618,38 @@ function getCurrentWeekNumber() {
  * @param {Function} params.setSelectedRows - Setter para filas seleccionadas
  * @param {Function} params.setLoading - Setter para estado de carga
  */
-async function fetchAndSetEmpleados({ 
-    dispatch, 
-    planillaSeleccionada, 
-    empresaSeleccionada, 
-    setRows, 
-    setEmpleadosRaw, 
-    setSelectedRows, 
-    setLoading 
+async function fetchAndSetEmpleados({
+   dispatch,
+   planillaSeleccionada,
+   empresaSeleccionada,
+   setRows,
+   setEmpleadosRaw,
+   setSelectedRows,
+   setLoading,
 }) {
-    setLoading(true);
-    try {
-        const empleadosRow = await dispatch(
-            Planilla_Lista_Empleado_Thunks(planillaSeleccionada, empresaSeleccionada)
-        );
-        if (empleadosRow?.data?.array) {
-            const semanaActual = getCurrentWeekNumber();
-            const empleados = empleadosRow.data.array.map((emp, i) => mapEmpleadoToRow(emp, i, semanaActual));
-            setRows(empleados);
-            setEmpleadosRaw(empleadosRow.data.array);
-            const seleccionados = empleadosRow.data.array
-                .map((emp, i) => emp.marca_epd === 1 ? i : null)
-                .filter(i => i !== null);
-            setSelectedRows(seleccionados);
-        }
-    } catch (error) {
-        console.error('Error al obtener empleados:', error);
-    } finally {
-        setLoading(false);
-    }
+   setLoading(true);
+   try {
+      const empleadosRow = await dispatch(
+         Planilla_Lista_Empleado_Thunks(planillaSeleccionada, empresaSeleccionada),
+      );
+      if (empleadosRow?.data?.array) {
+         const semanaActual = getCurrentWeekNumber();
+         const empleados = empleadosRow.data.array.map((emp, i) =>
+            mapEmpleadoToRow(emp, i, semanaActual),
+         );
+         setRows(empleados);
+         setEmpleadosRaw(empleadosRow.data.array);
+         const seleccionados = empleadosRow.data.array
+            .map((emp, i) => (emp.marca_epd === 1 ? i : null))
+            .filter((i) => i !== null);
+         setSelectedRows(seleccionados);
+      }
+   } catch (error) {
+      console.error("Error al obtener empleados:", error);
+   } finally {
+      setLoading(false);
+   }
 }
-
 
 /**
  * Inserta un empleado en la planilla seleccionada.
@@ -512,54 +660,96 @@ async function fetchAndSetEmpleados({
  * @param {Object} params.datos - Datos del empleado a insertar
  * @returns {Promise<void>}
  */
-async function insertartEmpleadoPlanilla({ dispatch, planillaSeleccionada, empresaSeleccionada, datos }) {
-    try {
-        await dispatch(
-            Planilla_Insertar_Empleado_Planilla_Thunks(planillaSeleccionada, empresaSeleccionada, datos),
-        );
-    } catch (error) {
-        console.error('Error al insertar empleado en planilla:', error);
-    }
+async function insertartEmpleadoPlanilla({
+   dispatch,
+   planillaSeleccionada,
+   empresaSeleccionada,
+   datos,
+   isSelected,
+}) {
+   try {
+      await dispatch(
+         Planilla_Insertar_Empleado_Planilla_Thunks(
+            planillaSeleccionada,
+            empresaSeleccionada,
+            datos,
+            isSelected,
+         ),
+      );
+   } catch (error) {
+      console.error("Error al insertar empleado en planilla:", error);
+   }
 }
 /**
  * Maneja el cambio de selección de una fila (checkbox).
  */
-function useHandleCheckbox({ rows, empleadosRaw, selectedRows, startIdx, planillaSeleccionada, empresaSeleccionada, dispatch, setRows, setEmpleadosRaw, setSelectedRows, setLoading }) {
-    return useCallback(async (idx) => {
-        const globalIdx = startIdx + idx;
-        if (!selectedRows.includes(globalIdx)) {
-            // Marcar: mostrar datos de la fila y los campos extra SOLO una vez
-            const rowData = rows[globalIdx];
-            const rawData = empleadosRaw[globalIdx];
-            const idEmpleado = 
-                    rawData?.id_empleado_emp_tbl ?? 
-                    rawData?.id_empleado ?? 
-                    rawData?.id_empleado_epd_tbl ?? 
-                    rowData?.id_empleado_epd_tbl;
+function useHandleCheckbox({
+   rows,
+   empleadosRaw,
+   selectedRows,
+   startIdx,
+   planillaSeleccionada,
+   empresaSeleccionada,
+   dispatch,
+   setRows,
+   setEmpleadosRaw,
+   setSelectedRows,
+   setLoading,
+}) {
+   return useCallback(
+      async (idx) => {
+         const globalIdx = startIdx + idx;
+         const isSelected = selectedRows.includes(globalIdx);
 
-            await insertartEmpleadoPlanilla({
-                dispatch,
-                planillaSeleccionada,
-                empresaSeleccionada,
-                datos: {
-                    ...rowData,
-                    id_empleado_emp_tbl: idEmpleado,
-                }
-            });
-            await fetchAndSetEmpleados({
-                dispatch,
-                planillaSeleccionada,
-                empresaSeleccionada,
-                setRows,
-                setEmpleadosRaw,
-                setSelectedRows,
-                setLoading
-            });
-            setSelectedRows(prev => [...prev, globalIdx]);
-        } else {
-            setSelectedRows(prev => prev.filter(i => i !== globalIdx));
-        }
-    }, [rows, empleadosRaw, selectedRows, startIdx, planillaSeleccionada, empresaSeleccionada, dispatch, setRows, setEmpleadosRaw, setSelectedRows, setLoading]);
+         // Marcar: mostrar datos de la fila y los campos extra SOLO una vez
+         const rowData = rows[globalIdx];
+         const rawData = empleadosRaw[globalIdx];
+         const idEmpleado =
+            rawData?.id_empleado_emp_tbl ??
+            rawData?.id_empleado ??
+            rawData?.id_empleado_epd_tbl ??
+            rowData?.id_empleado_epd_tbl;
+
+         await insertartEmpleadoPlanilla({
+            dispatch,
+            planillaSeleccionada,
+            empresaSeleccionada,
+            datos: {
+               ...rowData,
+               id_empleado_emp_tbl: idEmpleado,
+            },
+            isSelected,
+         });
+         await fetchAndSetEmpleados({
+            dispatch,
+            planillaSeleccionada,
+            empresaSeleccionada,
+            setRows,
+            setEmpleadosRaw,
+            setSelectedRows,
+            setLoading,
+         });
+
+         if (!selectedRows.includes(globalIdx)) {
+            setSelectedRows((prev) => [...prev, globalIdx]);
+         } else {
+            setSelectedRows((prev) => prev.filter((i) => i !== globalIdx));
+         }
+      },
+      [
+         rows,
+         empleadosRaw,
+         selectedRows,
+         startIdx,
+         planillaSeleccionada,
+         empresaSeleccionada,
+         dispatch,
+         setRows,
+         setEmpleadosRaw,
+         setSelectedRows,
+         setLoading,
+      ],
+   );
 }
 
 /**
@@ -571,24 +761,60 @@ function useHandleCheckbox({ rows, empleadosRaw, selectedRows, startIdx, planill
  * @returns {Function} Función callback para manejar cambios en los inputs
  */
 function useHandleInputChange({ startIdx, setRows, setSelectedRows }) {
-    return useCallback((e, idx) => {
-        const { name, value } = e.target;
-        const globalIdx = startIdx + idx;
-        
-        // Actualiza el valor en la fila correspondiente
-        setRows(prevRows => 
-            prevRows.map((row, i) => 
-                i === globalIdx ? { ...row, [name]: value } : row
-            )
-        );
-        
-        // Si la fila estaba seleccionada, la deselecciona al editarla
-        setSelectedRows(prevSelected => 
-            prevSelected.includes(globalIdx) 
-                ? prevSelected.filter(i => i !== globalIdx) 
-                : prevSelected
-        );
-    }, [startIdx, setRows, setSelectedRows]);
+   return useCallback(
+      (e, idx) => {
+         const { name, value } = e.target;
+         const globalIdx = startIdx + idx;
+
+         // Actualiza el valor en la fila correspondiente
+         setRows((prevRows) => {
+            const updatedRows = prevRows.map((row, i) => {
+               if (i !== globalIdx) return row;
+               
+               const updatedRow = { ...row, [name]: value };
+                 // Si cambiaron valores que afectan el cálculo de Deposito X Tecurso, actualizar ese valor
+               if (["bruta", "fcl", "rebajosCliente", "reintegroCliente"].includes(name)) {
+                  const bruta = parseFloat(updatedRow.bruta) || 0;
+                  const fcl = parseFloat(updatedRow.fcl) || 0;
+                  const rebajosCliente = parseFloat(updatedRow.rebajosCliente) || 0;
+                  const reintegroCliente = parseFloat(updatedRow.reintegroCliente) || 0;
+                  
+                  // Aplicar la fórmula: Bruta + FCL - Rebajos + Reintegro
+                  // Asegurar que todos los valores son positivos para la fórmula
+                  const deposito = Math.abs(bruta) + Math.abs(fcl) - Math.abs(rebajosCliente) + Math.abs(reintegroCliente);
+                  updatedRow.deposito = deposito.toFixed(2);
+               }
+               
+               // Si cambiaron valores que afectan el cálculo de Total de Deducciones, actualizar ese valor
+               if (["rebajosCliente", "cuota"].includes(name)) {
+                  const rebajosCliente = parseFloat(updatedRow.rebajosCliente) || 0;
+                  const cuota = parseFloat(updatedRow.cuota) || 0;
+                  
+                  // Aplicar la fórmula: Rebajos de Cliente + Cuota CC.SS
+                  const totalDeducciones = rebajosCliente + cuota;
+                  updatedRow.totalDeducciones = totalDeducciones.toFixed(2);
+               }
+               
+               // Si cambió el valor de Reintegro de Cliente, actualizar Total de Reintegros
+               if (name === "reintegroCliente") {
+                  const reintegroCliente = parseFloat(updatedRow.reintegroCliente) || 0;
+                  updatedRow.totalReintegros = reintegroCliente.toFixed(2);
+               }
+               
+               return updatedRow;
+            });
+            return updatedRows;
+         });
+
+         // Si la fila estaba seleccionada, la deselecciona al editarla
+         setSelectedRows((prevSelected) =>
+            prevSelected.includes(globalIdx)
+               ? prevSelected.filter((i) => i !== globalIdx)
+               : prevSelected,
+         );
+      },
+      [startIdx, setRows, setSelectedRows],
+   );
 }
 
 /**
@@ -596,200 +822,217 @@ function useHandleInputChange({ startIdx, setRows, setSelectedRows }) {
  * Componente principal de la vista de generación de planilla.
  */
 export const PayrollGenerator = () => {
-    // Estados principales
-    const [rows, setRows] = useState([]);
-    const [empleadosRaw, setEmpleadosRaw] = useState([]);
-    const [selectedRows, setSelectedRows] = useState([]);
-    const [pageSize, setPageSize] = useState(PAGE_SIZES[0]);
-    const [currentPage, setCurrentPage] = useState(1);
-    const [montoPorOperario, setMontoPorOperario] = useState(5669.23);
-    const [empresas, setEmpresas] = useState([]);
-    const [empresaSeleccionada, setEmpresaSeleccionada] = useState("");
-    const [planillas, setPlanillas] = useState([]);
-    const [planillaSeleccionada, setPlanillaSeleccionada] = useState("");
-    const [loading, setLoading] = useState(false);
-    const dispatch = useDispatch();
+   // Estados principales
+   const [rows, setRows] = useState([]);
+   const [empleadosRaw, setEmpleadosRaw] = useState([]);
+   const [selectedRows, setSelectedRows] = useState([]);
+   const [pageSize, setPageSize] = useState(PAGE_SIZES[0]);
+   const [currentPage, setCurrentPage] = useState(1);
+   const [montoPorOperario, setMontoPorOperario] = useState(5669.23);
+   const [empresas, setEmpresas] = useState([]);
+   const [empresaSeleccionada, setEmpresaSeleccionada] = useState("");
+   const [planillas, setPlanillas] = useState([]);
+   const [planillaSeleccionada, setPlanillaSeleccionada] = useState("");
+   const [loading, setLoading] = useState(false);
+   const dispatch = useDispatch();
 
-    // Fetch empresas solo una vez
-    useEffect(() => {
-        (async () => {
-            const empresasData = await dispatch(SelectOpcion_Thunks("empresas/select"));
-            if (empresasData && empresasData.data) setEmpresas(empresasData.data.array || []);
-        })();
-    }, [dispatch]);
+   // Fetch empresas solo una vez
+   useEffect(() => {
+      (async () => {
+         const empresasData = await dispatch(SelectOpcion_Thunks("empresas/select"));
+         if (empresasData && empresasData.data) setEmpresas(empresasData.data.array || []);
+      })();
+   }, [dispatch]);
 
-    // Fetch planillas al cambiar empresa
-    useEffect(() => {
-        setPlanillas([]);
-        setPlanillaSeleccionada("");
-        if (empresaSeleccionada) {
-            dispatch(SelectOpcion_Thunks("planilla/select", empresaSeleccionada)).then(res => {
-                if (res && res.data && Array.isArray(res.data.array)) setPlanillas(res.data.array);
-            });
-        }
-    }, [empresaSeleccionada, dispatch]);
+   // Fetch planillas al cambiar empresa
+   useEffect(() => {
+      setPlanillas([]);
+      setPlanillaSeleccionada("");
+      if (empresaSeleccionada) {
+         dispatch(SelectOpcion_Thunks("planilla/select", empresaSeleccionada)).then((res) => {
+            if (res && res.data && Array.isArray(res.data.array)) setPlanillas(res.data.array);
+         });
+      }
+   }, [empresaSeleccionada, dispatch]);
 
-    // Fetch empleados al cambiar empresa o planilla
-    useEffect(() => {
-        if (empresaSeleccionada && planillaSeleccionada) {
-            fetchAndSetEmpleados({
-                dispatch,
-                planillaSeleccionada,
-                empresaSeleccionada,
-                setRows,
-                setEmpleadosRaw,
-                setSelectedRows,
-                setLoading
-            });
-        }
-    }, [empresaSeleccionada, planillaSeleccionada, dispatch]);
+   // Fetch empleados al cambiar empresa o planilla
+   useEffect(() => {
+      if (empresaSeleccionada && planillaSeleccionada) {
+         fetchAndSetEmpleados({
+            dispatch,
+            planillaSeleccionada,
+            empresaSeleccionada,
+            setRows,
+            setEmpleadosRaw,
+            setSelectedRows,
+            setLoading,
+         });
+      }
+   }, [empresaSeleccionada, planillaSeleccionada, dispatch]);
 
-    // Obtener el estado de la planilla seleccionada
-    const selectedPlanilla = planillas.find(p => String(p.planilla_id) === String(planillaSeleccionada));
-    const planillaEstado = selectedPlanilla?.planilla_estado;    // Handler para aplicar planilla
-    const handleAplicarPlanilla = async () => {
-        // Mostrar diálogo de confirmación con SweetAlert
-        const result = await Swal.fire({
-            title: '¿Aplicar planilla?',
-            html: `¿Está seguro que desea aplicar la planilla actual?<br>
+   // Obtener el estado de la planilla seleccionada
+   const selectedPlanilla = planillas.find(
+      (p) => String(p.planilla_id) === String(planillaSeleccionada),
+   );
+   const planillaEstado = selectedPlanilla?.planilla_estado; // Handler para aplicar planilla
+   const handleAplicarPlanilla = async () => {
+      // Mostrar diálogo de confirmación con SweetAlert
+      const result = await Swal.fire({
+         title: "¿Aplicar planilla?",
+         html: `¿Está seguro que desea aplicar la planilla actual?<br>
                    <small class="text-danger fw-bold">IMPORTANTE: Una vez aplicada la planilla, no se podrán editar 
                    los empleados ni realizar otras acciones adicionales sin permisos especiales.</small>`,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Sí, aplicar',
-            cancelButtonText: 'Cancelar',
-            allowOutsideClick: false
-        });
+         icon: "warning",
+         showCancelButton: true,
+         confirmButtonColor: "#3085d6",
+         cancelButtonColor: "#d33",
+         confirmButtonText: "Sí, aplicar",
+         cancelButtonText: "Cancelar",
+         allowOutsideClick: false,
+      });
 
-        // Si el usuario confirma, aplicar la planilla
-        if (result.isConfirmed) {
-            // Mostrar indicador de carga
-            Swal.fire({
-                title: 'Aplicando planilla',
-                html: 'Por favor espere...',
-                allowOutsideClick: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                }
-            });            try {
-                // Aplicar la planilla
-                await dispatch(Planilla_Aplicar_Thunks(planillaSeleccionada, empresaSeleccionada, "Activa"));
-                
-                // Notificar éxito
-                await Swal.fire({
-                    title: 'Completado',
-                    text: 'La planilla ha sido aplicada exitosamente',
-                    icon: 'success',
-                    confirmButtonColor: '#3085d6'
-                });
-                
-                // Recargamos la información de la planilla para obtener su nuevo estado
-                const planillasActualizadas = await dispatch(SelectOpcion_Thunks("planilla/select", empresaSeleccionada));
-                if (planillasActualizadas && planillasActualizadas.data && Array.isArray(planillasActualizadas.data.array)) {
-                    setPlanillas(planillasActualizadas.data.array);
-                }
-                
-                // Recargar datos de empleados
-                await fetchAndSetEmpleados({
-                    dispatch,
-                    planillaSeleccionada,
-                    empresaSeleccionada,
-                    setRows,
-                    setEmpleadosRaw,
-                    setSelectedRows,
-                    setLoading
-                });
-            } catch (error) {
-                // Notificar error
-                Swal.fire({
-                    title: 'Error',
-                    text: 'Ocurrió un error al aplicar la planilla',
-                    icon: 'error',
-                    confirmButtonColor: '#3085d6'
-                });
-                console.error('Error al aplicar planilla:', error);
+      // Si el usuario confirma, aplicar la planilla
+      if (result.isConfirmed) {
+         // Mostrar indicador de carga
+         Swal.fire({
+            title: "Aplicando planilla",
+            html: "Por favor espere...",
+            allowOutsideClick: false,
+            didOpen: () => {
+               Swal.showLoading();
+            },
+         });
+         try {
+            // Aplicar la planilla
+            await dispatch(
+               Planilla_Aplicar_Thunks(planillaSeleccionada, empresaSeleccionada, "Activa"),
+            );
+
+            // Notificar éxito
+            await Swal.fire({
+               title: "Completado",
+               text: "La planilla ha sido aplicada exitosamente",
+               icon: "success",
+               confirmButtonColor: "#3085d6",
+            });
+
+            // Recargamos la información de la planilla para obtener su nuevo estado
+            const planillasActualizadas = await dispatch(
+               SelectOpcion_Thunks("planilla/select", empresaSeleccionada),
+            );
+            if (
+               planillasActualizadas &&
+               planillasActualizadas.data &&
+               Array.isArray(planillasActualizadas.data.array)
+            ) {
+               setPlanillas(planillasActualizadas.data.array);
             }
-        }
-    };
 
-    // Calculamos el índice inicial para la paginación
-    const startIdx = (currentPage - 1) * pageSize;
-    
-    // Derivados de los datos
-    const totalPages = Math.ceil(rows.length / pageSize);
-    const pageRows = rows.slice(startIdx, startIdx + pageSize);
-    const totalTarifa = useMemo(() => montoPorOperario * rows.length, [montoPorOperario, rows.length]);
-    const montoTarifa = totalTarifa;
-    const montoRemuneraciones = useMemo(() => sumColumn(rows, "deposito"), [rows]);
-    const subtotal = montoTarifa - montoRemuneraciones;
-    const iva = subtotal * 0.13;
-    const montoTotal = subtotal + iva;
+            // Recargar datos de empleados
+            await fetchAndSetEmpleados({
+               dispatch,
+               planillaSeleccionada,
+               empresaSeleccionada,
+               setRows,
+               setEmpleadosRaw,
+               setSelectedRows,
+               setLoading,
+            });
+         } catch (error) {
+            // Notificar error
+            Swal.fire({
+               title: "Error",
+               text: "Ocurrió un error al aplicar la planilla",
+               icon: "error",
+               confirmButtonColor: "#3085d6",
+            });
+            console.error("Error al aplicar planilla:", error);
+         }
+      }
+   };
 
-    // Handler para gestionar los checkboxes
-    const handleCheckbox = useHandleCheckbox({
-        rows,
-        empleadosRaw,
-        selectedRows,
-        startIdx,
-        planillaSeleccionada,
-        empresaSeleccionada,
-        dispatch,
-        setRows,
-        setEmpleadosRaw,
-        setSelectedRows,
-        setLoading
-    });
-    
-    // Handler para gestionar los cambios en inputs
-    const handleInputChange = useHandleInputChange({
-        startIdx,
-        setRows,
-        setSelectedRows
-    });
-    
-    // Handler para cambiar el tamaño de página
-    const handlePageSizeChange = useCallback(e => {
-        setPageSize(Number(e.target.value));
-        setCurrentPage(1); // Reinicia a la primera página al cambiar el tamaño
-    }, []);
-    
-    // Handler para cambio de página
-    const handlePageChange = useCallback(page => {
-        if (page >= 1 && page <= Math.ceil(rows.length / pageSize)) {
+   // Calculamos el índice inicial para la paginación
+   const startIdx = (currentPage - 1) * pageSize;
+
+   // Derivados de los datos
+   const totalPages = Math.ceil(rows.length / pageSize);
+   const pageRows = rows.slice(startIdx, startIdx + pageSize);
+   const totalTarifa = useMemo(
+      () => montoPorOperario * rows.length,
+      [montoPorOperario, rows.length],
+   );
+   const montoTarifa = totalTarifa;
+   const montoRemuneraciones = useMemo(() => sumColumn(rows, "deposito"), [rows]);
+   const subtotal = montoTarifa - montoRemuneraciones;
+   const iva = subtotal * 0.13;
+   const montoTotal = subtotal + iva;
+
+   // Handler para gestionar los checkboxes
+   const handleCheckbox = useHandleCheckbox({
+      rows,
+      empleadosRaw,
+      selectedRows,
+      startIdx,
+      planillaSeleccionada,
+      empresaSeleccionada,
+      dispatch,
+      setRows,
+      setEmpleadosRaw,
+      setSelectedRows,
+      setLoading,
+   });
+
+   // Handler para gestionar los cambios en inputs
+   const handleInputChange = useHandleInputChange({
+      startIdx,
+      setRows,
+      setSelectedRows,
+   });
+
+   // Handler para cambiar el tamaño de página
+   const handlePageSizeChange = useCallback((e) => {
+      setPageSize(Number(e.target.value));
+      setCurrentPage(1); // Reinicia a la primera página al cambiar el tamaño
+   }, []);
+
+   // Handler para cambio de página
+   const handlePageChange = useCallback(
+      (page) => {
+         if (page >= 1 && page <= Math.ceil(rows.length / pageSize)) {
             setCurrentPage(page);
-        }
-    }, [rows.length, pageSize]);    // Handler para cambio de planilla
-    const handlePlanillaChange = useCallback(e => {
-        setLoading(true);
-        setPlanillaSeleccionada(e.target.value);
-        
-        // Al seleccionar una planilla, se inicia un proceso de carga y los datos
-        // se obtienen automáticamente mediante efectos
-    }, []);
+         }
+      },
+      [rows.length, pageSize],
+   ); // Handler para cambio de planilla
+   const handlePlanillaChange = useCallback((e) => {
+      setLoading(true);
+      setPlanillaSeleccionada(e.target.value);
 
-    // Cuando se selecciona tipo de planilla, simula carga de datos
-    useEffect(() => {
-        if (planillaSeleccionada) {
-            // Ya está en loading, solo espera y luego lo quita
-            const timeout = setTimeout(() => {
-                setLoading(false);
-            }, 1000);
-            return () => clearTimeout(timeout);
-        } else {
-            setLoading(false); // Si se deselecciona, quita el loading
-        }
-    }, [planillaSeleccionada]);
+      // Al seleccionar una planilla, se inicia un proceso de carga y los datos
+      // se obtienen automáticamente mediante efectos
+   }, []);
 
-    // IDs únicos para accesibilidad
-    const empresaSelectId = "empresaSelect";
-    const planillaSelectId = "planillaSelect";    // Renderizamos la interfaz de usuario
-    return (
-        <div className="container-fluid">
-            {/* Estilos globales para tablas - Definidos en línea para asegurar que se apliquen */}
-            <style>
-                {`
+   // Cuando se selecciona tipo de planilla, simula carga de datos
+   useEffect(() => {
+      if (planillaSeleccionada) {
+         // Ya está en loading, solo espera y luego lo quita
+         const timeout = setTimeout(() => {
+            setLoading(false);
+         }, 1000);
+         return () => clearTimeout(timeout);
+      } else {
+         setLoading(false); // Si se deselecciona, quita el loading
+      }
+   }, [planillaSeleccionada]);
+
+   // IDs únicos para accesibilidad
+   const empresaSelectId = "empresaSelect";
+   const planillaSelectId = "planillaSelect"; // Renderizamos la interfaz de usuario
+   return (
+      <div className="container-fluid">
+         {/* Estilos globales para tablas - Definidos en línea para asegurar que se apliquen */}
+         <style>
+            {`
                 /* Efecto hover para filas de tablas */
                 .table-hover tbody tr:hover {
                     background-color: #e2e6ea !important;
@@ -803,144 +1046,177 @@ export const PayrollGenerator = () => {
                     background-color: #b6fcb6 !important;
                 }
                 `}
-            </style>
-            <div className="row">
-                <div className="col-12">
-                    <div className="card shadow-sm">
-                        <div className="card-body">
-                            {/* Select de empresas dinámico */}
-                            <div className="mb-3">
-                                <label htmlFor={empresaSelectId} className="form-label">Empresa</label>
-                                <select
-                                    className="form-select"
-                                    id={empresaSelectId}
-                                    value={empresaSeleccionada}
-                                    onChange={e => setEmpresaSeleccionada(e.target.value)}
-                                >
-                                    <option value="">Seleccione una empresa</option>
-                                    {empresas.map(empresa => (
-                                        <option
-                                            key={empresa.id_empresa}
-                                            value={empresa.id_empresa}
-                                        >
-                                            {empresa.nombre_comercial_empresa}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>                            {/* Select de tipo de planilla */}
-                            <div className="mb-3">
-                                <label htmlFor={planillaSelectId} className="form-label">Tipo de Planilla</label>
-                                <select
-                                    className="form-select"
-                                    id={planillaSelectId}
-                                    value={planillaSeleccionada}
-                                    onChange={handlePlanillaChange}
-                                    disabled={planillas.length === 0}
-                                >
-                                    <option value="">Seleccione un tipo de planilla</option>
-                                    {planillas.map(planilla => (
-                                        <option key={planilla.planilla_id} value={planilla.planilla_id}>
-                                            {planilla.planilla_codigo}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>                            {/* Botón o alerta debajo del select de tipo de planilla */}
-                            {planillaSeleccionada && (
-                                planillaEstado === 'En Proceso' ? (
-                                    <div className="mb-3">
-                                        <button
-                                            className="btn btn-success"
-                                            onClick={handleAplicarPlanilla}
-                                        >
-                                            Aplicar Planilla
-                                        </button>
-                                        <div className="alert alert-dark mt-2">
-                                            <strong>Estado: En Proceso</strong> - La edición es libre. Modifique los campos 
-                                            de los empleados según se requiera. Al finalizar, presione "Aplicar Planilla". 
-                                            Una vez aplicada, no se podrán editar empleados sin permisos adicionales.
-                                        </div>
-                                    </div>                                ) : planillaEstado === 'Activa' ? (
-                                    <div className="mb-3">
-                                        <div className="alert alert-danger">
-                                            <strong>Estado: Activa</strong> - La planilla ya ha sido aplicada y está disponible 
-                                            para el administrador. Solo puede modificar los empleados <u>no marcados</u>. 
-                                            Si necesita editar empleados marcados, contacte al administrador para obtener permisos.
-                                            Nota: Cuando la planilla pase a estado "Cerrada", no se podrá modificar sin permisos especiales.
-                                        </div>
-                                    </div>
-                                ) : planillaEstado === 'Procesada' ? (
-                                    <div className="alert alert-success mb-3">
-                                        Esta planilla ya fue aplicada.
-                                    </div>
-                                ) : null
-                            )}
-
-                            {/* Mostrar preload si está cargando */}
-                            {loading && (
-                                <div className="text-center my-5">
-                                    <div className="spinner-border text-primary" role="status">
-                                        <span className="visually-hidden">Cargando...</span>
-                                    </div>
-                                    <div>Cargando datos de la planilla...</div>
-                                </div>
-                            )}
-
-                            {/* Mostrar tablas solo si ambos están seleccionados y no está cargando */}
-                            {!loading && empresaSeleccionada && planillaSeleccionada && (
-                                <>
-                                    {/* Tabla principal de planilla */}
-                                    <div className="table-responsive" style={{ overflowX: "auto" }}>
-                                        <div className="datatable-wrapper datatable-loading no-footer searchable fixed-columns">
-                                            <div className="datatable-container">
-                                                <PayrollTable
-                                                    columns={PAYROLL_COLUMNS}
-                                                    rows={rows}
-                                                    pageRows={pageRows}
-                                                    selectedRows={selectedRows}                                                    onCheckboxChange={planillaEstado === 'En Proceso' || planillaEstado === 'Activa' ? handleCheckbox : () => {}}
-                                                    onInputChange={planillaEstado === 'En Proceso' || planillaEstado === 'Activa' ? handleInputChange : () => {}}
-                                                    startIdx={startIdx}
-                                                    disabled={false}
-                                                    planillaEstado={planillaEstado}
-                                                    empleadosRaw={empleadosRaw}
-                                                />
-                                            </div>
-                                        </div>
-                                    </div>
-                                    {/* Paginación encima de las tablas de resumen */}
-                                    <TablePagination
-                                        pageSize={pageSize}
-                                        pageSizes={PAGE_SIZES}
-                                        currentPage={currentPage}
-                                        totalPages={totalPages}
-                                        onPageSizeChange={handlePageSizeChange}
-                                        onPageChange={handlePageChange}
-                                    />
-                                    {/* Tablas de resumen lado a lado */}
-                                    <div className="d-flex gap-3 mb-3">
-                                        <SummaryTable
-                                            rows={rows}
-                                            montoPorOperario={montoPorOperario}
-                                            setMontoPorOperario={setMontoPorOperario}
-                                            totalTarifa={totalTarifa}
-                                        />
-                                        <SummaryTable
-                                            financialData={{
-                                                montoTarifa,
-                                                montoRemuneraciones,
-                                                subtotal,
-                                                iva,
-                                                montoTotal
-                                            }}
-                                        />
-                                    </div>
-                                </>
-                            )}
+         </style>
+         <div className="row">
+            <div className="col-12">
+               <div className="card shadow-sm">
+                  <div className="card-body">
+                     {/* Select de empresas dinámico */}
+                     <div className="mb-3">
+                        <label
+                           htmlFor={empresaSelectId}
+                           className="form-label"
+                        >
+                           Empresa
+                        </label>
+                        <select
+                           className="form-select"
+                           id={empresaSelectId}
+                           value={empresaSeleccionada}
+                           onChange={(e) => setEmpresaSeleccionada(e.target.value)}
+                        >
+                           <option value="">Seleccione una empresa</option>
+                           {empresas.map((empresa) => (
+                              <option
+                                 key={empresa.id_empresa}
+                                 value={empresa.id_empresa}
+                              >
+                                 {empresa.nombre_comercial_empresa}
+                              </option>
+                           ))}
+                        </select>
+                     </div>{" "}
+                     {/* Select de tipo de planilla */}
+                     <div className="mb-3">
+                        <label
+                           htmlFor={planillaSelectId}
+                           className="form-label"
+                        >
+                           Tipo de Planilla
+                        </label>
+                        <select
+                           className="form-select"
+                           id={planillaSelectId}
+                           value={planillaSeleccionada}
+                           onChange={handlePlanillaChange}
+                           disabled={planillas.length === 0}
+                        >
+                           <option value="">Seleccione un tipo de planilla</option>
+                           {planillas.map((planilla) => (
+                              <option
+                                 key={planilla.planilla_id}
+                                 value={planilla.planilla_id}
+                              >
+                                 {planilla.planilla_codigo}
+                              </option>
+                           ))}
+                        </select>
+                     </div>{" "}
+                     {/* Botón o alerta debajo del select de tipo de planilla */}
+                     {planillaSeleccionada &&
+                        (planillaEstado === "En Proceso" ? (
+                           <div className="mb-3">
+                              <button
+                                 className="btn btn-success"
+                                 onClick={handleAplicarPlanilla}
+                              >
+                                 Aplicar Planilla
+                              </button>
+                              <div className="alert alert-dark mt-2">
+                                 <strong>Estado: En Proceso</strong> - La edición es libre.
+                                 Modifique los campos de los empleados según se requiera. Al
+                                 finalizar, presione "Aplicar Planilla". Una vez aplicada, no se
+                                 podrán editar empleados sin permisos adicionales.
+                              </div>
+                           </div>
+                        ) : planillaEstado === "Activa" ? (
+                           <div className="mb-3">
+                              <div className="alert alert-danger">
+                                 <strong>Estado: Activa</strong> - La planilla ya ha sido aplicada y
+                                 está disponible para el administrador. Solo puede modificar los
+                                 empleados <u>no marcados</u>. Si necesita editar empleados
+                                 marcados, contacte al administrador para obtener permisos. Nota:
+                                 Cuando la planilla pase a estado "Cerrada", no se podrá modificar
+                                 sin permisos especiales.
+                              </div>
+                           </div>
+                        ) : planillaEstado === "Procesada" ? (
+                           <div className="alert alert-success mb-3">
+                              Esta planilla ya fue aplicada.
+                           </div>
+                        ) : null)}
+                     {/* Mostrar preload si está cargando */}
+                     {loading && (
+                        <div className="text-center my-5">
+                           <div
+                              className="spinner-border text-primary"
+                              role="status"
+                           >
+                              <span className="visually-hidden">Cargando...</span>
+                           </div>
+                           <div>Cargando datos de la planilla...</div>
                         </div>
-                    </div>
-                </div>
+                     )}
+                     {/* Mostrar tablas solo si ambos están seleccionados y no está cargando */}
+                     {!loading && empresaSeleccionada && planillaSeleccionada && (
+                        <>
+                           {/* Tabla principal de planilla */}
+                           <div
+                              className="table-responsive"
+                              style={{ overflowX: "auto" }}
+                           >
+                              <div className="datatable-wrapper datatable-loading no-footer searchable fixed-columns">
+                                 <div className="datatable-container">
+                                    <PayrollTable
+                                       columns={PAYROLL_COLUMNS}
+                                       rows={rows}
+                                       pageRows={pageRows}
+                                       selectedRows={selectedRows}
+                                       onCheckboxChange={
+                                          planillaEstado === "En Proceso" ||
+                                          planillaEstado === "Activa"
+                                             ? handleCheckbox
+                                             : () => {}
+                                       }
+                                       onInputChange={
+                                          planillaEstado === "En Proceso" ||
+                                          planillaEstado === "Activa"
+                                             ? handleInputChange
+                                             : () => {}
+                                       }
+                                       startIdx={startIdx}
+                                       disabled={false}
+                                       planillaEstado={planillaEstado}
+                                       empleadosRaw={empleadosRaw}
+                                    />
+                                 </div>
+                              </div>
+                           </div>
+                           {/* Paginación encima de las tablas de resumen */}
+                           <TablePagination
+                              pageSize={pageSize}
+                              pageSizes={PAGE_SIZES}
+                              currentPage={currentPage}
+                              totalPages={totalPages}
+                              onPageSizeChange={handlePageSizeChange}
+                              onPageChange={handlePageChange}
+                           />
+                           {/* Tablas de resumen lado a lado */}
+                           <div className="d-flex gap-3 mb-3">
+                              <SummaryTable
+                                 rows={rows}
+                                 montoPorOperario={montoPorOperario}
+                                 setMontoPorOperario={setMontoPorOperario}
+                                 totalTarifa={totalTarifa}
+                              />
+                              <SummaryTable
+                                 financialData={{
+                                    montoTarifa,
+                                    montoRemuneraciones,
+                                    subtotal,
+                                    iva,
+                                    montoTotal,
+                                 }}
+                              />
+                           </div>
+                        </>
+                     )}
+                  </div>
+               </div>
             </div>
-        </div>
-    );
+         </div>
+      </div>
+   );
 };
 
 /**
@@ -957,16 +1233,16 @@ export const GenerarPlanilla = PayrollGenerator;
  * @returns {boolean} - True si la fila debe estar deshabilitada
  */
 function esFilaDeshabilitada(planillaEstado, empleadosRaw, index) {
-    // Si la planilla está en estado "Procesada", todas las filas están deshabilitadas
-    if (planillaEstado === 'Procesada') {
-        return true;
-    }
-    
-    // Si la planilla está "Activa", solo se deshabilitan las filas con marca_epd = 1 (con check)
-    if (planillaEstado === 'Activa' && empleadosRaw && empleadosRaw[index]) {
-        return empleadosRaw[index].marca_epd === 1;
-    }
-    
-    // Para estado "En Proceso" o cualquier otro estado, no se deshabilitan las filas
-    return false;
+   // Si la planilla está en estado "Procesada", todas las filas están deshabilitadas
+   if (planillaEstado === "Procesada") {
+      return true;
+   }
+
+   // Si la planilla está "Activa", solo se deshabilitan las filas con marca_epd = 1 (con check)
+   if (planillaEstado === "Activa" && empleadosRaw && empleadosRaw[index]) {
+      return empleadosRaw[index].marca_epd === 1;
+   }
+
+   // Para estado "En Proceso" o cualquier otro estado, no se deshabilitan las filas
+   return false;
 }
