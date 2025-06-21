@@ -17,6 +17,18 @@ const TEXTOS = {
 };
 
 /**
+ * Función simple para encriptar IDs para usar en URLs
+ * @param {number|string} id - El ID a encriptar
+ * @returns {string} - El ID encriptado
+ */
+const encriptarId = (id) => {
+   // Convertir a string y codificar en Base64
+   const encriptado = btoa(String(id) + "_" + new Date().getTime());
+   // Hacer la encriptación un poco más compleja reemplazando algunos caracteres
+   return encriptado.replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+};
+
+/**
  * Obtiene las columnas de la tabla con sus configuraciones.
  * @returns {Array} Arreglo de objetos de configuración de columnas.
  */
@@ -124,8 +136,9 @@ const crearConfiguracionTabla = (usuario) => ({
  * @param {Object} datosFila - Datos de la fila seleccionada.
  */
 const manejarClicFila = (datosFila, navigate) => {
-
-   navigate("/planilla/visualizar?id=" + datosFila.planilla_id);
+   // Usar encriptación para el ID antes de enviarlo en la URL
+   const idEncriptado = encriptarId(datosFila.planilla_id);
+   navigate("/planilla/visualizar?id=" + idEncriptado);
 };
 
 /**

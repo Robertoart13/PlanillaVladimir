@@ -131,22 +131,27 @@
 }
 
 .boton-ver-perfil {
-  background-color:rgb(8, 8, 8);
+  display: inline-block;
+  background-color: #343a40;
   color: white;
   border: none;
-  padding: 5px 10px;
-  text-align: center;
-  text-decoration: none;
-  display: inline-block;
-  font-size: 12px;
-  margin: 4px 2px;
-  cursor: pointer;
   border-radius: 4px;
+  padding: 8px 16px;
+  font-size: 14px;
+  cursor: pointer;
   transition: background-color 0.3s;
+  text-align: center;
+  width: 100%;
+  margin-bottom: 5px;
 }
 
 .boton-ver-perfil:hover {
-  background-color:rgb(6, 6, 6);
+  background-color: #23272b;
+}
+
+.boton-ver-perfil:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
 }
 
 /* Estilos para los controles */
@@ -236,4 +241,219 @@
   .remuneraciones-grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* Estilos para el contenedor de cuenta bancaria y botón de copia */
+.cuenta-bancaria-container {
+   display: flex;
+   align-items: center;
+   justify-content: space-between;
+   width: 100%;
+   margin-bottom: 5px;
+   padding: 2px 0;
+   border-bottom: 1px dotted #eee;
+}
+
+.cuenta-bancaria-container:last-child {
+   margin-bottom: 0;
+   border-bottom: none;
+}
+
+.cuenta-bancaria-container span {
+   flex-grow: 1;
+   padding-right: 10px;
+}
+
+/* Estilos para los botones de PDF */
+.boton-descargar-pdf,
+.boton-exportar-planilla {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s;
+}
+
+.boton-descargar-pdf:hover,
+.boton-exportar-planilla:hover {
+  background-color: #45a049;
+}
+
+.boton-descargar-pdf {
+  margin-left: 10px;
+}
+
+.boton-exportar-planilla {
+  margin-left: auto;
+}
+
+.controles-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 15px;
+}
+
+/* Estilos para los botones de copiar */
+.boton-copiar {
+  background: transparent;
+  border: none;
+  color: #007bff;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 4px;
+  margin-left: 8px;
+}
+
+.boton-copiar:hover {
+  color: #0056b3;
+}
+
+/* Contenedor para cuentas bancarias y otros campos con botón de copiar */
+.cuenta-bancaria-container {
+  display: flex;
+  align-items: center;
+  padding: 4px 0;
+}
+
+/* Estilos específicos para PDF */
+.pdf-container {
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+  background-color: white;
+}
+
+.pdf-content {
+  padding: 20px;
+}
+
+/* Asegurar que las tablas en PDF tengan bordes visibles */
+.pdf-content table {
+  border-collapse: collapse;
+  width: 100%;
+  border: 1px solid #333;
+}
+
+.pdf-content td, 
+.pdf-content th {
+  border: 1px solid #ddd;
+  padding: 8px;
+}
+
+/* Mejorar la visibilidad de los encabezados de sección en PDF */
+.pdf-content .section-header,
+.pdf-content .remuneracion-header {
+  background-color: #333;
+  color: white;
+  font-weight: bold;
+  text-align: center;
+  padding: 8px;
+}
+
+/* Estilos específicos para la remuneración en PDF */
+.pdf-content .remuneracion-header {
+  font-size: 16px;
+  margin-bottom: 15px;
+  border-radius: 4px;
+}
+
+/* Aplicar estilos a los encabezados de secciones en PDF */
+.pdf-content .section-header {
+  color: white;
+  padding: 6px;
+}
+
+/* Asegurar que los estados de inscripción sean visibles */
+.pdf-content .inscrito {
+  color: #4CAF50;
+  font-weight: bold;
+}
+
+.pdf-content .no-inscrito {
+  color: #f44336;
+  font-weight: bold;
+}
+
+/* Agregar estilos para mejorar el aspecto visual del PDF */
+.pdf-content .remuneracion-card {
+  border: 2px solid #333;
+  border-radius: 6px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+/* Estilos específicos para mejorar la apariencia del PDF */
+.pdf-content .remuneracion-table {
+  margin-bottom: 20px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+/* Hacer que el encabezado principal destaque más */
+.pdf-content .remuneracion-header {
+  background-color: #343a40;
+  color: white;
+  padding: 12px 10px;
+  font-size: 18px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+/* Mejorar el aspecto de los encabezados de sección */
+.pdf-content .section-header {
+  background-color: #343a40;
+  color: white;
+  padding: 8px;
+  font-weight: bold;
+  font-size: 14px;
+  text-align: center;
+  border-bottom: 2px solid #000;
+}
+
+/* Hacer más compactas las filas para un PDF más pequeño */
+.pdf-content .remuneracion-table td {
+  padding: 5px 8px;
+  line-height: 1.2;
+  font-size: 10px;
+}
+
+/* Destacar las cantidades monetarias */
+.pdf-content .amount {
+  font-family: 'Courier New', monospace;
+  font-weight: bold;
+  color: #333;
+}
+
+/* Hacer más visible los estados de inscripción */
+.pdf-content .inscrito {
+  color: #4CAF50;
+  font-weight: bold;
+  background-color: rgba(76, 175, 80, 0.1);
+  padding: 3px 6px;
+  border-radius: 3px;
+}
+
+.pdf-content .no-inscrito {
+  color: #f44336;
+  font-weight: bold;
+  background-color: rgba(244, 67, 54, 0.1);
+  padding: 3px 6px;
+  border-radius: 3px;
+}
+
+/* Estilos para alternar colores en filas de tablas */
+.pdf-content .remuneracion-table tr:nth-child(even) td {
+  background-color: #f9f9f9;
+}
+
+.pdf-content .remuneracion-table tr:hover td {
+  background-color: #f0f0f0;
 }
