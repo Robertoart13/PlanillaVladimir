@@ -104,6 +104,9 @@ import Planilla_Insertar_Empleado from "../modules/08-planilla/Planilla_Insertar
 import Planilla_AplicarPlanilla from "../modules/08-planilla/Planilla_AplicarPlanilla.js";
 import Planilla_Listar_aplicadas from "../modules/08-planilla/Planilla_ListaCompletaAplicadas.js";
 
+import Planil_Empleado_Aplicadas_Empleado from "../modules/08-planilla/Planil_Empleado_Aplicadas_Empleado.js";
+
+
 /** ====================================================================================================================================
  * @fileoverview Módulo de configuración de rutas para la aplicación.
  * Este archivo maneja la configuración de rutas, autenticación y gestión de solicitudes HTTP.
@@ -509,6 +512,7 @@ function getModulesConfig() {
             ...Planilla_Insertar_Empleado,
             ...Planilla_AplicarPlanilla,
             ...Planilla_Listar_aplicadas,
+            ...Planil_Empleado_Aplicadas_Empleado,
          }, // Combinamos ambos modelos
          routes: [
             {
@@ -544,6 +548,11 @@ function getModulesConfig() {
             {
                path: "planilla/listaAplicadas", // Ruta para la lista de planilla
                method: "Planilla_Listar_aplicadas", // Método que se ejecutará
+               isAuthRequired: true, // Requiere autenticación
+            },
+            {
+               path: "planilla/lista_empleado_planilla", // Ruta para la lista de planilla
+               method: "ListaPlanilla", // Método que se ejecutará
                isAuthRequired: true, // Requiere autenticación
             },
          ],
