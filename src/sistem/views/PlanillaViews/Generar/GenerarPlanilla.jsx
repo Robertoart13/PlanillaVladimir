@@ -96,6 +96,20 @@ function getSummaryCellStyle(type) {
  */
 
 /**
+ * Formatea un valor numérico como moneda en formato costarricense.
+ * @param {number} value - El valor numérico a formatear
+ * @param {number} [decimals=2] - Número de decimales a mostrar
+ * @returns {string} - Valor formateado como moneda
+ */
+function formatCurrency(value, decimals = 2) {
+   if (value === null || value === undefined || isNaN(value)) return "₡0.00";
+   return `₡${Number(value).toLocaleString("es-CR", { 
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals 
+   })}`;
+}
+
+/**
  * Suma un campo numérico para todas las filas.
  * @param {Array<Object>} rows - Arreglo de filas con datos
  * @param {string} field - Nombre del campo a sumar
@@ -182,14 +196,20 @@ function PayrollTable({
                         <td
                            key={col.key}
                            style={getTableCellStyle(col, isSelected, idx)}
-                        >
-                           {col.type === "number" ? (
+                        >                        {col.type === "number" ? (
                               <input
                                  type="number"
                                  name={col.key}
                                  value={row[col.key]}
                                  onChange={(e) => onInputChange(e, idx)}
+                                 onBlur={(e) => {
+                                    // Format the value with 2 decimal places on blur
+                                    const value = parseFloat(e.target.value) || 0;
+                                    e.target.value = value.toFixed(2);
+                                    onInputChange(e, idx);
+                                 }}
                                  className="form-control form-control-sm"
+                                 step="0.01"
                                  style={{
                                     minWidth: col.style?.minWidth || 80,
                                     background: "#fdfdfd",
@@ -208,14 +228,13 @@ function PayrollTable({
          </tbody>
          <tfoot>
             <tr style={{ background: "#f8f9fa", fontWeight: "bold" }}>
-               <td></td>
-               {columns.map((col) =>
+               <td></td>               {columns.map((col) =>
                   col.type === "number" ? (
                      <td
                         key={col.key}
                         style={col.key === "neta" ? { color: "#198754", fontWeight: "bold" } : {}}
                      >
-                        {sumColumn(rows, col.key)}
+                        {formatCurrency(sumColumn(rows, col.key))}
                      </td>
                   ) : (
                      <td key={col.key}></td>
@@ -357,8 +376,7 @@ function SummaryTable({ rows, montoPorOperario, setMontoPorOperario, totalTarifa
                className="table table-bordered"
                style={{ background: "#bcd2f7" }}
             >
-               <tbody>
-                  <tr>
+               <tbody>                  <tr>
                      <td
                         className="fw-bold"
                         style={getSummaryCellStyle("header")}
@@ -366,7 +384,7 @@ function SummaryTable({ rows, montoPorOperario, setMontoPorOperario, totalTarifa
                         Monto de tarifa
                      </td>
                      <td className="text-end">
-                        ₡{montoTarifa.toLocaleString("es-CR", { minimumFractionDigits: 2 })}
+                        {formatCurrency(montoTarifa)}
                      </td>
                   </tr>
                   <tr>
@@ -377,12 +395,7 @@ function SummaryTable({ rows, montoPorOperario, setMontoPorOperario, totalTarifa
                         Monto de Remuneraciones
                      </td>
                      <td className="text-end">
-                        ₡
-                        {montoRemuneraciones
-                           ? montoRemuneraciones.toLocaleString("es-CR", {
-                                minimumFractionDigits: 2,
-                             })
-                           : "-"}
+                        {montoRemuneraciones ? formatCurrency(montoRemuneraciones) : "-"}
                      </td>
                   </tr>
                   <tr>
@@ -393,7 +406,7 @@ function SummaryTable({ rows, montoPorOperario, setMontoPorOperario, totalTarifa
                         Subtotal
                      </td>
                      <td className="text-end">
-                        ₡{subtotal.toLocaleString("es-CR", { minimumFractionDigits: 2 })}
+                        {formatCurrency(subtotal)}
                      </td>
                   </tr>
                   <tr>
@@ -404,7 +417,7 @@ function SummaryTable({ rows, montoPorOperario, setMontoPorOperario, totalTarifa
                         I V A
                      </td>
                      <td className="text-end">
-                        ₡{iva.toLocaleString("es-CR", { minimumFractionDigits: 2 })}
+                        {formatCurrency(iva)}
                      </td>
                   </tr>
                   <tr>
@@ -422,7 +435,7 @@ function SummaryTable({ rows, montoPorOperario, setMontoPorOperario, totalTarifa
                         colSpan={2}
                         style={getSummaryCellStyle("total")}
                      >
-                        ₡{montoTotal.toLocaleString("es-CR", { minimumFractionDigits: 2 })}
+                        {formatCurrency(montoTotal)}
                      </td>
                   </tr>
                </tbody>
@@ -524,7 +537,7 @@ function SummaryTable({ rows, montoPorOperario, setMontoPorOperario, totalTarifa
                      colSpan={2}
                      style={getSummaryCellStyle("total")}
                   >
-                     ₡{totalTarifa.toLocaleString("es-CR", { minimumFractionDigits: 2 })}
+                     {formatCurrency(totalTarifa)}
                   </td>
                </tr>
             </tbody>
@@ -545,7 +558,8 @@ function SummaryTable({ rows, montoPorOperario, setMontoPorOperario, totalTarifa
  * @param {number} i - Índice del empleado
  * @returns {object}
  */
-function mapEmpleadoToRow(emp, i, semanaActual) {   // Calcular valores numéricos base
+function mapEmpleadoToRow(emp, i, semanaActual) {
+   // Calcular valores numéricos base
    const bruta = parseFloat(emp.remuneracion_bruta_epd_tbl) || 0;
    const fcl = parseFloat(emp.fcl_1_5_epd_tbl) || 0;
    const rebajosCliente = parseFloat(emp.rebajos_cliente_epd_tbl) || 0;
@@ -561,6 +575,9 @@ function mapEmpleadoToRow(emp, i, semanaActual) {   // Calcular valores numéric
    
    // Total de Reintegros es igual a Reintegro de Cliente
    const totalReintegros = reintegroCliente;
+   
+   // Calcular Remuneración Neta según la fórmula: Bruta + FCL - RebajosCliente + ReintegroCliente - Cuota
+   const neta = bruta + fcl - rebajosCliente + reintegroCliente - cuota;
    
    return {
       nombre: `${emp.nombre_empleado_emp_tbl || emp.nombre_empleado || ""} ${
@@ -583,7 +600,7 @@ function mapEmpleadoToRow(emp, i, semanaActual) {   // Calcular valores numéric
       reintegrosOPU: emp.reintegro_opu_epd_tbl ?? "0.00",
       totalDeducciones: emp.total_deducciones_epd_tbl ?? totalDeducciones.toFixed(2),
       totalReintegros: emp.total_reintegros_epd_tbl ?? totalReintegros.toFixed(2),
-      neta: emp.remuneracion_neta_epd_tbl ?? "0",
+      neta: emp.remuneracion_neta_epd_tbl ?? neta.toFixed(2),
       marca_epd: emp.marca_epd ?? 0,
    };
 }
@@ -772,7 +789,8 @@ function useHandleInputChange({ startIdx, setRows, setSelectedRows }) {
                if (i !== globalIdx) return row;
                
                const updatedRow = { ...row, [name]: value };
-                 // Si cambiaron valores que afectan el cálculo de Deposito X Tecurso, actualizar ese valor
+               
+               // Si cambiaron valores que afectan el cálculo de Deposito X Tecurso, actualizar ese valor
                if (["bruta", "fcl", "rebajosCliente", "reintegroCliente"].includes(name)) {
                   const bruta = parseFloat(updatedRow.bruta) || 0;
                   const fcl = parseFloat(updatedRow.fcl) || 0;
@@ -801,6 +819,19 @@ function useHandleInputChange({ startIdx, setRows, setSelectedRows }) {
                   updatedRow.totalReintegros = reintegroCliente.toFixed(2);
                }
                
+               // Si cambiaron valores que afectan la Remuneración Neta, actualizar ese valor
+               if (["bruta", "fcl", "rebajosCliente", "reintegroCliente", "cuota"].includes(name)) {
+                  const bruta = parseFloat(updatedRow.bruta) || 0;
+                  const fcl = parseFloat(updatedRow.fcl) || 0;
+                  const rebajosCliente = parseFloat(updatedRow.rebajosCliente) || 0;
+                  const reintegroCliente = parseFloat(updatedRow.reintegroCliente) || 0;
+                  const cuota = parseFloat(updatedRow.cuota) || 0;
+                  
+                  // Aplicar la fórmula: Bruta + FCL - RebajosCliente + ReintegroCliente - Cuota
+                  const neta = bruta + fcl - rebajosCliente + reintegroCliente - cuota;
+                  updatedRow.neta = neta.toFixed(2);
+               }
+               
                return updatedRow;
             });
             return updatedRows;
@@ -815,6 +846,33 @@ function useHandleInputChange({ startIdx, setRows, setSelectedRows }) {
       },
       [startIdx, setRows, setSelectedRows],
    );
+}
+
+/**
+ * Hook personalizado para formatear valores de input numéricos con debounce
+ * @param {Object} params - Parámetros para el hook
+ * @param {React.MutableRefObject} params.inputRef - Referencia al input
+ * @param {number} params.delay - Tiempo de espera en ms
+ * @returns {Function} Función para manejar el cambio de valor
+ */
+function useDebounceFormatting({ inputRef, delay = 1000 }) {
+  return useCallback((value) => {
+    if (inputRef.current) {
+      // Limpia cualquier temporizador anterior
+      if (inputRef.current.formatTimer) {
+        clearTimeout(inputRef.current.formatTimer);
+      }
+      
+      // Configura un nuevo temporizador
+      inputRef.current.formatTimer = setTimeout(() => {
+        // Convierte a número y formatea con dos decimales
+        if (inputRef.current && !isNaN(parseFloat(value))) {
+          const numericValue = parseFloat(value);
+          inputRef.current.value = numericValue.toFixed(2);
+        }
+      }, delay);
+    }
+  }, [inputRef, delay]);
 }
 
 /**
@@ -952,9 +1010,7 @@ export const PayrollGenerator = () => {
    };
 
    // Calculamos el índice inicial para la paginación
-   const startIdx = (currentPage - 1) * pageSize;
-
-   // Derivados de los datos
+   const startIdx = (currentPage - 1) * pageSize;   // Derivados de los datos
    const totalPages = Math.ceil(rows.length / pageSize);
    const pageRows = rows.slice(startIdx, startIdx + pageSize);
    const totalTarifa = useMemo(
@@ -963,7 +1019,7 @@ export const PayrollGenerator = () => {
    );
    const montoTarifa = totalTarifa;
    const montoRemuneraciones = useMemo(() => sumColumn(rows, "deposito"), [rows]);
-   const subtotal = montoTarifa - montoRemuneraciones;
+   const subtotal = montoTarifa + montoRemuneraciones; // Corregido: suma en lugar de resta
    const iva = subtotal * 0.13;
    const montoTotal = subtotal + iva;
 
