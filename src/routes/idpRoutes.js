@@ -106,6 +106,8 @@ import Planilla_Listar_aplicadas from "../modules/08-planilla/Planilla_ListaComp
 
 import Planil_Empleado_Aplicadas_Empleado from "../modules/08-planilla/Planil_Empleado_Aplicadas_Empleado.js";
 import Planilla_Aplicado from "../modules/08-planilla/Planilla_Aplicado.js";
+import Planilla_Incritos from "../modules/08-planilla/Planilla_Incritos.js";
+import planilla_estado from "../modules/08-planilla/Planilla_CmabioEstado.js";
 
 
 /** ====================================================================================================================================
@@ -515,6 +517,8 @@ function getModulesConfig() {
             ...Planilla_Listar_aplicadas,
             ...Planil_Empleado_Aplicadas_Empleado,
             ...Planilla_Aplicado,
+            ...Planilla_Incritos,
+            ...planilla_estado
          }, // Combinamos ambos modelos
          routes: [
             {
@@ -560,6 +564,16 @@ function getModulesConfig() {
             {
                path: "planilla/Planilla_Aplicado", // Ruta para la lista de planilla
                method: "Planilla_Aplicado", // Método que se ejecutará
+               isAuthRequired: true, // Requiere autenticación
+            },
+            {
+               path: "planilla/Planilla_Incritos", // Ruta para la lista de planilla
+               method: "Planilla_Incritos", // Método que se ejecutará
+               isAuthRequired: true, // Requiere autenticación
+            },
+            {
+               path: "planilla/Planilla_CmabioEstado_Thunks", // Ruta para la lista de planilla
+               method: "planilla_estado", // Método que se ejecutará
                isAuthRequired: true, // Requiere autenticación
             },
          ],

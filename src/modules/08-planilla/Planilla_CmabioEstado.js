@@ -1,13 +1,14 @@
 /**
  * ====================================================================================================================================
- * @fileoverview Módulo para listar registros en el sistema
+ * @fileoverview Módulo para la edición de registros en el sistema de nómina
  * @requires ../../mysql2-promise/mysql2-promise
  * @requires ../../hooks/realizarValidacionesIniciales
  * @requires ../../hooks/crearRespuestaExitosa
- * 
+ * @requires ../../hooks/verificarPermisosUsuario
+ * @requires ../../hooks/crearRespuestaErrorCrear
  *
- * Este módulo proporciona funcionalidades para consultar y listar los registros
- * disponibles en el sistema, con validaciones de permisos y manejo de errores.
+ * Este módulo proporciona las funcionalidades necesarias para actualizar registros
+ * existentes en la base de datos, con validación de permisos y manejo estructurado de errores.
  * ====================================================================================================================================
  */
 
@@ -19,51 +20,42 @@ import { crearRespuestaErrorCrear } from "../../hooks/crearRespuestaErrorCrear.j
 /**
  * ====================================================================================================================================
  * Definición de las consultas SQL utilizadas en este módulo.
- * Estas consultas son usadas para interactuar con la base de datos, recuperando datos necesarios.
+ * Contiene la consulta para actualizar un registro existente en la base de datos.
  * ====================================================================================================================================
  */
 const QUERIES = {
-   // Consulta SQL para obtener todos los registros de la tabla
-   QUERIES_SELECT: `
-         SELECT
-               p.*,
-               e.nombre_comercial_empresa as nombre_empresa,
-               COALESCE(u.nombre_usuario, 'N/A') AS nombre_usuario,
-               COALESCE(u.id_usuario, 'N/A') AS id_usuario
-         FROM
-                planilla_tbl p
-         INNER JOIN
-               empresas_tbl e ON p.empresa_id = e.id_empresa
-         LEFT JOIN
-                usuarios_tbl u ON p.planilla_creado_por = u.id_usuario
-         
-      `,
+   QUERIES_UPDATE: `
+      UPDATE
+         planilla_tbl
+      SET
+         planilla_estado = ?
+      WHERE planilla_id  = ?;
+   `,
 };
 
 /**
  * ====================================================================================================================================
- * Realiza una consulta a la base de datos para obtener todos los registros.
+ * Actualiza un registro de registro en la base de datos.
  *
- * Esta función ejecuta una consulta SQL definida en el objeto `QUERIES`, la cual extrae todos
- * los registros almacenados en la base de datos sin aplicar filtros.
+ * Esta función ejecuta la consulta SQL de actualización utilizando los valores proporcionados
+ * para modificar un registro existente identificado por su ID.
  *
  * @param {Object|string} database - Objeto de conexión a la base de datos o nombre de la base de datos.
- * @returns {Promise<Object>} - Promesa que retorna el resultado de la consulta con todos los registros
- * @throws {Error} Si ocurre un error durante la consulta a la base de datos.
+ * @returns {Promise<Object>} - Resultado de la operación de actualización en la base de datos.
  * ====================================================================================================================================
  */
-const obtenerTodosDatos = async (usuario, database) => {
-   try {
-      // Ejecuta la consulta SQL para obtener los datos de la tabla
-      return await realizarConsulta(QUERIES.QUERIES_SELECT, [usuario], database);
-   } catch (error) {
-      return manejarError(
-         error,
-         500,
-         "Error No se puede extraer la lista completa: ",
-         `Error al obtener los datos de la base de datos: ${error.message}`,
-      );
-   }
+const editarRegistroBd = async (datos, database) => {
+
+   console.log("Datos a actualizar:", datos);
+
+   return await realizarConsulta(
+      QUERIES.QUERIES_UPDATE,
+      [
+         datos.estado,
+         datos.idplanilla
+      ],
+      database,
+   );
 };
 
 /**
@@ -80,71 +72,62 @@ const obtenerTodosDatos = async (usuario, database) => {
  * @returns {boolean} - `true` si la operación fue exitosa, `false` en caso contrario.
  * ====================================================================================================================================
  */
-const esConsultarExitosa = (resultado) => {
-   return !(resultado?.status === 500);
+const esEdicionExitosa = (resultado) => {
+   return !(resultado.datos?.affectedRows <= 0 || resultado?.status === 500);
 };
 
 /**
  * ====================================================================================================================================
- * Obtiene la lista completa de registros, validando previamente los permisos del usuario.
+ * Edita un registro existente en el sistema, validando previamente el acceso del usuario.
  *
- * Este método realiza los siguientes pasos:
- * 1. Valida los datos de la solicitud.
- * 2. Verifica si el usuario tiene el permiso requerido para acceder a la lista.
- * 3. Si las validaciones son correctas y el usuario tiene permiso, consulta la base de datos.
- * 4. Si todo está bien, retorna la lista en una respuesta exitosa.
+ * Esta función principal gestiona el proceso completo de actualización de un registro:
+ * 1. Valida los datos de entrada y los permisos del usuario
+ * 2. Actualiza el registro existente en la base de datos
+ * 3. Verifica que la operación haya sido exitosa
+ * 4. Devuelve una respuesta estructurada con el resultado
  *
- * @param {Object} req - Objeto de solicitud HTTP, utilizado para obtener los datos del usuario y la solicitud.
- * @param {Object} res - Objeto de respuesta HTTP, utilizado para enviar la respuesta al cliente.
+ * @param {Object} req - Objeto de solicitud HTTP con los datos de la transacción.
+ * @param {Object} res - Objeto de respuesta HTTP con información de la transacción.
  * @param {Object} res.transaccion - Información de la transacción actual.
  * @param {Object} res.transaccion.user - Datos del usuario autenticado.
  * @param {number} res.transaccion.user.id - ID del usuario que realiza la solicitud.
  * @param {Object} res.transaccion.acceso - Información sobre los permisos de acceso.
- * @param {string} res.transaccion.acceso.permiso - Código del permiso requerido.
+ * @param {string} res.transaccion.acceso.permiso - Código de permiso necesario para realizar la edición.
  * @param {string} res.transaccion.acceso.details - Detalles sobre el acceso requerido.
+ * @param {Object} res.transaccion.movimiento - Datos del registro a actualizar, incluyendo su ID.
  * @param {Object} res.database - Conexión a la base de datos.
- * @returns {Promise<Object>} - Retorna la lista si el usuario tiene permisos, o un error si no los tiene.
+ * @returns {Promise<Object>} - Resultado de la operación de edición (éxito o error).
  * ====================================================================================================================================
  */
-const obtenerListaCompleta = async (req, res) => {
+const editarTransaccion = async (req, res) => {
    try {
-
       // 1. Validar los datos iniciales de la solicitud (por ejemplo, formato y autenticidad de los datos).
       const errorValidacion = await realizarValidacionesIniciales(res);
       if (errorValidacion) return errorValidacion; // Si hay un error en la validación, lo retorna inmediatamente.
 
-
-
-      // 3. Obtener los datos de la base de datos una vez validados los permisos.
-      const resultado = await obtenerTodosDatos(res?.transaccion?.user?.id, res?.database);
-
+      // 3. Realizar la edición en la base de datos
+      const resultado = await editarRegistroBd(res?.transaccion.planilla, res?.database);
 
       // 4. Verificar si la edición fue exitosa.
-      if (!esConsultarExitosa(resultado)) {
-         return crearRespuestaErrorCrear(`Error al cargar el registro: ${resultado.error}`);
+      if (!esEdicionExitosa(resultado)) {
+         return crearRespuestaErrorCrear(`Error al editar el registro: ${resultado.error}`);
       }
 
-      // 4. Si la consulta es exitosa, se retornan los datos obtenidos en una respuesta exitosa.
+      // 5. Si la edición fue exitosa, retornar una respuesta exitosa.
       return crearRespuestaExitosa(resultado.datos);
    } catch (error) {
-      // 5. Manejo de errores centralizado: Si hay cualquier error durante el proceso, se captura y maneja aquí.
-      return manejarError(
-         error,
-         500,
-         "Error No se puede extraer la lista completa: ",
-         error.message,
-      );
+      return manejarError(error, 500, "Error al editar el registro: ", error.message);
    }
 };
 
 /**
  * ====================================================================================================================================
- * Exportación del módulo que contiene los métodos disponibles para interactuar con registros.
- * Este módulo expone la funcionalidad de obtener la lista completa, entre otras.
+ * Exportación del módulo que contiene los métodos disponibles para editar registros.
+ * Este módulo expone la funcionalidad de edición de registros existentes.
  * ====================================================================================================================================
  */
-const Planilla_Listar_aplicadas = {
-   Planilla_Listar_aplicadas: obtenerListaCompleta, // Método que obtiene la lista completa, con validaciones y permisos.
+const planilla_estado = {
+   planilla_estado: editarTransaccion,
 };
 
-export default Planilla_Listar_aplicadas;  
+export default planilla_estado;
