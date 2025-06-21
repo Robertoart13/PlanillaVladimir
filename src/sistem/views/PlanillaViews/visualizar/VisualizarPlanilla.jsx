@@ -7,10 +7,16 @@ import Swal from "sweetalert2";
 import { Planil_Empleado_Aplicadas_Empleado_Thunks } from "../../../../store/Planilla/Planil_Empleado_Aplicadas_Empleado_Thunks";
 import Switch from "@mui/material/Switch";
 import FormControlLabel from "@mui/material/FormControlLabel";
+import Select from "@mui/material/Select";
+import MenuItem from "@mui/material/MenuItem";
+import FormControl from "@mui/material/FormControl";
 
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import { Planilla_Aplicado } from "../../../../store/Planilla/Planilla_Aplicado_Thunks";
+import { Planilla_Incritos_Thunks } from "../../../../store/Planilla/Planilla_Incritos_Thunks";
+import { Planilla_CmabioEstado_Thunks } from "../../../../store/Planilla/Planilla_CmabioEstado_Thunks";
+
 
 // Configuración global para el número de tarjetas por fila por defecto
 const TARJETAS_POR_FILA_DEFAULT = 3;
@@ -185,6 +191,29 @@ const exportToPDF = async (element, fileName) => {
 };
 
 /**
+ * Función para obtener el ID de la planilla a partir del objeto planilla
+ * @param {Object} planilla - Objeto con datos de la planilla
+ * @returns {string|number} ID de la planilla
+ */
+const obtenerPlanillaId = (planilla) => {
+   // Intentar obtener el ID de varias propiedades posibles
+   if (planilla.planilla_id) return planilla.planilla_id;
+   if (planilla.id_planilla) return planilla.id_planilla;
+   if (planilla.id) return planilla.id;
+   
+   // Extraer ID del primer empleado si está disponible
+   const query = new URLSearchParams(window.location.search);
+   const idEncriptado = query.get("id");
+   if (idEncriptado) {
+      const planillaId = desencriptarId(idEncriptado);
+      if (planillaId) return planillaId;
+   }
+   
+   // Usar el consecutivo como último recurso
+   return planilla.consecutivo || "unknown-id";
+};
+
+/**
  * Función para desencriptar un ID desde la URL
  * @param {string} encriptedId - ID encriptado
  * @returns {string|number} - ID desencriptado
@@ -212,7 +241,8 @@ const desencriptarId = (encriptedId) => {
  */
 const RemuneracionCard = ({ empleado }) => {
    // Determinar si el empleado está aplicado basado en su estado o marca_aplicado_epd
-   const estadoAplicado = empleado.estado_epd === "aplicado" || parseInt(empleado.marca_aplicado_epd) === 1;
+   const estadoAplicado =
+      empleado.estado_epd === "aplicado" || parseInt(empleado.marca_aplicado_epd) === 1;
    // Inicializar el estado con el valor de aplicado del empleado
    const [aplicado, setAplicado] = useState(estadoAplicado);
    // Crear una referencia al componente de la tarjeta para exportar a PDF
@@ -231,13 +261,11 @@ const RemuneracionCard = ({ empleado }) => {
          didOpen: () => {
             Swal.showLoading();
          },
-      });      try {
+      });
+      try {
          // Ejecutar el dispatch y esperar su finalización
-         await dispatch(Planilla_Aplicado(
-            empleado.id_empleado,
-            empleado.planilla_id_epd
-         ));
-         
+         await dispatch(Planilla_Aplicado(empleado.id_empleado, empleado.planilla_id_epd));
+
          // Mostrar alerta de éxito
          Swal.fire({
             title: "Éxito",
@@ -305,40 +333,42 @@ const RemuneracionCard = ({ empleado }) => {
          exportToPDF(cardClone, nombreArchivo);
       }
    };
-
    return (
       <div
          ref={cardRef}
          className={`remuneracion-card ${aplicado ? "aplicado" : "no-aplicado"}`}
       >
-         <div className="remuneracion-header">REMUNERACIÓN OPU SAL</div>{" "}
-         <div className="boton-container boton-perfil-container">
+         <div className="remuneracion-header">REMUNERACIÓN OPU SAL</div>
+         <div style={{ display: "flex", justifyContent: "space-between", padding: "4px" }}>
             <button
                className="boton-ver-perfil"
                onClick={verPerfilEmpleado}
+               style={{ width: "48%", fontSize: "0.75rem", margin: 0 }}
             >
-               Ver perfil de empleado
+               Ver perfil
             </button>
-         </div>
-         <div className="boton-container">
             <button
                className="boton-ver-perfil"
                onClick={descargarPDF}
+               style={{ width: "48%", fontSize: "0.75rem", margin: 0 }}
             >
-               Descargar PDF
+               PDF
             </button>
          </div>
          <InfoPersonalTable empleado={empleado} />
          <DesgloceRemuneracionTable empleado={empleado} />
          <DeduccionesTable empleado={empleado} />
          <EstadoInscripcionTable empleado={empleado} />
-         <div className="boton-container">
+         <div
+            className="boton-container"
+            style={{ padding: "6px 4px 4px" }}
+         >
             <button
                className="boton-aplicar"
                onClick={aplicarEmpleado}
                disabled={aplicado}
             >
-               {aplicado ? "Empleado Aplicado" : "Aplicar Empleado"}
+               {aplicado ? "Aplicado" : "Aplicar"}
             </button>
          </div>
       </div>
@@ -533,50 +563,125 @@ const DeduccionesTable = ({ empleado }) => (
  */
 const EstadoInscripcionTable = ({ empleado }) => {
    // Convertimos a números para asegurar comparación correcta
-   const [ministerio, setMinisterio] = useState(parseInt(empleado.ministerio_hacienda_empleado) || 0);
+   const [ministerio, setMinisterio] = useState(
+      parseInt(empleado.ministerio_hacienda_empleado) || 0,
+   );
    const [rtins, setRtins] = useState(parseInt(empleado.rt_ins_empleado) || 0);
-   const [ccss, setCcss] = useState(parseInt(empleado.caja_costarricense_seguro_social_empleado) || 0);
+   const [ccss, setCcss] = useState(
+      parseInt(empleado.caja_costarricense_seguro_social_empleado) || 0,
+   );
+
+   // Obtener dispatch de Redux
+   const dispatch = useDispatch();
 
    // Manejar el cambio de estado para Ministerio de Hacienda
-   const handleMinisterioChange = (event) => {
+   const handleMinisterioChange = async (event) => {
       const newValue = event.target.checked ? 1 : 0;
       setMinisterio(newValue);
-      
-      // Mostrar alerta con el nuevo estado
-      Swal.fire({
-         title: "Estado de Inscripción",
-         text: `Ministerio de Hacienda: ${newValue === 1 ? "Inscrito" : "No inscrito"}`,
-         icon: "info",
-         confirmButtonText: "Aceptar"
-      });
+
+      // Crear objeto con todos los valores actualizados
+      const updatedValues = {
+         empleado_id: empleado.id_empleado,
+         planilla_id: empleado.planilla_id_epd,
+         ministerioHacienda: newValue,
+         rtins: rtins,
+         ccss: ccss,
+      };
+
+      console.log("Estado de Inscripción actualizado:", updatedValues);
+
+      try {
+         // Enviar los datos actualizados a través del thunk
+         await dispatch(Planilla_Incritos_Thunks(updatedValues));
+
+         // Mostrar alerta de éxito
+         Swal.fire({
+            title: "Estado de Inscripción",
+            text: `Ministerio de Hacienda: ${newValue === 1 ? "Inscrito" : "No inscrito"}`,
+            icon: "success",
+            confirmButtonText: "Aceptar",
+         });
+      } catch (error) {
+         console.error("Error al actualizar estado de inscripción:", error);
+         Swal.fire({
+            title: "Error",
+            text: "No se pudo actualizar el estado de inscripción",
+            icon: "error",
+            confirmButtonText: "Aceptar",
+         });
+      }
    };
 
    // Manejar el cambio de estado para RT-INS
-   const handleRtinsChange = (event) => {
+   const handleRtinsChange = async (event) => {
       const newValue = event.target.checked ? 1 : 0;
       setRtins(newValue);
-      
-      // Mostrar alerta con el nuevo estado
-      Swal.fire({
-         title: "Estado de Inscripción",
-         text: `RT-INS: ${newValue === 1 ? "Inscrito" : "No inscrito"}`,
-         icon: "info",
-         confirmButtonText: "Aceptar"
-      });
+
+      // Crear objeto con todos los valores actualizados
+      const updatedValues = {
+         empleado_id: empleado.id_empleado,
+         planilla_id: empleado.planilla_id_epd,
+         ministerioHacienda: ministerio,
+         rtins: newValue,
+         ccss: ccss,
+      };
+
+      try {
+         // Enviar los datos actualizados a través del thunk
+         await dispatch(Planilla_Incritos_Thunks(updatedValues));
+
+         // Mostrar alerta de éxito
+         Swal.fire({
+            title: "Estado de Inscripción",
+            text: `RT-INS: ${newValue === 1 ? "Inscrito" : "No inscrito"}`,
+            icon: "success",
+            confirmButtonText: "Aceptar",
+         });
+      } catch (error) {
+         console.error("Error al actualizar estado de inscripción:", error);
+         Swal.fire({
+            title: "Error",
+            text: "No se pudo actualizar el estado de inscripción",
+            icon: "error",
+            confirmButtonText: "Aceptar",
+         });
+      }
    };
 
    // Manejar el cambio de estado para CCSS
-   const handleCcssChange = (event) => {
+   const handleCcssChange = async (event) => {
       const newValue = event.target.checked ? 1 : 0;
       setCcss(newValue);
-      
-      // Mostrar alerta con el nuevo estado
-      Swal.fire({
-         title: "Estado de Inscripción",
-         text: `CCSS: ${newValue === 1 ? "Inscrito" : "No inscrito"}`,
-         icon: "info",
-         confirmButtonText: "Aceptar"
-      });
+
+      // Crear objeto con todos los valores actualizados
+      const updatedValues = {
+         empleado_id: empleado.id_empleado,
+         planilla_id: empleado.planilla_id_epd,
+         ministerioHacienda: ministerio,
+         rtins: rtins,
+         ccss: newValue,
+      };
+
+      try {
+         // Enviar los datos actualizados a través del thunk
+         await dispatch(Planilla_Incritos_Thunks(updatedValues));
+
+         // Mostrar alerta de éxito
+         Swal.fire({
+            title: "Estado de Inscripción",
+            text: `CCSS: ${newValue === 1 ? "Inscrito" : "No inscrito"}`,
+            icon: "success",
+            confirmButtonText: "Aceptar",
+         });
+      } catch (error) {
+         console.error("Error al actualizar estado de inscripción:", error);
+         Swal.fire({
+            title: "Error",
+            text: "No se pudo actualizar el estado de inscripción",
+            icon: "error",
+            confirmButtonText: "Aceptar",
+         });
+      }
    };
 
    return (
@@ -595,14 +700,17 @@ const EstadoInscripcionTable = ({ empleado }) => {
                <td className={ministerio === 1 ? "inscrito" : "no-inscrito"}>
                   <FormControlLabel
                      control={
-                        <Switch 
+                        <Switch
                            checked={ministerio === 1}
                            onChange={handleMinisterioChange}
                            color="success"
+                           size="small"
+                           style={{ transform: "scale(0.8)" }}
                         />
                      }
                      label={ministerio === 1 ? "Inscrito" : "No inscrito"}
                      labelPlacement="start"
+                     style={{ margin: 0, fontSize: "0.8rem" }}
                   />
                </td>
             </tr>
@@ -611,14 +719,17 @@ const EstadoInscripcionTable = ({ empleado }) => {
                <td className={rtins === 1 ? "inscrito" : "no-inscrito"}>
                   <FormControlLabel
                      control={
-                        <Switch 
+                        <Switch
                            checked={rtins === 1}
                            onChange={handleRtinsChange}
                            color="success"
+                           size="small"
+                           style={{ transform: "scale(0.8)" }}
                         />
                      }
                      label={rtins === 1 ? "Inscrito" : "No inscrito"}
                      labelPlacement="start"
+                     style={{ margin: 0, fontSize: "0.8rem" }}
                   />
                </td>
             </tr>
@@ -627,14 +738,17 @@ const EstadoInscripcionTable = ({ empleado }) => {
                <td className={ccss === 1 ? "inscrito" : "no-inscrito"}>
                   <FormControlLabel
                      control={
-                        <Switch 
+                        <Switch
                            checked={ccss === 1}
                            onChange={handleCcssChange}
                            color="success"
+                           size="small"
+                           style={{ transform: "scale(0.8)" }}
                         />
                      }
                      label={ccss === 1 ? "Inscrito" : "No inscrito"}
                      labelPlacement="start"
+                     style={{ margin: 0, fontSize: "0.8rem" }}
                   />
                </td>
             </tr>
@@ -663,6 +777,9 @@ const TarjetasSelector = ({ value, onChange }) => (
             <option value="3">3</option>
             <option value="4">4</option>
             <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="8">8</option>
+            <option value="10">10</option>
          </select>
       </label>
    </div>
@@ -713,7 +830,7 @@ const obtenerDatosPlanilla = (empleadosData) => {
  * @returns {Promise<Array>} Promesa que resuelve con un array vacío
  */
 const obtenerEmpleados = async () => {
-   console.warn('Usando datos de prueba vacíos porque no se pudo conectar con la API');
+   console.warn("Usando datos de prueba vacíos porque no se pudo conectar con la API");
    // Retorna un array vacío ya que los datos de prueba han sido eliminados
    return new Promise((resolve) => {
       setTimeout(() => resolve([]), 300);
@@ -726,41 +843,182 @@ const obtenerEmpleados = async () => {
  * @param {Object} props.planilla - Datos de la planilla
  * @returns {JSX.Element} Información de la planilla
  */
-const InfoPlanilla = ({ planilla }) => (
-   <div className="info-planilla">
-      <h3>Información de la Planilla</h3>
-      <div className="info-planilla-grid">
-         <div className="info-planilla-item">
-            <span className="info-label">Consecutivo:</span>
-            <span className="info-value">{planilla.consecutivo}</span>
-         </div>
-         <div className="info-planilla-item">
-            <span className="info-label">Nombre Empresa:</span>
-            <span className="info-value">{planilla.nombreEmpresa}</span>
-         </div>
-         <div className="info-planilla-item">
-            <span className="info-label">Creado por:</span>
-            <span className="info-value">{planilla.creadoPor}</span>
-         </div>
-         <div className="info-planilla-item">
-            <span className="info-label">Tipo Planilla:</span>
-            <span className="info-value">{planilla.tipoPlanilla}</span>
-         </div>
-         <div className="info-planilla-item">
-            <span className="info-label">Fecha Inicio:</span>
-            <span className="info-value">{planilla.fechaInicio}</span>
-         </div>
-         <div className="info-planilla-item">
-            <span className="info-label">Fecha Fin:</span>
-            <span className="info-value">{planilla.fechaFin}</span>
-         </div>
-         <div className="info-planilla-item">
-            <span className="info-label">Estado:</span>
-            <span className="info-value estado-activo">{planilla.estado}</span>
+// Original InfoPlanilla implementation has been replaced with the new implementation above
+const InfoPlanilla = ({ planilla }) => {
+   const dispatch = useDispatch();
+   
+   /**
+    * Maneja el cambio de estado de la planilla
+    * @param {string} newState - El nuevo estado de la planilla
+    */   const handleStateChange = async (newState) => {
+      // Obtener el ID de la planilla usando la función auxiliar
+      const planilla_id = obtenerPlanillaId(planilla);
+      
+      // Registrar en consola la intención de cambio de estado
+      console.log(`Intento de cambiar estado de planilla_id: ${planilla_id}`);
+      console.log(`Estado actual: ${planilla.estado}`);
+      console.log(`Nuevo estado: ${newState}`);
+        // Mostrar confirmación antes de cambiar el estado
+      Swal.fire({
+         title: '¿Cambiar estado de la planilla?',
+         text: `¿Está seguro que desea cambiar el estado de la planilla de "${planilla.estado}" a "${newState}"?`,
+         icon: 'warning',
+         showCancelButton: true,
+         confirmButtonColor: '#3085d6',
+         cancelButtonColor: '#d33',
+         confirmButtonText: 'Sí, cambiar estado',
+         cancelButtonText: 'Cancelar'
+      }).then(async (result) => {
+         if (result.isConfirmed) {// Registrar en consola que el cambio ha sido confirmado
+            const planilla_id = obtenerPlanillaId(planilla);
+            console.log(`Cambio de estado confirmado para planilla_id: ${planilla_id}`);
+            console.log(`Estado anterior: ${planilla.estado}`);
+            console.log(`Nuevo estado: ${newState}`);
+            
+            // Mostrar indicador de carga
+            Swal.fire({
+               title: 'Procesando',
+               text: 'Cambiando estado de planilla...',
+               allowOutsideClick: false,
+               didOpen: () => {
+                  Swal.showLoading();
+               },
+            });
+            
+            // Llamar al endpoint para cambiar el estado
+            try {               // Ejecutar el dispatch y esperar su finalización
+               console.log(`Enviando Planilla_CambioEstado_Thunks con planilla_id: ${planilla_id}, newState: ${newState}`);
+               await dispatch(Planilla_CmabioEstado_Thunks(planilla_id, newState));
+               
+               // Mostrar alerta de éxito
+               Swal.fire({
+                  title: 'Estado cambiado',
+                  text: `El estado de la planilla ha sido actualizado a "${newState}"`,
+                  icon: 'success',
+                  timer: 2000,
+                  showConfirmButton: false,
+               });
+               
+               // Recargar la página para reflejar el cambio
+               setTimeout(() => {
+                  window.location.reload();
+               }, 2500);
+            } catch (error) {
+               console.error('Error al cambiar estado de planilla:', error);
+               
+               // Mostrar alerta de error
+               Swal.fire({
+                  title: 'Error',
+                  text: `No se pudo cambiar el estado de la planilla: ${error.message || 'Error desconocido'}`,
+                  icon: 'error',
+                  confirmButtonText: 'Aceptar',
+               });
+            }} else {
+            // Registrar en consola que el cambio ha sido cancelado
+            console.log(`Cambio de estado cancelado para planilla_id: ${planilla_id}`);
+         }
+      });
+   };
+
+   return (
+      <div className="info-planilla">
+         <h3>Información de la Planilla</h3>
+         <div className="info-planilla-grid">
+            <div className="info-planilla-item">
+               <span className="info-label">Consecutivo:</span>
+               <span className="info-value">{planilla.consecutivo}</span>
+            </div>
+            <div className="info-planilla-item">
+               <span className="info-label">Nombre Empresa:</span>
+               <span className="info-value">{planilla.nombreEmpresa}</span>
+            </div>
+            <div className="info-planilla-item">
+               <span className="info-label">Creado por:</span>
+               <span className="info-value">{planilla.creadoPor}</span>
+            </div>
+            <div className="info-planilla-item">
+               <span className="info-label">Tipo Planilla:</span>
+               <span className="info-value">{planilla.tipoPlanilla}</span>
+            </div>
+            <div className="info-planilla-item">
+               <span className="info-label">Fecha Inicio:</span>
+               <span className="info-value">{planilla.fechaInicio}</span>
+            </div>
+            <div className="info-planilla-item">
+               <span className="info-label">Fecha Fin:</span>
+               <span className="info-value">{planilla.fechaFin}</span>
+            </div>
+            <div className="info-planilla-item">
+               <span className="info-label">Estado:</span>
+               <span className={`info-value estado-${planilla.estado.toLowerCase().replace(/\s+/g, '-')}`}>
+                  {planilla.estado}
+               </span>
+               <StateSelector currentState={planilla.estado} onStateChange={handleStateChange} />
+            </div>
          </div>
       </div>
-   </div>
-);
+   );
+};
+
+/**
+ * Componente para seleccionar y cambiar el estado de la planilla
+ * @param {Object} props - Propiedades del componente
+ * @param {string} props.currentState - Estado actual de la planilla
+ * @param {Function} props.onStateChange - Función a ejecutar cuando se cambia el estado
+ * @returns {JSX.Element|null} Selector de estado o null si no se debe mostrar
+ */
+const StateSelector = ({ currentState, onStateChange }) => {
+   // Determinar qué opciones mostrar según el estado actual
+   const getStateOptions = () => {
+      switch (currentState) {
+         case 'En Proceso':
+            // No se muestra el selector para planillas en proceso
+            return null;
+         case 'Activa':
+            return ['Cerrada', 'Cancelada', 'Procesada'];
+         case 'Cerrada':
+            return ['Activa', 'Cancelada', 'Procesada'];
+         case 'Cancelada':
+            return ['Activa', 'Cerrada', 'Procesada'];
+         case 'Procesada':
+            return ['Activa'];
+         default:
+            return [];
+      }
+   };
+
+   const stateOptions = getStateOptions();
+   
+   // No mostrar selector si no hay opciones o en ciertos estados
+   if (!stateOptions || stateOptions.length === 0) {
+      return null;
+   }
+
+   return (
+      <FormControl size="small" style={{ minWidth: 120, marginLeft: 10 }}>
+         <Select
+            value=""
+            displayEmpty
+            onChange={(e) => onStateChange(e.target.value)}
+            style={{ 
+               height: 30, 
+               fontSize: '0.85rem',
+               backgroundColor: '#f8f9fa',
+               borderColor: '#ced4da' 
+            }}
+         >
+            <MenuItem disabled value="">
+               <em>Cambiar a</em>
+            </MenuItem>
+            {stateOptions.map((state) => (
+               <MenuItem key={state} value={state}>
+                  {state}
+               </MenuItem>
+            ))}
+         </Select>
+      </FormControl>
+   );
+};
 
 /**
  * Función utilitaria para copiar texto al portapapeles y mostrar notificación
@@ -918,7 +1176,8 @@ export const VisualizarPlanilla = () => {
    const dispatch = useDispatch();
 
    // Referencia a la grid de tarjetas para exportar a PDF
-   const gridRef = React.useRef(null);   /**
+   const gridRef = React.useRef(null);
+   /**
     * Carga los datos de empleados desde la API o datos de prueba
     */
    useEffect(() => {
@@ -1008,21 +1267,25 @@ export const VisualizarPlanilla = () => {
 
       // Obtener array de empleados
       const empleadosArray = Array.from(empleadosMap.values());
-      
+
       // Ordenar empleados: primero los no aplicados (marca_aplicado_epd=0) y luego los aplicados (marca_aplicado_epd=1)
       // Dentro de cada grupo, ordenar alfabéticamente por nombre
       return empleadosArray.sort((a, b) => {
          const aplicadoA = parseInt(a.marca_aplicado_epd) === 1;
          const aplicadoB = parseInt(b.marca_aplicado_epd) === 1;
-         
+
          // Si uno está aplicado y el otro no, el no aplicado va primero
          if (aplicadoA !== aplicadoB) {
             return aplicadoA ? 1 : -1;
          }
-         
+
          // Si ambos tienen el mismo estado de aplicación, ordenar alfabéticamente
-         const nombreA = `${a.nombre_empleado || ""} ${a.apellidos_empleado || ""}`.trim().toLowerCase();
-         const nombreB = `${b.nombre_empleado || ""} ${b.apellidos_empleado || ""}`.trim().toLowerCase();
+         const nombreA = `${a.nombre_empleado || ""} ${a.apellidos_empleado || ""}`
+            .trim()
+            .toLowerCase();
+         const nombreB = `${b.nombre_empleado || ""} ${b.apellidos_empleado || ""}`
+            .trim()
+            .toLowerCase();
          return nombreA.localeCompare(nombreB);
       });
    };
@@ -1072,9 +1335,13 @@ export const VisualizarPlanilla = () => {
    // Determinar qué lista de empleados mostrar
    const empleadosMostrados = busquedaActiva ? empleadosFiltrados : empleados;
 
-   // Estilos dinámicos para la cuadrícula
+   // Estilos dinámicos para la cuadrícula optimizada para muchas tarjetas
    const gridStyle = {
       "--tarjetas-por-fila": tarjetasPorFila,
+      display: "grid",
+      gridTemplateColumns: `repeat(${tarjetasPorFila}, 1fr)`,
+      gap: "10px",
+      marginTop: "15px",
    };
 
    return (

@@ -4,8 +4,7 @@ import { crearRespuestaExitosa } from "../../hooks/crearRespuestaExitosa";
 import { ApiProvider } from "../providerApi/providerApi";
 
 
-export const Planilla_Insertar_Empleado_Planilla_Thunks = (id_planilla, id_empresa, datos, isSelected) => {
-
+export const Planilla_CmabioEstado_Thunks = (idplanilla, estado) => {
    return async (dispatch, getState) => {
       try {
          // Obtener datos del usuario autenticado desde el estado de la aplicación
@@ -19,25 +18,22 @@ export const Planilla_Insertar_Empleado_Planilla_Thunks = (id_planilla, id_empre
             user: {
                id: parseInt(user.id_usuario), // id usuario auth
             },
-            data: {
-               id_planilla,
-               id_empresa,
-               datos,
-               isSelected,
+            planilla: {
+               idplanilla,
+               estado,
             },
             acceso: {
                type: 0,
                permiso: 0,
-               details: "",
+               details:
+                  "No tiene permisos para editar planillas, contacte al administrador del sistema",
             },
          };
 
-         const endpoint = "planilla/insertar_empleado_planilla"; // Endpoint para editar una planilla
+         const endpoint = "planilla/Planilla_CmabioEstado_Thunks"; // Endpoint para editar una planilla
 
          // Realizar la petición a la API usando ApiProvider
          const resultado = await ApiProvider({ transaccion, endpoint });
-
-         
 
          // Verificar si la respuesta contiene errores
          const error = verificarErroresRespuesta(resultado);
