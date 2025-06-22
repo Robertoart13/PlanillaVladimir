@@ -10,24 +10,21 @@ import Cookies from "js-cookie";
  * @returns {boolean} - True if running locally, false otherwise
  */
 const isLocalEnvironment = () => {
-  return window.location.hostname === "localhost" || window.location.hostname === "localhost";
+   return window.location.hostname === "localhost";
 };
-
-
-
 
 /**
  * Environment configuration object
  */
 const ENV_CONFIG = {
-  development: {
-    apiBaseUrl: "http://localhost:7500/api/v1/",
-    database: "pruebas",
-  },
-  production: {
-    apiBaseUrl: "https://api.acuamic.com/api/v1/",
-    database: "produccion",
-  },
+   development: {
+      apiBaseUrl: "http://localhost:7500/api/v1/",
+      database: "pruebas",
+   },
+   production: {
+      apiBaseUrl: "https://api.acuamic.com/api/v1/",
+      database: "produccion",
+   },
 };
 
 /**
@@ -35,7 +32,7 @@ const ENV_CONFIG = {
  * @returns {Object} - Environment configuration
  */
 const getCurrentEnvConfig = () => {
-  return isLocalEnvironment() ? ENV_CONFIG.development : ENV_CONFIG.production;
+   return isLocalEnvironment() ? ENV_CONFIG.development : ENV_CONFIG.production;
 };
 
 // Initialize environment-specific constants
@@ -52,7 +49,7 @@ const databaseuse = getCurrentEnvConfig().database;
  * @returns {string|null} - The authentication token or null if not found
  */
 const getAuthToken = () => {
-  return Cookies.get("access_token"); // Obtiene el valor de la cookie 'access_token'
+   return Cookies.get("access_token"); // Obtiene el valor de la cookie 'access_token'
 };
 
 /**********************************************
@@ -64,12 +61,12 @@ const getAuthToken = () => {
  * @returns {Object} - Object containing standard request parameters
  */
 const getCommonRequestData = () => {
-  return {
-    token_access: "1234567890",
-    database: databaseuse,
-    sqlQuery: "",
-    type: "",
-  };
+   return {
+      token_access: "1234567890",
+      database: databaseuse,
+      sqlQuery: "",
+      type: "",
+   };
 };
 
 // Initialize common request data
@@ -85,18 +82,18 @@ const commonRequestData = getCommonRequestData();
  * @returns {Object} - Headers object
  */
 const createHeaders = (includeAuth = true) => {
-  const headers = {
-    "Content-Type": "application/json; charset=utf-8",
-  };
+   const headers = {
+      "Content-Type": "application/json; charset=utf-8",
+   };
 
-  if (includeAuth) {
-    const token = getAuthToken();
-    if (token) {
-      headers["Authorization"] = `Bearer ${token}`;
-    }
-  }
+   if (includeAuth) {
+      const token = getAuthToken();
+      if (token) {
+         headers["Authorization"] = `Bearer ${token}`;
+      }
+   }
 
-  return headers;
+   return headers;
 };
 
 /**
@@ -105,23 +102,22 @@ const createHeaders = (includeAuth = true) => {
  * @returns {boolean} - True if valid, throws error if invalid
  */
 const validateResponseStructure = (response) => {
-  if (!response || typeof response !== "object") {
+   if (!response || typeof response !== "object") {
+      const data = {
+         respuesta: {
+            status: 422,
+            error: {
+               details: "Invalid response format: Response is not an object",
+            },
+         },
+      };
 
-    const data = {
-      respuesta: {
-        status: 422,
-        error: {
-          details: "Invalid response format: Response is not an object",
-        }
-      }
-    }
+      return data;
+   }
 
-    return data;
-  }
-
-  // You can add more specific validations based on your API's expected structure
-  // For example, checking for specific fields that should always be present
-  return true;
+   // You can add more specific validations based on your API's expected structure
+   // For example, checking for specific fields that should always be present
+   return true;
 };
 
 /**
@@ -132,26 +128,26 @@ const validateResponseStructure = (response) => {
  * @returns {Promise<Object>} - Response object with success status and data
  */
 const fetchData = async (endpoint, requestData, requiresAuth = true) => {
-  try {
-    const url = `${apiUrl}${endpoint}`;
-    
-    // Create headers properly using the createHeaders function
-    const headers = createHeaders(requiresAuth);
-    
-    // For debugging
-    // console.log("Request URL:", url);
-    // console.log("Request Headers:", headers);
-    // console.log("Request Data:", requestData);
+   try {
+      const url = `${apiUrl}${endpoint}`;
 
-    const response = await axios.post(url, requestData, { headers });
+      // Create headers properly using the createHeaders function
+      const headers = createHeaders(requiresAuth);
 
-    // Validate response structure
-    validateResponseStructure(response.data);
+      // For debugging
+      // console.log("Request URL:", url);
+      // console.log("Request Headers:", headers);
+      // console.log("Request Data:", requestData);
 
-    return { ok: true, data: response.data };
-  } catch (error) {
-    return handleApiError(error);
-  }
+      const response = await axios.post(url, requestData, { headers });
+
+      // Validate response structure
+      validateResponseStructure(response.data);
+
+      return { ok: true, data: response.data };
+   } catch (error) {
+      return handleApiError(error);
+   }
 };
 
 /**
@@ -162,39 +158,38 @@ const fetchData = async (endpoint, requestData, requiresAuth = true) => {
  * @returns {Promise<Object>} - Response object with success status and data
  */
 const fetchDataFile = async (endpoint, requestData, requiresAuth = true) => {
-  try {
-    const url = `${apiUrl}${endpoint}`;
-    
-    // Create proper headers for file upload
-    const headers = {};
-    
-    if (requiresAuth) {
-      const token = getAuthToken();
-      if (token) {
-        headers["Authorization"] = `Bearer ${token}`;
+   try {
+      const url = `${apiUrl}${endpoint}`;
+
+      // Create proper headers for file upload
+      const headers = {};
+
+      if (requiresAuth) {
+         const token = getAuthToken();
+         if (token) {
+            headers["Authorization"] = `Bearer ${token}`;
+         }
       }
-    }
-    
 
-    const response = await fetch(url, {
-      method: "POST",
-      body: requestData.formData,
-      headers,
-    });
+      const response = await fetch(url, {
+         method: "POST",
+         body: requestData.formData,
+         headers,
+      });
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
+      if (!response.ok) {
+         throw new Error(`HTTP error! Status: ${response.status}`);
+      }
 
-    const responseData = await response.json();
+      const responseData = await response.json();
 
-    // Validate response structure
-    validateResponseStructure(responseData);
+      // Validate response structure
+      validateResponseStructure(responseData);
 
-    return { ok: true, data: responseData };
-  } catch (error) {
-    return handleApiError(error);
-  }
+      return { ok: true, data: responseData };
+   } catch (error) {
+      return handleApiError(error);
+   }
 };
 
 /**
@@ -203,18 +198,18 @@ const fetchDataFile = async (endpoint, requestData, requiresAuth = true) => {
  * @returns {Object} - Standardized error response
  */
 const handleApiError = (error) => {
-  console.error("API Error:", error);
+   console.error("API Error:", error);
 
-  // Check if error is related to response validation
-  const isValidationError = error.message && error.message.includes("Invalid response format");
+   // Check if error is related to response validation
+   const isValidationError = error.message && error.message.includes("Invalid response format");
 
-  return {
-    ok: false,
-    errorMessage: error.message || "An unknown error occurred",
-    errorDetails: error.response?.data || null,
-    status: error.response?.status || (isValidationError ? 422 : 500),
-    isValidationError: isValidationError,
-  };
+   return {
+      ok: false,
+      errorMessage: error.message || "An unknown error occurred",
+      errorDetails: error.response?.data || null,
+      status: error.response?.status || (isValidationError ? 422 : 500),
+      isValidationError: isValidationError,
+   };
 };
 
 /**********************************************
@@ -224,4 +219,15 @@ const handleApiError = (error) => {
 // For security reasons, don't export the secret key directly
 const secretKey = "9e-@5Y4cHdQ)5wT!uL*BzR#e^T@6f2X!";
 
-export { fetchData, fetchDataFile, commonRequestData, secretKey, apiUrlImg, isLocalEnvironment, getCurrentEnvConfig, getAuthToken, createHeaders, apiUrl };
+export {
+   fetchData,
+   fetchDataFile,
+   commonRequestData,
+   secretKey,
+   apiUrlImg,
+   isLocalEnvironment,
+   getCurrentEnvConfig,
+   getAuthToken,
+   createHeaders,
+   apiUrl,
+};
