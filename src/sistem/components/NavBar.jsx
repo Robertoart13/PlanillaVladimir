@@ -81,7 +81,7 @@ export const NavBar = ({ isSidebarOpen, isMobile }) => {
                <i className={icon}></i>
             </span>
             <span
-               className="pc-mtext"
+               className="pc-"
                data-i18n={i18n || label}
             >
                {label}
@@ -210,13 +210,13 @@ export const NavBar = ({ isSidebarOpen, isMobile }) => {
                      >
                         <span className="d-flex align-items-center">
                            <span className="pc-micon">
-                              <i className="fas fa-file-powerpoint"></i>
+                           <i className="fas fa-leaf"></i>
                            </span>
                            <span
                               className="pc-mtext"
                               data-i18n="Gestión de Planillas"
                            >
-                              Gestión de Planillas
+                              Natural Planillas 
                            </span>
                         </span>
                         <span className="submenu-arrow ms-auto">
