@@ -17,6 +17,10 @@ import { Planilla_Aplicado } from "../../../../store/Planilla/Planilla_Aplicado_
 import { Planilla_Incritos_Thunks } from "../../../../store/Planilla/Planilla_Incritos_Thunks";
 import { Planilla_CmabioEstado_Thunks } from "../../../../store/Planilla/Planilla_CmabioEstado_Thunks";
 
+// Add MUI Dialog imports
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
 
 // Configuración global para el número de tarjetas por fila por defecto
 const TARJETAS_POR_FILA_DEFAULT = 3;
@@ -44,7 +48,8 @@ const exportToPDF = async (element, fileName) => {
       }); // Crear un contenedor para la tarjeta con clases para aplicar estilos específicos de PDF
       const container = document.createElement("div");
       container.className = "pdf-container";
-      container.style.width = "400px"; // Reducimos el ancho para un PDF más pequeño
+      // Use cloned content width for better fit
+      container.style.width = element.offsetWidth + "px";
       container.style.padding = "0";
       container.style.margin = "0";
       container.style.backgroundColor = "#ffffff";
@@ -239,7 +244,7 @@ const desencriptarId = (encriptedId) => {
  * @param {Object} props.empleado - Datos del empleado a mostrar
  * @returns {JSX.Element} Tarjeta de remuneración
  */
-const RemuneracionCard = ({ empleado }) => {
+const RemuneracionCard = ({ empleado, onApplied }) => {
    // Determinar si el empleado está aplicado basado en su estado o marca_aplicado_epd
    const estadoAplicado =
       empleado.estado_epd === "aplicado" || parseInt(empleado.marca_aplicado_epd) === 1;
@@ -274,6 +279,10 @@ const RemuneracionCard = ({ empleado }) => {
             timer: 2000,
             showConfirmButton: false,
          });
+         // Notify parent to mark empleado as applied
+         if (typeof onApplied === 'function') {
+            onApplied(empleado.id_empleado);
+         }
       } catch (error) {
          console.error("Error al aplicar empleado:", error);
 
@@ -302,22 +311,24 @@ const RemuneracionCard = ({ empleado }) => {
          // Crear un clon del elemento para manipularlo sin afectar la UI
          const cardClone = cardRef.current.cloneNode(true);
 
-         // Eliminar botones y elementos que no deberían aparecer en el PDF
+         // Hide apply button container
          const botonesParaOcultar = cardClone.querySelectorAll(".boton-container");
-         botonesParaOcultar.forEach((boton) => {
-            boton.style.display = "none";
-         });
-
-         // También ocultar los botones de copiar
+         botonesParaOcultar.forEach((boton) => boton.style.display = "none");
+         // Hide copy buttons
          const botonesCopiar = cardClone.querySelectorAll(".boton-copiar");
-         botonesCopiar.forEach((boton) => {
-            boton.style.display = "none";
-         });
-
-         // Eliminar cualquier padding o margen innecesario para hacer el PDF más compacto
+         botonesCopiar.forEach((boton) => boton.style.display = "none");
+         // Hide Ver perfil and PDF action buttons
+         const botonesVerPerfil = cardClone.querySelectorAll(".boton-ver-perfil");
+         botonesVerPerfil.forEach((btn) => btn.style.display = "none");
+         
+         // Compact tables: show only first three tables (Info, Desgloce, Deducciones)
          const tablas = cardClone.querySelectorAll(".remuneracion-table");
-         tablas.forEach((tabla) => {
-            tabla.style.marginBottom = "5px";
+         tablas.forEach((tabla, idx) => {
+            if (idx < 3) {
+               tabla.style.marginBottom = "5px";
+            } else {
+               tabla.style.display = "none";
+            }
          });
 
          // Preparar el nombre del archivo
@@ -854,10 +865,6 @@ const InfoPlanilla = ({ planilla }) => {
       // Obtener el ID de la planilla usando la función auxiliar
       const planilla_id = obtenerPlanillaId(planilla);
       
-      // Registrar en consola la intención de cambio de estado
-      console.log(`Intento de cambiar estado de planilla_id: ${planilla_id}`);
-      console.log(`Estado actual: ${planilla.estado}`);
-      console.log(`Nuevo estado: ${newState}`);
         // Mostrar confirmación antes de cambiar el estado
       Swal.fire({
          title: '¿Cambiar estado de la planilla?',
@@ -1151,6 +1158,61 @@ const SearchBar = ({ onSearch }) => {
 };
 
 /**
+ * Mini card showing resumen + Estado Inscripción and apply button
+ */
+const MiniRemuneracionCard = ({ empleado, onClick, onApplied }) => {
+   const dispatch = useDispatch();
+   // Determine if already applied
+   const initApplied = empleado.estado_epd === "aplicado" || parseInt(empleado.marca_aplicado_epd) === 1;
+   const [aplicado, setAplicado] = useState(initApplied);
+   const nombre = `${empleado.nombre_empleado || ""} ${empleado.apellidos_empleado || ""}`.trim();
+
+   // Handle apply action
+   const handleApplyClick = async (e) => {
+      e.stopPropagation();
+      setAplicado(true);
+      // Show loading
+      Swal.fire({
+         title: "Procesando",
+         text: "Aplicando usuario...",
+         allowOutsideClick: false,
+         didOpen: () => { Swal.showLoading(); },
+      });
+      try {
+         await dispatch(Planilla_Aplicado(empleado.id_empleado, empleado.planilla_id_epd));
+         Swal.fire({ title: "Éxito", text: "Empleado aplicado correctamente", icon: "success", timer: 2000, showConfirmButton: false });
+         // notify parent
+         if (typeof onApplied === 'function') onApplied(empleado.id_empleado);
+      } catch (error) {
+         console.error("Error al aplicar empleado:", error);
+         Swal.fire({ title: "Error", text: "Error al aplicar el empleado", icon: "error", confirmButtonText: "Aceptar" });
+         setAplicado(false);
+      }
+   };
+
+   return (
+      <div className={`remuneracion-card ${aplicado ? "aplicado" : "no-aplicado"}`} onClick={onClick} style={{ cursor: 'pointer' }}>
+         <div className="remuneracion-header">REMUNERACIÓN OPU SAL</div>
+         <table className="remuneracion-table">
+            <tbody>
+               <tr><td>Nombre:</td><td>{nombre}</td></tr>
+               <tr><td>Cédula:</td><td>{empleado.cedula_empleado}</td></tr>
+               <tr><td>Rem. Neta:</td><td className="amount">₡{empleado.remuneracion_neta_epd || "0.00"}</td></tr>
+            </tbody>
+         </table>
+         {/* Estado de Inscripción */}
+         <EstadoInscripcionTable empleado={empleado} />
+         {/* Botón aplicar */}
+         <div className="boton-container" onClick={(e) => e.stopPropagation()}>
+            <button className="boton-aplicar" onClick={handleApplyClick} disabled={aplicado}>
+               {aplicado ? "Aplicado" : "Aplicar"}
+            </button>
+         </div>
+      </div>
+   );
+};
+
+/**
  * Componente principal para visualizar la planilla de empleados
  * @returns {JSX.Element} Grid de tarjetas de remuneración
  */
@@ -1177,6 +1239,20 @@ export const VisualizarPlanilla = () => {
 
    // Referencia a la grid de tarjetas para exportar a PDF
    const gridRef = React.useRef(null);
+
+   // Add modal state and handlers inside the VisualizarPlanilla component
+   const [modalOpen, setModalOpen] = useState(false);
+   const [selectedEmpleado, setSelectedEmpleado] = useState(null);
+
+   const handleOpenModal = (empleado) => {
+      setSelectedEmpleado(empleado);
+      setModalOpen(true);
+   };
+   const handleCloseModal = () => {
+      setModalOpen(false);
+      setSelectedEmpleado(null);
+   };
+
    /**
     * Carga los datos de empleados desde la API o datos de prueba
     */
@@ -1344,6 +1420,44 @@ export const VisualizarPlanilla = () => {
       marginTop: "15px",
    };
 
+   /** Handle marking empleado as applied in list and selected */
+   const handleEmpleadoApplied = (empleadoId) => {
+     // Update and sort main empleados list
+     setEmpleados((prev) => {
+       const updated = prev.map((emp) =>
+         emp.id_empleado === empleadoId ? { ...emp, marca_aplicado_epd: '1' } : emp
+       );
+       return [...updated].sort((a, b) => {
+         const appliedA = parseInt(a.marca_aplicado_epd) === 1;
+         const appliedB = parseInt(b.marca_aplicado_epd) === 1;
+         if (appliedA !== appliedB) return appliedA ? 1 : -1;
+         const nameA = `${a.nombre_empleado || ""} ${a.apellidos_empleado || ""}`.trim().toLowerCase();
+         const nameB = `${b.nombre_empleado || ""} ${b.apellidos_empleado || ""}`.trim().toLowerCase();
+         return nameA.localeCompare(nameB);
+       });
+     });
+     // Update and sort filtered list if active
+     if (busquedaActiva) {
+       setEmpleadosFiltrados((prev) => {
+         const updated = prev.map((emp) =>
+           emp.id_empleado === empleadoId ? { ...emp, marca_aplicado_epd: '1' } : emp
+         );
+         return [...updated].sort((a, b) => {
+           const appliedA = parseInt(a.marca_aplicado_epd) === 1;
+           const appliedB = parseInt(b.marca_aplicado_epd) === 1;
+           if (appliedA !== appliedB) return appliedA ? 1 : -1;
+           const nameA = `${a.nombre_empleado || ""} ${a.apellidos_empleado || ""}`.trim().toLowerCase();
+           const nameB = `${b.nombre_empleado || ""} ${b.apellidos_empleado || ""}`.trim().toLowerCase();
+           return nameA.localeCompare(nameB);
+         });
+       });
+     }
+     // Update selectedEmpleado state if applicable
+     if (selectedEmpleado && selectedEmpleado.id_empleado === empleadoId) {
+       setSelectedEmpleado((emp) => ({ ...emp, marca_aplicado_epd: '1' }));
+     }
+   };
+
    return (
       <TarjetaRow
          texto="Visualizar Planilla"
@@ -1375,14 +1489,25 @@ export const VisualizarPlanilla = () => {
                   ref={gridRef}
                >
                   {empleadosMostrados.map((empleado, index) => (
-                     <RemuneracionCard
+                     <MiniRemuneracionCard
                         key={index}
                         empleado={empleado}
+                        onClick={() => handleOpenModal(empleado)}
+                        onApplied={handleEmpleadoApplied}
                      />
                   ))}
                </div>
             )}
          </div>
+
+         {selectedEmpleado && (
+            <Dialog open={modalOpen} onClose={handleCloseModal} maxWidth="md" fullWidth>
+               <DialogTitle>Detalle Remuneración</DialogTitle>
+               <DialogContent>
+                  <RemuneracionCard empleado={selectedEmpleado} onApplied={handleEmpleadoApplied} />
+               </DialogContent>
+            </Dialog>
+         )}
       </TarjetaRow>
    );
 };

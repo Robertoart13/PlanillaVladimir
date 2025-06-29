@@ -723,7 +723,6 @@ function useHandleCheckbox({
          const globalIdx = startIdx + idx;
          const isCurrentlySelected = selectedRows.includes(globalIdx);
          const shouldSelect = !isCurrentlySelected;
-         console.log(empleadosRaw[globalIdx]);
 
          // Llamar al thunk para actualizar selección en backend
          await insertartEmpleadoPlanilla({
@@ -1077,7 +1076,8 @@ export const PayrollGenerator = () => {
 
    // Handler para cargar y procesar Excel de planilla
    const handleFileUpload = (e) => {
-      const file = e.target.files[0];
+      const input = e.target;
+      const file = input.files[0];
       if (!file) return;
       const reader = new FileReader();
       reader.onload = (evt) => {
@@ -1103,7 +1103,8 @@ export const PayrollGenerator = () => {
          excelRows.forEach((row) => {
             const cedulaValue = String(row['Cédula']).trim();
             const idx = updatedRows.findIndex(r => String(r.cedula) === cedulaValue);
-            if (idx !== -1) {
+            // Only update unmarked employees
+            if (idx !== -1 && !selectedRows.includes(idx)) {
                Object.entries(headerKeyMap).forEach(([header, key]) => {
                   if (key === 'cedula') return;
                   const cell = row[header];
@@ -1112,6 +1113,8 @@ export const PayrollGenerator = () => {
             }
          });
          setRows(updatedRows);
+         // Clear input to allow re-upload
+         input.value = '';
       };
       reader.readAsArrayBuffer(file);
    };
@@ -1193,17 +1196,6 @@ export const PayrollGenerator = () => {
                            ))}
                         </select>
                      </div>
-                     {/* Botón Aplicar Planilla en estado 'En Proceso' */}
-                     {planillaSeleccionada && planillaEstado === "En Proceso" && (
-                        <div className="mb-3">
-                           <button
-                              className="btn btn-success"
-                              onClick={handleAplicarPlanilla}
-                           >
-                              Aplicar Planilla
-                           </button>
-                        </div>
-                     )}
                      {/* Espacio para cargar archivo Excel con datos de planilla */}
                      <div className="mb-3">
                         <label htmlFor="excelUpload" className="form-label">Cargar Excel de Planilla</label>
