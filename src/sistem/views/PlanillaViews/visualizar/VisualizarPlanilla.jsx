@@ -30,11 +30,6 @@ const TARJETAS_POR_FILA_DEFAULT = 3;
  * @param {HTMLElement} element - Elemento DOM a convertir en PDF
  * @param {string} fileName - Nombre del archivo PDF a generar
  */
-/**
- * Función para exportar a PDF un elemento del DOM
- * @param {HTMLElement} element - Elemento DOM a convertir en PDF
- * @param {string} fileName - Nombre del archivo PDF a generar
- */
 const exportToPDF = async (element, fileName) => {
    try {
       // Mostrar indicador de carga
@@ -48,8 +43,8 @@ const exportToPDF = async (element, fileName) => {
       }); // Crear un contenedor para la tarjeta con clases para aplicar estilos específicos de PDF
       const container = document.createElement("div");
       container.className = "pdf-container";
-      // Use cloned content width for better fit
-      container.style.width = element.offsetWidth + "px";
+      // Ensure the PDF container is wide enough for full-page formatting
+      container.style.width = Math.max(element.offsetWidth, 800) + "px";
       container.style.padding = "30px";
       container.style.margin = "0";
       container.style.backgroundColor = "#ffffff";
@@ -115,6 +110,15 @@ const exportToPDF = async (element, fileName) => {
       .amount {
         text-align: right;
       }
+      /* Center the PDF content and allow full width */
+      .pdf-container {
+        display: flex !important;
+        justify-content: center !important;
+      }
+      .pdf-container .pdf-content {
+        width: 100% !important;
+        max-width: none !important;
+      }
     `;
       // Crear elemento de estilo e insertarlo en el contenedor
       const styleElement = document.createElement("style");
@@ -129,13 +133,13 @@ const exportToPDF = async (element, fileName) => {
 
       // Usar configuración óptima para html2canvas
       const canvas = await html2canvas(container, {
-         scale: 2, // Balance entre calidad y rendimiento
+         scale: 2,
          useCORS: true,
          allowTaint: true,
          backgroundColor: "#ffffff",
-         logging: true, // Mostrar logs para debugging
+         logging: true,
          letterRendering: true,
-         width: 600,
+         width: container.offsetWidth,
          height: container.offsetHeight,
       });
 
@@ -145,30 +149,33 @@ const exportToPDF = async (element, fileName) => {
       // Obtener la imagen como base64
       const imgData = canvas.toDataURL("image/png");
 
-      // Calcular dimensiones para el PDF
-      const imgWidth = 190; // Ancho en mm (A4 width = 210mm, con margen)
-      const pageHeight = 295; // Alto en mm (A4 height = 297mm, con margen)
+      // Crear PDF en landscape orientation with dynamic page sizing
+      const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+      // Obtener dimensiones de la página
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const margin = 10;
+      // Escalar contenido para que se vea más pequeño
+      const scaleFactor = 0.8;
+      // Calcular dimensiones de la imagen en PDF con escala
+      const contentWidth = pageWidth - margin * 2;
+      const imgWidth = contentWidth * scaleFactor;
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-      // Crear nuevo documento PDF
-      const pdf = new jsPDF("p", "mm", "a4");
-
-      // Variables para manejar múltiples páginas si es necesario
       let heightLeft = imgHeight;
-      let position = 10; // Posición inicial (margen superior)
-      let pageNum = 1;
+      // Centrar horizontalmente
+      const xPosition = (pageWidth - imgWidth) / 2;
+      let positionY = margin;
 
-      // Añadir la imagen a la primera página
-      pdf.addImage(imgData, "PNG", 10, position, imgWidth, imgHeight);
+      // Añadir imagen a la primera página, centrada y escalada
+      pdf.addImage(imgData, "PNG", xPosition, positionY, imgWidth, imgHeight);
       heightLeft -= pageHeight;
 
-      // Si el contenido es más grande que una página, añadir páginas adicionales
+      // Añadir páginas adicionales si es necesario (manteniendo escala y centrado)
       while (heightLeft >= 0) {
-         position = heightLeft - imgHeight; // Reposicionar para la siguiente página
+         positionY = heightLeft - imgHeight + margin;
          pdf.addPage();
-         pdf.addImage(imgData, "PNG", 10, position, imgWidth, imgHeight);
+         pdf.addImage(imgData, "PNG", xPosition, positionY, imgWidth, imgHeight);
          heightLeft -= pageHeight;
-         pageNum++;
       }
 
       // Guardar el PDF
