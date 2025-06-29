@@ -1512,8 +1512,18 @@ export const VisualizarPlanilla = () => {
          </div>
 
          {selectedEmpleado && (
+            console.log(selectedEmpleado),
             <Dialog open={modalOpen} onClose={handleCloseModal} maxWidth="md" fullWidth>
                <DialogTitle>Detalle Remuneración</DialogTitle>
+               {selectedEmpleado.marca_aplicado_epd === 1 && (
+                  <div style={{ margin: '8px 0', display: 'flex', justifyContent: 'flex-end' }}>
+                     <label>
+                        <input type="checkbox" value={selectedEmpleado.tipo_planilla} />
+                        Habilitar empleado para modificación
+                     </label>
+                  </div>
+               )}
+
                <DialogContent>
                   <RemuneracionCard empleado={selectedEmpleado} onApplied={handleEmpleadoApplied} />
                </DialogContent>
