@@ -330,11 +330,10 @@
   padding: 4px 0;
 }
 
-/* Estilos específicos para PDF */
+/* Styles for PDF container */
 .pdf-container {
-  width: 100%;
-  max-width: 800px;
-  margin: 0 auto;
+  /* Allow inline style width from JS to apply without max-width constraint */
+  max-width: none;
   background-color: white;
 }
 

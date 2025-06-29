@@ -865,6 +865,10 @@ const InfoPlanilla = ({ planilla }) => {
       // Obtener el ID de la planilla usando la función auxiliar
       const planilla_id = obtenerPlanillaId(planilla);
       
+      // Registrar en consola la intención de cambio de estado
+      console.log(`Intento de cambiar estado de planilla_id: ${planilla_id}`);
+      console.log(`Estado actual: ${planilla.estado}`);
+      console.log(`Nuevo estado: ${newState}`);
         // Mostrar confirmación antes de cambiar el estado
       Swal.fire({
          title: '¿Cambiar estado de la planilla?',
