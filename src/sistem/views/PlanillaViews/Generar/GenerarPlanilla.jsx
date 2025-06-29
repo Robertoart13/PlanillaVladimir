@@ -5,19 +5,19 @@ import { SelectOpcion_Thunks } from "../../../../store/SelectOpcion/SelectOpcion
 import { Planilla_Lista_Empleado_Thunks } from "../../../../store/Planilla/Planilla_Lista_Empleado_Thunks";
 import { Planilla_Insertar_Empleado_Planilla_Thunks } from "../../../../store/Planilla/Planilla_Insertar_Empleado_Planilla_Thunks";
 import { Planilla_Aplicar_Thunks } from "../../../../store/Planilla/Planilla_Aplicar_Thunks";
+import * as XLSX from 'xlsx';
 
 /**
  * =========================
  * CONSTANTS & CONFIGURATION
  * =========================
- */
+*/
 
 /** Payroll table column definitions */
 const PAYROLL_COLUMNS = [
    { key: "nombre", label: "Nombre", style: { minWidth: 180 } },
    { key: "cedula", label: "Cédula", style: { minWidth: 100 } },
    { key: "asegurado", label: "# De Asegurado" },
-   { key: "can", label: "CAN" },
    { key: "semana", label: "Semana", type: "number" },
    { key: "bruta", label: "Remuneración Bruta", type: "number" },
    { key: "fcl", label: "FCL 1,5% ROB 3,25%", type: "number" },
@@ -37,7 +37,7 @@ const PAGE_SIZES = [5, 10, 30, 60, 80, 100];
 /**
  * ================
  * STYLE FUNCTIONS
- * ================
+ * ================ 
  */
 
 /**
@@ -196,20 +196,25 @@ function PayrollTable({
                         <td
                            key={col.key}
                            style={getTableCellStyle(col, isSelected, idx)}
-                        >                        {col.type === "number" ? (
+                        >
+                           {col.type === "number" && !["neta", "totalReintegros"].includes(col.key) ? (
                               <input
                                  type="number"
                                  name={col.key}
                                  value={row[col.key]}
                                  onChange={(e) => onInputChange(e, idx)}
                                  onBlur={(e) => {
-                                    // Format the value with 2 decimal places on blur
-                                    const value = parseFloat(e.target.value) || 0;
-                                    e.target.value = value.toFixed(2);
+                                    if (col.key === 'semana') {
+                                       const intVal = parseInt(e.target.value, 10) || 0;
+                                       e.target.value = intVal;
+                                    } else {
+                                       const num = parseFloat(e.target.value) || 0;
+                                       e.target.value = num.toFixed(2);
+                                    }
                                     onInputChange(e, idx);
                                  }}
                                  className="form-control form-control-sm"
-                                 step="0.01"
+                                 step={col.key === 'semana' ? '1' : '0.01'}
                                  style={{
                                     minWidth: col.style?.minWidth || 80,
                                     background: "#fdfdfd",
@@ -367,7 +372,7 @@ function TablePagination({
  * SummaryTable
  * Tabla resumen reutilizable para operarios o datos financieros.
  */
-function SummaryTable({ rows, montoPorOperario, setMontoPorOperario, totalTarifa, financialData }) {
+function SummaryTable({ rows, selectedRows, montoPorOperario, setMontoPorOperario, totalTarifa, financialData }) {
    if (financialData) {
       const { montoTarifa, montoRemuneraciones, subtotal, iva, montoTotal } = financialData;
       return (
@@ -446,6 +451,7 @@ function SummaryTable({ rows, montoPorOperario, setMontoPorOperario, totalTarifa
 
    // Tabla de resumen de operarios
    const totalOperarios = rows.length;
+   const totalSeleccionados = selectedRows ? selectedRows.length : 0;
    return (
       <div style={{ maxWidth: 300 }}>
          <table
@@ -499,7 +505,7 @@ function SummaryTable({ rows, montoPorOperario, setMontoPorOperario, totalTarifa
                      colSpan={2}
                      className="text-center"
                   >
-                     {totalOperarios}
+                     {totalSeleccionados}
                   </td>
                </tr>
                <tr>
@@ -585,7 +591,6 @@ function mapEmpleadoToRow(emp, i, semanaActual) {
       }`.trim(),
       cedula: emp.cedula_empleado_emp_tbl || emp.cedula_empleado || "",
       asegurado: emp.asegurado_empleado || 0,
-      can: `CAN${(i % 5) + 1}`,
       semana:
          emp.semana_epd_tbl == null || emp.semana_epd_tbl === ""
             ? semanaActual.toString()
@@ -649,6 +654,8 @@ async function fetchAndSetEmpleados({
       const empleadosRow = await dispatch(
          Planilla_Lista_Empleado_Thunks(planillaSeleccionada, empresaSeleccionada),
       );
+
+      console.log(empleadosRow);
       if (empleadosRow?.data?.array) {
          const semanaActual = getCurrentWeekNumber();
          const empleados = empleadosRow.data.array.map((emp, i) =>
@@ -708,50 +715,41 @@ function useHandleCheckbox({
    planillaSeleccionada,
    empresaSeleccionada,
    dispatch,
-   setRows,
    setEmpleadosRaw,
    setSelectedRows,
-   setLoading,
 }) {
    return useCallback(
       async (idx) => {
          const globalIdx = startIdx + idx;
-         const isSelected = selectedRows.includes(globalIdx);
+         const isCurrentlySelected = selectedRows.includes(globalIdx);
+         const shouldSelect = !isCurrentlySelected;
+         console.log(empleadosRaw[globalIdx]);
 
-         // Marcar: mostrar datos de la fila y los campos extra SOLO una vez
-         const rowData = rows[globalIdx];
-         const rawData = empleadosRaw[globalIdx];
-         const idEmpleado =
-            rawData?.id_empleado_emp_tbl ??
-            rawData?.id_empleado ??
-            rawData?.id_empleado_epd_tbl ??
-            rowData?.id_empleado_epd_tbl;
-
+         // Llamar al thunk para actualizar selección en backend
          await insertartEmpleadoPlanilla({
             dispatch,
             planillaSeleccionada,
             empresaSeleccionada,
             datos: {
-               ...rowData,
-               id_empleado_emp_tbl: idEmpleado,
+               ...rows[globalIdx],
+               id_empleado_emp_tbl: empleadosRaw[globalIdx]?.id_empleado,
             },
-            isSelected,
-         });
-         await fetchAndSetEmpleados({
-            dispatch,
-            planillaSeleccionada,
-            empresaSeleccionada,
-            setRows,
-            setEmpleadosRaw,
-            setSelectedRows,
-            setLoading,
+            isSelected: shouldSelect,
          });
 
-         if (!selectedRows.includes(globalIdx)) {
-            setSelectedRows((prev) => [...prev, globalIdx]);
-         } else {
-            setSelectedRows((prev) => prev.filter((i) => i !== globalIdx));
-         }
+         // Actualizar marca_epd localmente en empleadosRaw
+         setEmpleadosRaw((prev) => {
+            const updated = [...prev];
+            const raw = updated[globalIdx] || {};
+            updated[globalIdx] = { ...raw, marca_epd: shouldSelect ? 1 : 0 };
+            return updated;
+         });
+         // Actualizar selectedRows localmente
+         setSelectedRows((prev) =>
+            shouldSelect
+               ? [...prev, globalIdx]
+               : prev.filter((i) => i !== globalIdx)
+         );
       },
       [
          rows,
@@ -761,10 +759,8 @@ function useHandleCheckbox({
          planillaSeleccionada,
          empresaSeleccionada,
          dispatch,
-         setRows,
          setEmpleadosRaw,
          setSelectedRows,
-         setLoading,
       ],
    );
 }
@@ -1032,10 +1028,8 @@ export const PayrollGenerator = () => {
       planillaSeleccionada,
       empresaSeleccionada,
       dispatch,
-      setRows,
       setEmpleadosRaw,
       setSelectedRows,
-      setLoading,
    });
 
    // Handler para gestionar los cambios en inputs
@@ -1080,6 +1074,47 @@ export const PayrollGenerator = () => {
          setLoading(false); // Si se deselecciona, quita el loading
       }
    }, [planillaSeleccionada]);
+
+   // Handler para cargar y procesar Excel de planilla
+   const handleFileUpload = (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+         const data = new Uint8Array(evt.target.result);
+         const workbook = XLSX.read(data, { type: 'array' });
+         const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+         const excelRows = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
+         const headerKeyMap = {
+            'Semana': 'semana',
+            'Remuneración Bruta': 'bruta',
+            'FCL 1,5% ROB 3,25%': 'fcl',
+            'Rebajos de Cliente': 'rebajosCliente',
+            'Reintegro de Cliente': 'reintegroCliente',
+            'Deposito X Tecurso': 'deposito',
+            'Cuota CC.SS': 'cuota',
+            'Rebajos OPU': 'rebajosOPU',
+            'Reintegros OPU': 'reintegrosOPU',
+            'Total de Deducciones': 'totalDeducciones',
+            'Total de Reintegros': 'totalReintegros',
+            'Remuneración Neta': 'neta'
+         };
+         const updatedRows = [...rows];
+         excelRows.forEach((row) => {
+            const cedulaValue = String(row['Cédula']).trim();
+            const idx = updatedRows.findIndex(r => String(r.cedula) === cedulaValue);
+            if (idx !== -1) {
+               Object.entries(headerKeyMap).forEach(([header, key]) => {
+                  if (key === 'cedula') return;
+                  const cell = row[header];
+                  updatedRows[idx][key] = key === 'nombre' ? cell : Number(cell) || 0;
+               });
+            }
+         });
+         setRows(updatedRows);
+      };
+      reader.readAsArrayBuffer(file);
+   };
 
    // IDs únicos para accesibilidad
    const empresaSelectId = "empresaSelect";
@@ -1157,7 +1192,30 @@ export const PayrollGenerator = () => {
                               </option>
                            ))}
                         </select>
-                     </div>{" "}
+                     </div>
+                     {/* Botón Aplicar Planilla en estado 'En Proceso' */}
+                     {planillaSeleccionada && planillaEstado === "En Proceso" && (
+                        <div className="mb-3">
+                           <button
+                              className="btn btn-success"
+                              onClick={handleAplicarPlanilla}
+                           >
+                              Aplicar Planilla
+                           </button>
+                        </div>
+                     )}
+                     {/* Espacio para cargar archivo Excel con datos de planilla */}
+                     <div className="mb-3">
+                        <label htmlFor="excelUpload" className="form-label">Cargar Excel de Planilla</label>
+                        <input
+                           type="file"
+                           id="excelUpload"
+                           accept=".xlsx, .xls"
+                           className="form-control"
+                           disabled={!planillaSeleccionada}
+                           onChange={handleFileUpload}
+                        />
+                     </div>
                      {/* Botón o alerta debajo del select de tipo de planilla */}
                      {planillaSeleccionada &&
                         (planillaEstado === "En Proceso" ? (
@@ -1251,9 +1309,10 @@ export const PayrollGenerator = () => {
                            <div className="d-flex gap-3 mb-3">
                               <SummaryTable
                                  rows={rows}
+                                 selectedRows={selectedRows}
                                  montoPorOperario={montoPorOperario}
                                  setMontoPorOperario={setMontoPorOperario}
-                                 totalTarifa={totalTarifa}
+                                 totalTarifa={montoPorOperario * selectedRows.length}
                               />
                               <SummaryTable
                                  financialData={{
