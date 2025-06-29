@@ -23,8 +23,8 @@ export const PlanillaPage = () => {
       crear: 12,
       editar: 11,
       generar: 13,
-      aplicadas: 15,
-      visualizar: 16,
+      aplicadas: 14,
+      visualizar: 15,
    };
 
    // Permiso requerido basado en la acción de la URL (por defecto 0)
