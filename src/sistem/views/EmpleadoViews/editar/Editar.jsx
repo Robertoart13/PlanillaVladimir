@@ -16,23 +16,6 @@ import { usePermiso } from "../../../../hooks/usePermisos";
  */
 export const EditarEmpleado = () => {
 
-      const tienePermiso = usePermiso(3);
-      if (!tienePermiso) {
-         return (
-            <TarjetaRow
-               texto="Editar Empleado"
-               subtitulo="No tienes permiso para ver esta sección."
-            >
-               <div
-                  className="alert alert-danger"
-                  role="alert"
-               >
-                  No tiene permiso para editar empleados del sistema. Por favor, contacta al
-                  administrador del sistema para solicitar acceso.
-               </div>
-            </TarjetaRow>
-         );
-      }
    
    // Estados para manejar errores, mensajes y datos del formulario
    const [error, setError] = useState(false);

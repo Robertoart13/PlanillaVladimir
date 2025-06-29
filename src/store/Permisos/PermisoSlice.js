@@ -1,9 +1,17 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 export const permisosSlice = createSlice({
-   name: "permisos",   initialState: {
+   name: "permisos",
+   initialState: {
       listaPermisos: [],
-   },   reducers: {
+      loading: true,
+      error: null,
+   },
+   reducers: {
+      cargandoPermisos: (state) => {
+         state.loading = true;
+         state.error = null;
+      },
       /**
        * Maneja el éxito en la carga de permisos
        * Actualiza el estado con la lista de permisos recibida
@@ -12,6 +20,12 @@ export const permisosSlice = createSlice({
        */
       cargarPermisosExito: (state, action) => {
          state.listaPermisos = action.payload;
+         state.loading = false;
+         state.error = null;
+      },
+      cargarPermisosError: (state, action) => {
+         state.loading = false;
+         state.error = action.payload;
       },
       /**
        * Agrega un nuevo permiso a la lista
@@ -47,7 +61,9 @@ export const permisosSlice = createSlice({
 });
 
 export const {
+   cargandoPermisos,
    cargarPermisosExito,
+   cargarPermisosError,
    agregarPermiso,
    actualizarPermiso,
    eliminarPermiso

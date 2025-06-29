@@ -151,24 +151,6 @@ export const EmpleadoLista = () => {
    // Obtener el usuario autenticado desde Redux.
    const { user } = useSelector((state) => state.auth);
 
-   const tienePermiso = usePermiso(1);
-
-   if (!tienePermiso) {
-      return (
-         <TarjetaRow
-            texto="Lista de Empleados"
-            subtitulo="No tienes permiso para ver esta sección."
-         >
-            <div
-               className="alert alert-danger"
-               role="alert"
-            >
-               No tiene permiso para ver lista de  empleados del sistema. Por favor, contacta al
-               administrador del sistema para solicitar acceso.
-            </div>
-         </TarjetaRow>
-      );
-   }
 
    const navigate = useNavigate();
 

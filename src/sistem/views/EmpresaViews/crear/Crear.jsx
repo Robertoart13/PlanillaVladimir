@@ -13,23 +13,6 @@ import { usePermiso } from "../../../../hooks/usePermisos";
  * @returns {JSX.Element} El componente de creación de empresa.
  */
 export const CrearEmpresa = () => {
-   const tienePermiso = usePermiso(6);
-   if (!tienePermiso) {
-      return (
-         <TarjetaRow
-            texto="Crear Empresas"
-            subtitulo="No tienes permiso para ver esta sección."
-         >
-            <div
-               className="alert alert-danger"
-               role="alert"
-            >
-               No tiene permiso para crear empresas del sistema. Por favor, contacta al
-               administrador del sistema para solicitar acceso.
-            </div>
-         </TarjetaRow>
-      );
-   }
 
    // Estado para manejar errores y mensajes
    const [error, setError] = useState(false);

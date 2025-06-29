@@ -2,13 +2,14 @@ import { crearRespuestaError } from "../../hooks/crearRespuestaError";
 import { verificarErroresRespuesta } from "../../hooks/verificarErroresRespuesta";
 import { crearRespuestaExitosa } from "../../hooks/crearRespuestaExitosa";
 import { ApiProvider } from "../providerApi/providerApi";
-import { cargarPermisosExito } from "./PermisoSlice";
+import { cargarPermisosExito, cargandoPermisos, cargarPermisosError } from "./PermisoSlice";
 
 
 export const Permisos_Thunks = (url, datos = "") => {
 
    console.log("Permisos_Thunks", url, datos);
    return async (dispatch, getState) => {
+      dispatch(cargandoPermisos());
       try {
          // Obtener datos del usuario autenticado desde el estado de la aplicación
          const { user } = getState().auth;
@@ -38,16 +39,17 @@ export const Permisos_Thunks = (url, datos = "") => {
 
          // Verificar si la respuesta contiene errores
          const error = verificarErroresRespuesta(resultado);
-         if (error) return error; // Si hay un error, devolver la respuesta de error
-
-   
+         if (error) {
+            dispatch(cargarPermisosError(error));
+            return error;
+         }
 
          dispatch(cargarPermisosExito(resultado?.data.array|| []));
-
 
          // Si la solicitud es exitosa, retornar los datos de la empresa creada
          return crearRespuestaExitosa(resultado?.data);
       } catch (error) {
+         dispatch(cargarPermisosError(error.message));
          // Si ocurre un error durante la ejecución, devolver el error con un mensaje adecuado
          return crearRespuestaError(error.message);
       }
