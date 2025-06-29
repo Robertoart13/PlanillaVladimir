@@ -50,7 +50,7 @@ const exportToPDF = async (element, fileName) => {
       container.className = "pdf-container";
       // Use cloned content width for better fit
       container.style.width = element.offsetWidth + "px";
-      container.style.padding = "0";
+      container.style.padding = "30px";
       container.style.margin = "0";
       container.style.backgroundColor = "#ffffff";
 
