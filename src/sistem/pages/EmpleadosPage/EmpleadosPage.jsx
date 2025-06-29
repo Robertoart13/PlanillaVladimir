@@ -21,9 +21,9 @@ export const EmpleadosPage = () => {
 
    // Mapeo de permisos requeridos por acción de ruta
    const permisosPorAccion = {
-      lista: 4,
-      crear: 6,
-      editar: 5,
+      lista: 1,
+      crear: 3,
+      editar: 2,
    };
 
    // Permiso requerido basado en la acción de la URL (por defecto 0)
@@ -57,8 +57,8 @@ export const EmpleadosPage = () => {
                            className="alert alert-danger"
                            role="alert"
                         >
-                           No tiene permiso para ver lista de empleados del sistema. Por favor, contacta al
-                           administrador del sistema para solicitar acceso.
+                           No tiene permiso para ver este contenido. Por favor,
+                           contacta al administrador del sistema para solicitar acceso.
                         </div>
                      </TarjetaRow>
                   ) : (

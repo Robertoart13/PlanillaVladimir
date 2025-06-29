@@ -9,6 +9,7 @@ import { useSelector } from 'react-redux';
 export const usePermiso = (idPermiso) => {
   // Obtener la lista de permisos y estado de carga desde el estado de Redux
   const { listaPermisos, loading } = useSelector((state) => state.permisos);
+  console.log(listaPermisos);  
 
   // Memoiza el resultado para evitar recálculos innecesarios
   return useMemo(() => {
