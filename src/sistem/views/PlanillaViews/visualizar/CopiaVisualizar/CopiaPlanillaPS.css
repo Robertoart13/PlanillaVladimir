@@ -18,14 +18,6 @@
   font-size: 0.85rem;
   max-width: 100%;
   transition: transform 0.2s;
-  cursor: pointer;
-}
-
-.remuneracion-card:hover {
-  transform: translateY(-6px) scale(1.03);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
-  background-color: #f1f7fa;
-  border-color: #04795f;
 }
 
 /* Estado no aplicado - colores oscuros */
@@ -337,10 +329,11 @@
   padding: 4px 0;
 }
 
-/* Styles for PDF container */
+/* Estilos específicos para PDF */
 .pdf-container {
-  /* Allow inline style width from JS to apply without max-width constraint */
-  max-width: none;
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
   background-color: white;
 }
 
