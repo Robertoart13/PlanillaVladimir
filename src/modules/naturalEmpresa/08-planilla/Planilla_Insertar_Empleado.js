@@ -107,7 +107,7 @@ const crearNuevoRegistroBd = async (datos, userID, database) => {
       database,
    );
 
-   let isSelected = datos.isSelected ? 0 : 1 || false
+   let isSelected = datos.isSelected ? 1 : 0
 
 
    // Si no existe, insertar

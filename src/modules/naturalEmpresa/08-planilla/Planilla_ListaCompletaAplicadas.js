@@ -36,7 +36,8 @@ const QUERIES = {
                empresas_tbl e ON p.empresa_id = e.id_empresa
          LEFT JOIN
                 usuarios_tbl u ON p.planilla_creado_por = u.id_usuario
-         
+            WHERE
+                  p.planilla_estado IN (?)
       `,
 };
 
@@ -52,10 +53,18 @@ const QUERIES = {
  * @throws {Error} Si ocurre un error durante la consulta a la base de datos.
  * ====================================================================================================================================
  */
-const obtenerTodosDatos = async (usuario, database) => {
+const obtenerTodosDatos = async (usuario, database, estados) => {
+   const estadosArray = 
+   estados === "1"
+      ? ["En Proceso", "Activa"]
+      : estados === "2"
+      ? ["Cerrada", "Cancelada"]
+      : estados === "3"
+      ? ["Procesada"]
+      : [];
    try {
       // Ejecuta la consulta SQL para obtener los datos de la tabla
-      return await realizarConsulta(QUERIES.QUERIES_SELECT, [usuario], database);
+      return await realizarConsulta(QUERIES.QUERIES_SELECT, [ estadosArray], database);
    } catch (error) {
       return manejarError(
          error,
@@ -116,7 +125,7 @@ const obtenerListaCompleta = async (req, res) => {
 
 
       // 3. Obtener los datos de la base de datos una vez validados los permisos.
-      const resultado = await obtenerTodosDatos(res?.transaccion?.user?.id, res?.database);
+      const resultado = await obtenerTodosDatos(res?.transaccion?.user?.id, res?.database, res?.transaccion?.data?.estados);
 
 
       // 4. Verificar si la edición fue exitosa.

@@ -1,0 +1,75 @@
+---
+description: Best practices and standards for backend development in Node.js without TypeScript, focused on clean, modular, and maintainable code for administrative APIs and systems.
+globs: ["src/**"]
+alwaysApply: true
+---
+
+# Node.js Backend Development Guidelines (JavaScript)
+
+## General Principles
+- Use English for variable, function, and module names.
+- Write documentation and comments in Spanish for better understanding.
+- Write modular, clear, and reusable code.
+- Avoid global variables; encapsulate functionality in modules.
+- Write small functions with single responsibility (under 20 lines).
+- Prefer early returns to reduce nesting.
+- Document public functions and modules with JSDoc.
+- Follow DRY principle (Don’t Repeat Yourself).
+- Avoid unnecessary whitespace; keep code compact and organized.
+- Use double quotes for strings in code, single quotes in JSON or for readability.
+
+## Naming Conventions
+- camelCase for variables and functions (e.g., `handleRequest`, `isAuthorized`).
+- PascalCase only for constructors or classes.
+- kebab-case for files and folders (`user-controller.js`).
+- UPPER_SNAKE_CASE for constants and environment variables (`DB_HOST`).
+- Function names should start with verbs (`fetchUser`, `saveOrder`).
+- Boolean variables prefixed with `is`, `has`, `can` (`isLoading`, `hasError`).
+
+## Functions and Modules
+- Export a single main element per file.
+- Use async/await with proper error handling via try/catch.
+- Use the RO-RO pattern (Receive an Object, Return an Object) for multiple parameters.
+- Avoid nested conditionals by using early returns.
+- Separate responsibilities by modules (controllers, services, utils).
+- Prefer arrow functions for simple callbacks.
+- Extract reusable logic into a `utils` folder.
+- Document each function with JSDoc explaining purpose, params, and return.
+- Comment complex variables or blocks to ease maintenance.
+
+## Data Handling
+- Prefer `const` for immutable data.
+- Centralize input validation in middleware or dedicated validators.
+- Avoid magic numbers; use descriptive constants.
+- Use environment variables for sensitive configurations.
+
+## Error Handling
+- Use try/catch blocks in async functions.
+- Implement centralized error handling middleware in Express.
+- Return clear error messages without exposing internals.
+- Log errors with context to facilitate debugging.
+- Never block the event loop with heavy synchronous operations.
+
+## Security
+- Sanitize and validate all user input.
+- Use HTTPS in production.
+- Store secrets in environment variables.
+- Use `helmet` middleware for secure HTTP headers.
+- Implement rate limiting and authentication middleware.
+- Avoid dangerous functions like `eval` or `new Function`.
+
+## Performance and Scalability
+- Avoid blocking the event loop.
+- Use caching and connection pooling for databases.
+- Optimize database queries.
+- Use `Promise.all` for parallel async tasks.
+- Clean up timers and listeners to prevent memory leaks.
+- Monitor memory and CPU usage to detect bottlenecks.
+
+## Documentation and Operation
+- Use JSDoc for public functions and modules.
+- Keep README updated with usage and deployment instructions.
+- Use logging libraries like `winston` or `pino`.
+- Use PM2 or process managers for automatic restarts in production.
+- Audit dependencies regularly.
+- Set alerts for production downtime or critical issues.
