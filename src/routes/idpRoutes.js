@@ -13,14 +13,14 @@ import usuarioAuth from "../modules/01-usuarioAuth/usuarioAuth.js"; // Autentica
 
 
 /**
- * ====================================================================================================================================
+ * =================================================================================== =================================================
  * Importación de módulos relacionados con la empresa
  * Estos módulos manejan la lista de empresas
  * ====================================================================================================================================
  */
-import Empresas_Listar from "../modules/03-Empresas/Empresas_ListaCompleta.js";
-import Empresas_Crear from "../modules/03-Empresas/Empresas_Crear.js";
-import Empresas_Editar from "../modules/03-Empresas/Empresas_Editar.js";
+import Empresas_Listar from "../modules/naturalEmpresa/03-Empresas/Empresas_ListaCompleta.js";
+import Empresas_Crear from "../modules/naturalEmpresa/03-Empresas/Empresas_Crear.js";
+import Empresas_Editar from "../modules/naturalEmpresa/03-Empresas/Empresas_Editar.js";
 
 
 /**
@@ -29,7 +29,7 @@ import Empresas_Editar from "../modules/03-Empresas/Empresas_Editar.js";
  * Estos módulos manejan la lista de empresas
  * ====================================================================================================================================
  */
-import Empleados_Listar from "../modules/02-Empleados/Empleados_ListaCompleta.js";
+import Empleados_Listar from "../modules/naturalEmpresa/02-Empleados/Empleados_ListaCompleta.js";
 
 
 /**
@@ -38,13 +38,13 @@ import Empleados_Listar from "../modules/02-Empleados/Empleados_ListaCompleta.js
  * Estos módulos manejan la lista de selecciones
  * ====================================================================================================================================
  */
-import Departamentos_Listar_select from "../modules/05-Selects/Departamentos_Lista.js";
-import Nacionalidad_Listar_select from "../modules/05-Selects/Nacionalidad_Lista.js";
-import Empresas_Listar_select from "../modules/05-Selects/Empresas_Lista.js";
-import Puesto_Listar_select from "../modules/05-Selects/Puestos_Lista.js";
-import TipoContrato_Listar_select from "../modules/05-Selects/TipoContrato.js";
-import Supervisor_Listar_select from "../modules/05-Selects/Supervisores.js";
-import Planilla_Listar_select from "../modules/05-Selects/Planilla_Lista.js";
+import Departamentos_Listar_select from "../modules/naturalEmpresa/05-Selects/Departamentos_Lista.js";
+import Nacionalidad_Listar_select from "../modules/naturalEmpresa/05-Selects/Nacionalidad_Lista.js";
+import Empresas_Listar_select from "../modules/naturalEmpresa/05-Selects/Empresas_Lista.js";
+import Puesto_Listar_select from "../modules/naturalEmpresa/05-Selects/Puestos_Lista.js";
+import TipoContrato_Listar_select from "../modules/naturalEmpresa/05-Selects/TipoContrato.js";
+import Supervisor_Listar_select from "../modules/naturalEmpresa/05-Selects/Supervisores.js";
+import Planilla_Listar_select from "../modules/naturalEmpresa/05-Selects/Planilla_Lista.js";
    
 
 
@@ -54,8 +54,8 @@ import Planilla_Listar_select from "../modules/05-Selects/Planilla_Lista.js";
  * Estos módulos manejan la lista de empleados
  * ====================================================================================================================================
  */
-import Empleados_Crear from "../modules/04-Empleados/Empleados_Crear.js";
-import Empleados_Editar from "../modules/04-Empleados/Empleados_Editar.js";
+import Empleados_Crear from "../modules/naturalEmpresa/04-Empleados/Empleados_Crear.js";
+import Empleados_Editar from "../modules/naturalEmpresa/04-Empleados/Empleados_Editar.js";
 
 
 /**
@@ -64,9 +64,9 @@ import Empleados_Editar from "../modules/04-Empleados/Empleados_Editar.js";
  * Estos módulos manejan la lista de empleados
  * ====================================================================================================================================
  */
-import Clientes_Listar from "../modules/06-Clientes/Clientes_ListaCompleta.js";
-import Clientes_Crear from "../modules/06-Clientes/Cliente_Crear.js";
-import Clientes_Editar from "../modules/06-Clientes/Clientes_Editar.js";
+import Clientes_Listar from "../modules/naturalEmpresa/06-Clientes/Clientes_ListaCompleta.js";
+import Clientes_Crear from "../modules/naturalEmpresa/06-Clientes/Cliente_Crear.js";
+import Clientes_Editar from "../modules/naturalEmpresa/06-Clientes/Clientes_Editar.js";
 
 
 /**
@@ -75,11 +75,11 @@ import Clientes_Editar from "../modules/06-Clientes/Clientes_Editar.js";
  * Estos módulos manejan la lista de empleados
  * ====================================================================================================================================
  */
-import Calendario_Listar from "../modules/07-Calendario/Clalendario_ListaCompleta.js";
-import Calendario_Crear from "../modules/07-Calendario/Calendario_Crear.js";
-import Calendario_Evento from "../modules/07-Calendario/Calendario_Evento.js";   
-import Calendario_Estado from "../modules/07-Calendario/Calendario_Estado.js";
-import Calendario_Editar from "../modules/07-Calendario/Calendario_Editar.js";
+import Calendario_Listar from "../modules/naturalEmpresa/07-Calendario/Clalendario_ListaCompleta.js";
+import Calendario_Crear from "../modules/naturalEmpresa/07-Calendario/Calendario_Crear.js";
+import Calendario_Evento from "../modules/naturalEmpresa/07-Calendario/Calendario_Evento.js";   
+import Calendario_Estado from "../modules/naturalEmpresa/07-Calendario/Calendario_Estado.js";
+import Calendario_Editar from "../modules/naturalEmpresa/07-Calendario/Calendario_Editar.js";
 
 
 /**
@@ -88,7 +88,7 @@ import Calendario_Editar from "../modules/07-Calendario/Calendario_Editar.js";
  * Estos módulos manejan la lista de empleados
  * ====================================================================================================================================
  */
-import Permisos_Listar_select from "../modules/05-Selects/Permisos_Lista.js";
+import Permisos_Listar_select from "../modules/naturalEmpresa/05-Selects/Permisos_Lista.js";
    
 /**
  * ====================================================================================================================================
@@ -96,18 +96,18 @@ import Permisos_Listar_select from "../modules/05-Selects/Permisos_Lista.js";
  * Estos módulos manejan la lista de empleados
  * ====================================================================================================================================
  */
-import Planilla_Listar from "../modules/08-planilla/Planilla_ListaCompleta.js";
-import Planilla_Crear from "../modules/08-planilla/Planilla_Crear.js";  
-import Planilla_Editar from "../modules/08-planilla/Planilla_Editar.js";
-import Planilla_Listar_Empleados from "../modules/08-planilla/Planilla_Lista_empleados.js";
-import Planilla_Insertar_Empleado from "../modules/08-planilla/Planilla_Insertar_Empleado.js";
-import Planilla_AplicarPlanilla from "../modules/08-planilla/Planilla_AplicarPlanilla.js";
-import Planilla_Listar_aplicadas from "../modules/08-planilla/Planilla_ListaCompletaAplicadas.js";
+import Planilla_Listar from "../modules/naturalEmpresa/08-planilla/Planilla_ListaCompleta.js";
+import Planilla_Crear from "../modules/naturalEmpresa/08-planilla/Planilla_Crear.js";  
+import Planilla_Editar from "../modules/naturalEmpresa/08-planilla/Planilla_Editar.js";
+import Planilla_Listar_Empleados from "../modules/naturalEmpresa/08-planilla/Planilla_Lista_empleados.js";
+import Planilla_Insertar_Empleado from "../modules/naturalEmpresa/08-planilla/Planilla_Insertar_Empleado.js";
+import Planilla_AplicarPlanilla from "../modules/naturalEmpresa/08-planilla/Planilla_AplicarPlanilla.js";
+import Planilla_Listar_aplicadas from "../modules/naturalEmpresa/08-planilla/Planilla_ListaCompletaAplicadas.js";
 
-import Planil_Empleado_Aplicadas_Empleado from "../modules/08-planilla/Planil_Empleado_Aplicadas_Empleado.js";
-import Planilla_Aplicado from "../modules/08-planilla/Planilla_Aplicado.js";
-import Planilla_Incritos from "../modules/08-planilla/Planilla_Incritos.js";
-import planilla_estado from "../modules/08-planilla/Planilla_CmabioEstado.js";
+import Planil_Empleado_Aplicadas_Empleado from "../modules/naturalEmpresa/08-planilla/Planil_Empleado_Aplicadas_Empleado.js";
+import Planilla_Aplicado from "../modules/naturalEmpresa/08-planilla/Planilla_Aplicado.js";
+import Planilla_Incritos from "../modules/naturalEmpresa/08-planilla/Planilla_Incritos.js";
+import planilla_estado from "../modules/naturalEmpresa/08-planilla/Planilla_CmabioEstado.js";
 
 
 /** ====================================================================================================================================
