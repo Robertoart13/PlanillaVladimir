@@ -4,14 +4,14 @@
  * @requires ../../mysql2-promise/mysql2-promise
  * @requires ../../hooks/realizarValidacionesIniciales
  * @requires ../../hooks/crearRespuestaExitosa
- * 
+ *
  *
  * Este módulo proporciona funcionalidades para consultar y listar los registros
  * disponibles en el sistema, con validaciones de permisos y manejo de errores.
  * ====================================================================================================================================
  */
 
-import { realizarConsulta, manejarError } from "../../../mysql2-promise/mysql2-promise.js";  
+import { realizarConsulta, manejarError } from "../../../mysql2-promise/mysql2-promise.js";
 import { realizarValidacionesIniciales } from "../../../hooks/realizarValidacionesIniciales.js";
 import { crearRespuestaExitosa } from "../../../hooks/crearRespuestaExitosa.js";
 import { crearRespuestaErrorCrear } from "../../../hooks/crearRespuestaErrorCrear.js";
@@ -35,11 +35,9 @@ const QUERIES = {
          INNER JOIN
                empresas_tbl e ON p.empresa_id = e.id_empresa
          LEFT JOIN
-                usuarios_tbl u ON p.planilla_creado_por = u.id_usuario;
-
-
-
-
+                usuarios_tbl u ON p.planilla_creado_por = u.id_usuario
+         WHERE
+            planilla_estado IN (?)
       `,
 };
 
@@ -55,10 +53,20 @@ const QUERIES = {
  * @throws {Error} Si ocurre un error durante la consulta a la base de datos.
  * ====================================================================================================================================
  */
-const obtenerTodosDatos = async (usuario, database) => {
+const obtenerTodosDatos = async (estados, usuario, database) => {
+   console.log("obtenerTodosDatos", estados);
+   // Prepare list of estados for SQL IN clause
+   const estadosArray =
+      estados === "1"
+         ? ["En Proceso", "Activa"]
+         : estados === "2"
+         ? ["Cerrada", "Cancelada"]
+         : estados === "3"
+         ? ["Procesada"]
+         : [];
    try {
       // Ejecuta la consulta SQL para obtener los datos de la tabla
-      return await realizarConsulta(QUERIES.QUERIES_SELECT, [usuario], database);
+      return await realizarConsulta(QUERIES.QUERIES_SELECT, estadosArray, database);
    } catch (error) {
       return manejarError(
          error,
@@ -111,16 +119,16 @@ const esConsultarExitosa = (resultado) => {
  */
 const obtenerListaCompleta = async (req, res) => {
    try {
-
       // 1. Validar los datos iniciales de la solicitud (por ejemplo, formato y autenticidad de los datos).
       const errorValidacion = await realizarValidacionesIniciales(res);
       if (errorValidacion) return errorValidacion; // Si hay un error en la validación, lo retorna inmediatamente.
 
-
-
       // 3. Obtener los datos de la base de datos una vez validados los permisos.
-      const resultado = await obtenerTodosDatos(res?.transaccion?.user?.id, res?.database);
-
+      const resultado = await obtenerTodosDatos(
+         res?.transaccion?.data?.estados,
+         res?.transaccion?.user?.id,
+         res?.database,
+      );
 
       // 4. Verificar si la edición fue exitosa.
       if (!esConsultarExitosa(resultado)) {
@@ -150,4 +158,4 @@ const Planilla_Listar = {
    obtenerListaCompleta, // Método que obtiene la lista completa, con validaciones y permisos.
 };
 
-export default Planilla_Listar;  
+export default Planilla_Listar;
