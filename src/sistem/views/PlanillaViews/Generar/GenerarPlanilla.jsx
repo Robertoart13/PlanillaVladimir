@@ -96,17 +96,20 @@ function getSummaryCellStyle(type) {
  */
 
 /**
- * Formatea un valor numérico como moneda en formato costarricense.
+ * Formatea un valor numérico como moneda en formato costarricense con coma para miles y punto para decimales, siempre dos decimales.
  * @param {number} value - El valor numérico a formatear
- * @param {number} [decimals=2] - Número de decimales a mostrar
  * @returns {string} - Valor formateado como moneda
  */
-function formatCurrency(value, decimals = 2) {
+function formatCurrency(value) {
    if (value === null || value === undefined || isNaN(value)) return "₡0.00";
-   return `₡${Number(value).toLocaleString("es-CR", { 
-      minimumFractionDigits: decimals,
-      maximumFractionDigits: decimals 
-   })}`;
+   return (
+      "₡" +
+      Number(value)
+         .toLocaleString("en-US", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+         })
+   );
 }
 
 /**
@@ -226,6 +229,8 @@ function PayrollTable({
                                  aria-label={col.label}
                                  disabled={rowDisabled}
                               />
+                           ) : col.type === "number" ? (
+                              formatCurrency(row[col.key])
                            ) : (
                               row[col.key]
                            )}
@@ -430,7 +435,7 @@ function SummaryTable({ rows, selectedRows, montoPorOperario, setMontoPorOperari
                         I V A
                      </td>
                      <td className="text-end">
-                        {formatCurrency(iva)}
+                        {formatCurrency(iva, 2)}
                      </td>
                   </tr>
                   <tr>
@@ -1051,7 +1056,9 @@ export const PayrollGenerator = () => {
       const remuneracionesTotal = sumColumn(rows, "deposito", selectedRows);
       return tarifaTotal + remuneracionesTotal;
    }, [rows, selectedRows, montoPorOperario]);
-   const iva = subtotal * 0.13; // 13% de IVA
+   const iva = useMemo(() => {
+      return Math.round(subtotal * 0.13 * 100) / 100;
+   }, [subtotal]);
    const montoTotal = subtotal + iva;
 
    // Handler para gestionar los checkboxes
