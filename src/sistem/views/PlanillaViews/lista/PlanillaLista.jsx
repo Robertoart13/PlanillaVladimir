@@ -5,8 +5,8 @@ import { ErrorMessage } from "../../../components/ErrorMessage/ErrorMessage";
 import { TarjetaRow } from "../../../components/TarjetaRow/TarjetaRow";
 // Importaciones de estilos
 import "../../../styles/customstyles.css";
-import { Button, Stack } from "@mui/material";
-import { useNavigate } from 'react-router-dom';
+import { Button, Stack, FormControl, InputLabel, Select, MenuItem } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 
 // Constantes para los textos
 const TEXTOS = {
@@ -14,7 +14,14 @@ const TEXTOS = {
    subtitulo: "Tabla que muestra todas las planillas disponibles.",
    crearEmpresa: "Crear Planilla",
    sinPermiso: "No tienes permiso para ver la lista de planillas",
+   filtrarPorEstado: "Filtrar por estado",
 };
+
+const OPCIONES_ESTADO = [
+   { value: "1", label: "En Proceso/Activa" },
+   { value: "2", label: "Cerrada/Cancelada" },
+   { value: "3", label: "Procesada" },
+];
 
 /**
  * Obtiene las columnas de la tabla con sus configuraciones.
@@ -45,13 +52,13 @@ const obtenerColumnasTabla = () => [
       data: "planilla_fecha_inicio",
       title: "Fecha Inicio",
       searchPanes: { show: true },
-      render: (data) => data ? String(data).split('T')[0] : "",
+      render: (data) => (data ? String(data).split("T")[0] : ""),
    },
    {
       data: "planilla_fecha_fin",
       title: "Fecha Fin",
       searchPanes: { show: true },
-      render: (data) => data ? String(data).split('T')[0] : "",
+      render: (data) => (data ? String(data).split("T")[0] : ""),
    },
 
    {
@@ -61,11 +68,11 @@ const obtenerColumnasTabla = () => [
       render: (data) => {
          // Mapea cada estado a un color y texto descriptivo
          const estados = {
-            "En Proceso": { color: "secondary", texto: "En Proceso" },    // Fase inicial de edición
-            "Activa":     { color: "success",   texto: "Activa" },        // Lista para carga de datos
-            "Cerrada":    { color: "warning",   texto: "Cerrada" },       // Solo revisión o validación
-            "Procesada":  { color: "primary",   texto: "Procesada" },     // Lista para pagar o archivar
-            "Cancelada":  { color: "danger",    texto: "Cancelada" },     // Descartada
+            "En Proceso": { color: "secondary", texto: "En Proceso" }, // Fase inicial de edición
+            Activa: { color: "success", texto: "Activa" }, // Lista para carga de datos
+            Cerrada: { color: "warning", texto: "Cerrada" }, // Solo revisión o validación
+            Procesada: { color: "primary", texto: "Procesada" }, // Lista para pagar o archivar
+            Cancelada: { color: "danger", texto: "Cancelada" }, // Descartada
          };
          const estado = estados[data] || { color: "secondary", texto: data };
          return `
@@ -108,6 +115,9 @@ const crearConfiguracionTabla = (usuario) => ({
          id: parseInt(usuario?.id_usuario) || 0,
          rol: parseInt(usuario?.id_rol) || 0,
       },
+      data: {
+         estados: 1,
+      },
       acceso: {
          type: 0,
          permiso: 0,
@@ -115,7 +125,7 @@ const crearConfiguracionTabla = (usuario) => ({
       },
    },
    columnsLayout: "columns-2", // Diseño de columnas en la tabla.
-   columnsFilter: [0, 1, 2, 3,6], // Índices de columnas que se pueden filtrar.
+   columnsFilter: [0, 1, 2, 3, 6], // Índices de columnas que se pueden filtrar.
    columns: obtenerColumnasTabla(), // Definición de columnas.
 });
 
@@ -124,8 +134,8 @@ const crearConfiguracionTabla = (usuario) => ({
  * @param {Object} datosFila - Datos de la fila seleccionada.
  */
 const manejarClicFila = (datosFila, navigate) => {
-   localStorage.setItem('selectedPlanilla', JSON.stringify(datosFila));
-   navigate('/planilla/editar');
+   localStorage.setItem("selectedPlanilla", JSON.stringify(datosFila));
+   navigate("/planilla/editar");
 };
 
 /**
@@ -133,7 +143,7 @@ const manejarClicFila = (datosFila, navigate) => {
  * @param {Function} navigate - Función de navegación de React Router.
  */
 const navegarCrearEmpresa = (navigate) => {
-   navigate('/planilla/crear');
+   navigate("/planilla/crear");
 };
 
 /**
@@ -162,10 +172,21 @@ export const PlanillaLista = () => {
    // Estado para controlar la apertura del diálogo de edición
    const [openEdit, setOpenEdit] = useState(false);
 
+   // Estado para manejar la selección del estado
+   const [estadoSeleccionado, setEstadoSeleccionado] = useState("1");
+
    // Configuración de la tabla usando useMemo para optimizar el rendimiento.
    const configuracionTabla = useMemo(
-      () => crearConfiguracionTabla(user),
-      [user?.id_usuario],
+      () => ({
+         ...crearConfiguracionTabla(user),
+         transaccion: {
+            ...crearConfiguracionTabla(user).transaccion,
+            data: {
+               estados: estadoSeleccionado,
+            },
+         },
+      }),
+      [user?.id_usuario, estadoSeleccionado]
    );
 
    // Inicializa la tabla con los parámetros configurados.
@@ -196,60 +217,74 @@ export const PlanillaLista = () => {
    };
 
    return (
-    <>
-       <TarjetaRow
-          texto={TEXTOS.titulo}
-          subtitulo={TEXTOS.subtitulo}
-       >
-          {/* Muestra mensajes de error cuando ocurren */}
-          {error && (
-             <ErrorMessage
-                error={error}
-                message={message}
-             />
-          )}
+      <>
+         <TarjetaRow
+            texto={TEXTOS.titulo}
+            subtitulo={TEXTOS.subtitulo}
+         >
+            {/* Muestra mensajes de error cuando ocurren */}
+            {error && (
+               <ErrorMessage
+                  error={error}
+                  message={message}
+               />
+            )}
 
-          {/* Botones para crear */}
-          <Stack
-             direction="row"
-             spacing={2}
-             sx={{
-                mb: 2,
-                width: "15%",
-             }}
-          >
-             <Button
-                variant="contained"
-                onClick={() => navegarCrearEmpresa(navigate)}
-                className="user-detail-dialog-buttonSecondary"
-             >
-                <i
-                   className="ph-duotone ph-certificate"
-                   style={{ paddingRight: "5px" }}
-                ></i>
-                {TEXTOS.crearEmpresa}
-             </Button>
-          </Stack>
+            {/* Botones para crear */}
+            <Stack
+               direction="row"
+               spacing={2}
+               sx={{
+                  mb: 2,
+                  width: "15%",
+               }}
+            >
+               <Button
+                  variant="contained"
+                  onClick={() => navegarCrearEmpresa(navigate)}
+                  className="user-detail-dialog-buttonSecondary"
+               >
+                  <i
+                     className="ph-duotone ph-certificate"
+                     style={{ paddingRight: "5px" }}
+                  ></i>
+                  {TEXTOS.crearEmpresa}
+               </Button>
+           
+            </Stack>
+            <FormControl sx={{ minWidth: 200, marginRight: 2, marginBottom: 2 }}>
+                  <InputLabel>{TEXTOS.filtrarPorEstado}</InputLabel>
+                  <Select
+                     value={estadoSeleccionado}
+                     onChange={(e) => setEstadoSeleccionado(e.target.value)}
+                     label={TEXTOS.filtrarPorEstado}
+                     sx={{ height: 40 }}
+                  >
+                     {OPCIONES_ESTADO.map((opcion) => (
+                        <MenuItem key={opcion.value} value={opcion.value}>
+                           {opcion.label}
+                        </MenuItem>
+                     ))}
+                  </Select>
+               </FormControl>
 
-          {/* Contenedor de la tabla */}
-          <div className="table-responsive">
-             <div className="datatable-wrapper datatable-loading no-footer searchable fixed-columns">
-                <div className="datatable-container">
-                   <table
-                      ref={tableRef}
-                      className="table table-hover datatable-table"
-                   >
-                      <thead></thead>
-                      <tbody></tbody>
-                   </table>
-                </div>
-             </div>
-          </div>
-       </TarjetaRow>
+            {/* Contenedor de la tabla */}
+            <div className="table-responsive">
+               <div className="datatable-wrapper datatable-loading no-footer searchable fixed-columns">
+                  <div className="datatable-container">
+                     <table
+                        ref={tableRef}
+                        className="table table-hover datatable-table"
+                     >
+                        <thead></thead>
+                        <tbody></tbody>
+                     </table>
+                  </div>
+               </div>
+            </div>
+         </TarjetaRow>
 
-       {selected && (
-           manejarClicFila(selected, navigate)
-         )}
-    </>
- );
+         {selected && manejarClicFila(selected, navigate)}
+      </>
+   );
 };
