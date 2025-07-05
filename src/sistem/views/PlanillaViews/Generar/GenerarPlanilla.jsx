@@ -1205,7 +1205,7 @@ export const PayrollGenerator = () => {
                            htmlFor={empresaSelectId}
                            className="form-label"
                         >
-                           Empresa
+                           Empresa Natural
                         </label>
                         <select
                            className="form-select"
@@ -1230,7 +1230,7 @@ export const PayrollGenerator = () => {
                            htmlFor={planillaSelectId}
                            className="form-label"
                         >
-                           Tipo de Planilla
+                           Tipo de Planilla para la empresa Natural
                         </label>
                         <select
                            className="form-select"
@@ -1252,7 +1252,7 @@ export const PayrollGenerator = () => {
                      </div>
                      {/* Espacio para cargar archivo Excel con datos de planilla */}
                      <div className="mb-3">
-                        <label htmlFor="excelUpload" className="form-label">Cargar Excel de Planilla</label>
+                        <label htmlFor="excelUpload" className="form-label">Cargar Excel de Planilla para la empresa Natural</label>
                         <input
                            type="file"
                            id="excelUpload"
