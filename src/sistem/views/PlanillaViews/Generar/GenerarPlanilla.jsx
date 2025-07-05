@@ -110,14 +110,23 @@ function formatCurrency(value, decimals = 2) {
 }
 
 /**
- * Suma un campo numérico para todas las filas.
+ * Suma un campo numérico solo para las filas seleccionadas.
  * @param {Array<Object>} rows - Arreglo de filas con datos
  * @param {string} field - Nombre del campo a sumar
+ * @param {Array<number>} selectedRows - Índices de las filas seleccionadas
  * @returns {number} - Suma total del campo especificado
  */
-function sumColumn(rows, field) {
+function sumColumn(rows, field, selectedRows) {
    if (field === "semana") return 0; // No sumar semanas
-   return rows.reduce((acc, row) => acc + (parseFloat(row[field]) || 0), 0);
+   return selectedRows.reduce((acc, rowIdx) => {
+      const row = rows[rowIdx];
+      // Convertir el valor a número, eliminando cualquier formato
+      const value = row[field];
+      const numericValue = typeof value === 'string' 
+         ? parseFloat(value.replace(/[^\d.-]/g, '')) || 0 
+         : parseFloat(value) || 0;
+      return acc + numericValue;
+   }, 0);
 }
 
 /**
@@ -137,6 +146,7 @@ function PayrollTable({
    selectedRows,
    onCheckboxChange,
    onInputChange,
+   onBlur,
    startIdx,
    disabled,
    planillaEstado,
@@ -188,7 +198,10 @@ function PayrollTable({
                         <input
                            type="checkbox"
                            checked={isSelected}
-                           onChange={() => onCheckboxChange(idx)}
+                           onChange={() => {
+                              console.log(`Checkbox clicked for row ${globalIdx}, current state: ${isSelected}`);
+                              onCheckboxChange(idx);
+                           }}
                            aria-label={`Seleccionar fila ${globalIdx + 1}`}
                            disabled={rowDisabled}
                         />
@@ -198,24 +211,14 @@ function PayrollTable({
                            key={col.key}
                            style={getTableCellStyle(col, isSelected, idx)}
                         >
-                           {col.type === "number" && !["neta", "totalReintegros"].includes(col.key) ? (
+                           {col.type === "number" && !["neta", "totalReintegros", "totalDeducciones"].includes(col.key) ? (
                               <input
                                  type="text"
                                  name={col.key}
                                  value={row[col.key]}
                                  onChange={(e) => onInputChange(e, idx)}
-                                 onBlur={(e) => {
-                                    if (col.key === 'semana') {
-                                       const intVal = parseInt(e.target.value, 10) || 0;
-                                       e.target.value = intVal;
-                                    } else {
-                                       const num = parseFloat(e.target.value) || 0;
-                                       e.target.value = num.toFixed(2);
-                                    }
-                                    onInputChange(e, idx);
-                                 }}
+                                 onBlur={(e) => onBlur(e, idx)}
                                  className="form-control form-control-sm"
-                                 step={col.key === 'semana' ? '1' : '0.01'}
                                  style={{
                                     minWidth: col.style?.minWidth || 80,
                                     background: "#fdfdfd",
@@ -240,7 +243,7 @@ function PayrollTable({
                         key={col.key}
                         style={col.key === "neta" ? { color: "#198754", fontWeight: "bold" } : {}}
                      >
-                        {formatCurrency(sumColumn(rows, col.key))}
+                        {formatCurrency(sumColumn(rows, col.key, selectedRows))}
                      </td>
                   ) : (
                      <td key={col.key}></td>
@@ -376,8 +379,8 @@ function TablePagination({
 function SummaryTable({ rows, selectedRows, montoPorOperario, setMontoPorOperario, totalTarifa, financialData }) {
    if (financialData) {
       const { montoTarifa, montoRemuneraciones, iva, montoTotal } = financialData;
-      // Calcular el subtotal como la suma de montoTarifa y montoRemuneraciones
-      const subtotal = montoTarifa + (montoRemuneraciones || 0);
+      // Subtotal es la suma de montoTarifa y montoRemuneraciones
+      const subtotal = montoTarifa + montoRemuneraciones;
 
       return (
          <div style={{ maxWidth: 350 }}>
@@ -405,7 +408,7 @@ function SummaryTable({ rows, selectedRows, montoPorOperario, setMontoPorOperari
                         Monto de Remuneraciones
                      </td>
                      <td className="text-end">
-                        {montoRemuneraciones ? formatCurrency(montoRemuneraciones) : "-"}
+                        {formatCurrency(montoRemuneraciones)}
                      </td>
                   </tr>
                   <tr>
@@ -579,7 +582,7 @@ function mapEmpleadoToRow(emp, i, semanaActual) {
    
    // Calcular deposito según la fórmula: Bruta + FCL - Rebajos + Reintegro
    // Asegurar que todos los valores son positivos para la fórmula
-   const deposito = Math.abs(bruta) + Math.abs(fcl) - Math.abs(rebajosCliente) + Math.abs(reintegroCliente);
+   const deposito = bruta + fcl - rebajosCliente + reintegroCliente;
    
    // Calcular total deducciones según la fórmula: Rebajos de Cliente + Cuota CC.SS
    const totalDeducciones = rebajosCliente + cuota;
@@ -600,17 +603,17 @@ function mapEmpleadoToRow(emp, i, semanaActual) {
          emp.semana_epd_tbl == null || emp.semana_epd_tbl === ""
             ? semanaActual.toString()
             : emp.semana_epd_tbl,
-      bruta: emp.remuneracion_bruta_epd_tbl ?? "0.00",
-      fcl: emp.fcl_1_5_epd_tbl ?? "0.00",
-      rebajosCliente: emp.rebajos_cliente_epd_tbl ?? "0.00",
-      reintegroCliente: emp.reintegro_cliente_epd_tbl ?? "0.00",
-      deposito: emp.deposito_x_tecurso_epd_tbl ?? deposito.toFixed(2),
-      cuota: emp.cuota_ccss_epd_tbl ?? "0.00",
-      rebajosOPU: emp.rebajos_opu_epd_tbl ?? "0.00",
-      reintegrosOPU: emp.reintegro_opu_epd_tbl ?? "0.00",
-      totalDeducciones: emp.total_deducciones_epd_tbl ?? totalDeducciones.toFixed(2),
-      totalReintegros: emp.total_reintegros_epd_tbl ?? totalReintegros.toFixed(2),
-      neta: emp.remuneracion_neta_epd_tbl ?? neta.toFixed(2),
+      bruta: emp.remuneracion_bruta_epd_tbl ?? bruta.toString(),
+      fcl: emp.fcl_1_5_epd_tbl ?? fcl.toString(),
+      rebajosCliente: emp.rebajos_cliente_epd_tbl ?? rebajosCliente.toString(),
+      reintegroCliente: emp.reintegro_cliente_epd_tbl ?? reintegroCliente.toString(),
+      deposito: emp.deposito_x_tecurso_epd_tbl ?? deposito.toString(),
+      cuota: emp.cuota_ccss_epd_tbl ?? cuota.toString(),
+      rebajosOPU: emp.rebajos_opu_epd_tbl ?? "0",
+      reintegrosOPU: emp.reintegro_opu_epd_tbl ?? "0",
+      totalDeducciones: emp.total_deducciones_epd_tbl ?? totalDeducciones.toString(),
+      totalReintegros: emp.total_reintegros_epd_tbl ?? totalReintegros.toString(),
+      neta: emp.remuneracion_neta_epd_tbl ?? neta.toString(),
       marca_epd: emp.marca_epd ?? 0,
    };
 }
@@ -727,31 +730,38 @@ function useHandleCheckbox({
          const isCurrentlySelected = selectedRows.includes(globalIdx);
          const shouldSelect = !isCurrentlySelected;
 
-         // Llamar al thunk para actualizar selección en backend
-         await insertartEmpleadoPlanilla({
-            dispatch,
-            planillaSeleccionada,
-            empresaSeleccionada,
-            datos: {
-               ...rows[globalIdx],
-               id_empleado_emp_tbl: empleadosRaw[globalIdx]?.id_empleado,
-            },
-            isSelected: shouldSelect,
-         });
+         try {
+            // Llamar al thunk para actualizar selección en backend
+            await insertartEmpleadoPlanilla({
+               dispatch,
+               planillaSeleccionada,
+               empresaSeleccionada,
+               datos: {
+                  ...rows[globalIdx],
+                  id_empleado_emp_tbl: empleadosRaw[globalIdx]?.id_empleado || empleadosRaw[globalIdx]?.id_empleado_emp_tbl,
+               },
+               isSelected: shouldSelect,
+            });
 
-         // Actualizar marca_epd localmente en empleadosRaw
-         setEmpleadosRaw((prev) => {
-            const updated = [...prev];
-            const raw = updated[globalIdx] || {};
-            updated[globalIdx] = { ...raw, marca_epd: shouldSelect ? 1 : 0 };
-            return updated;
-         });
-         // Actualizar selectedRows localmente
-         setSelectedRows((prev) =>
-            shouldSelect
-               ? [...prev, globalIdx]
-               : prev.filter((i) => i !== globalIdx)
-         );
+            // Actualizar marca_epd localmente en empleadosRaw
+            setEmpleadosRaw((prev) => {
+               const updated = [...prev];
+               const raw = updated[globalIdx] || {};
+               updated[globalIdx] = { ...raw, marca_epd: shouldSelect ? 1 : 0 };
+               return updated;
+            });
+            
+            // Actualizar selectedRows localmente
+            setSelectedRows((prev) => {
+               if (shouldSelect) {
+                  return [...prev, globalIdx];
+               } else {
+                  return prev.filter((i) => i !== globalIdx);
+               }
+            });
+         } catch (error) {
+            console.error("Error al actualizar selección:", error);
+         }
       },
       [
          rows,
@@ -781,11 +791,36 @@ function useHandleInputChange({ startIdx, setRows, setSelectedRows }) {
          const { name, value } = e.target;
          const globalIdx = startIdx + idx;
 
-         // Solo actualiza el valor directamente mientras se escribe
+         // Solo permitir dígitos, punto decimal y guión (para negativos)
+         const numericValue = value.replace(/[^\d.-]/g, '');
+
          setRows((prevRows) => {
             const updatedRows = prevRows.map((row, i) => {
                if (i !== globalIdx) return row;
-               return { ...row, [name]: value };
+
+               // Usar los valores más recientes para todos los cálculos
+               const nextRow = { ...row, [name]: numericValue };
+
+               // Calcular deposito
+               const bruta = parseFloat(nextRow.bruta) || 0;
+               const fcl = parseFloat(nextRow.fcl) || 0;
+               const rebajosCliente = parseFloat(nextRow.rebajosCliente) || 0;
+               const reintegroCliente = parseFloat(nextRow.reintegroCliente) || 0;
+               nextRow.deposito = (bruta + fcl - rebajosCliente + reintegroCliente).toString();
+
+               // Calcular totalDeducciones
+               const cuota = parseFloat(nextRow.cuota) || 0;
+               const rebajosOPU = parseFloat(nextRow.rebajosOPU) || 0;
+               nextRow.totalDeducciones = (rebajosCliente + cuota + rebajosOPU).toString();
+
+               // Calcular totalReintegros
+               const reintegrosOPU = parseFloat(nextRow.reintegrosOPU) || 0;
+               nextRow.totalReintegros = (reintegroCliente + reintegrosOPU).toString();
+
+               // Calcular neta
+               nextRow.neta = (parseFloat(nextRow.deposito) - cuota - rebajosOPU + reintegrosOPU).toString();
+
+               return nextRow;
             });
             return updatedRows;
          });
@@ -794,34 +829,36 @@ function useHandleInputChange({ startIdx, setRows, setSelectedRows }) {
    );
 }
 
-// Y agregamos un nuevo handler para onBlur
+// Agregar un nuevo handler para onBlur que formatee el valor correctamente
 function useHandleBlur({ startIdx, setRows }) {
    return useCallback(
       (e, idx) => {
          const { name, value } = e.target;
          const globalIdx = startIdx + idx;
 
-         const parseNumber = (val) => {
-            if (typeof val === 'string') {
-               return parseFloat(val.replace(/\./g, '').replace(',', '.')) || 0;
-            }
-            return val;
-         };
-
-         const formatNumber = (num) => {
-            return num.toLocaleString('es-CR', {
-               minimumFractionDigits: 2,
-               maximumFractionDigits: 2,
-            });
-         };
-
+         // Mantener el valor tal como se ingresó, solo asegurando que sea numérico
+         const numericValue = value.replace(/[^\d.-]/g, '');
+         
          setRows((prevRows) => {
             const updatedRows = prevRows.map((row, i) => {
                if (i !== globalIdx) return row;
                
-               const numericValue = parseNumber(value);
-               const formattedValue = formatNumber(numericValue);
-               return { ...row, [name]: formattedValue };
+               // Crear una copia de la fila con el valor actualizado
+               const updatedRow = { ...row, [name]: numericValue };
+               
+               // Si se modificó uno de los campos que afectan al depósito, recalcular depósito
+               if (['bruta', 'fcl', 'rebajosCliente', 'reintegroCliente'].includes(name)) {
+                  const bruta = parseFloat(name === 'bruta' ? numericValue : row.bruta) || 0;
+                  const fcl = parseFloat(name === 'fcl' ? numericValue : row.fcl) || 0;
+                  const rebajosCliente = parseFloat(name === 'rebajosCliente' ? numericValue : row.rebajosCliente) || 0;
+                  const reintegroCliente = parseFloat(name === 'reintegroCliente' ? numericValue : row.reintegroCliente) || 0;
+                  
+                  // Calcular el depósito según la fórmula
+                  const deposito = bruta + fcl - rebajosCliente + reintegroCliente;
+                  updatedRow.deposito = deposito.toString();
+               }
+               
+               return updatedRow;
             });
             return updatedRows;
          });
@@ -1006,14 +1043,15 @@ export const PayrollGenerator = () => {
    }, [montoPorOperario, rows]);
    const montoTarifa = totalTarifa;
    const montoRemuneraciones = useMemo(() => {
-      const total = sumColumn(rows, "deposito");
-      return total > 0 ? total : "-";
-   }, [rows]);
+      return sumColumn(rows, "deposito", selectedRows);
+   }, [rows, selectedRows]);
    const subtotal = useMemo(() => {
-      const total = sumColumn(rows, "bruta") + sumColumn(rows, "fcl");
-      return total > 0 ? total : 0;
-   }, [rows]);
-   const iva = subtotal > 0 ? subtotal * 0.13 : 0;
+      // El subtotal es la suma del monto de tarifa y el monto de remuneraciones
+      const tarifaTotal = montoPorOperario * selectedRows.length;
+      const remuneracionesTotal = sumColumn(rows, "deposito", selectedRows);
+      return tarifaTotal + remuneracionesTotal;
+   }, [rows, selectedRows, montoPorOperario]);
+   const iva = subtotal * 0.13; // 13% de IVA
    const montoTotal = subtotal + iva;
 
    // Handler para gestionar los checkboxes
@@ -1106,7 +1144,7 @@ export const PayrollGenerator = () => {
                Object.entries(headerKeyMap).forEach(([header, key]) => {
                   if (key === 'cedula') return;
                   const cell = row[header];
-                  updatedRows[idx][key] = key === 'nombre' ? cell : Number(cell) || 0;
+                  updatedRows[idx][key] = key === 'nombre' ? cell : (cell !== undefined && cell !== null) ? String(cell) : "0";
                });
             }
          });
@@ -1116,6 +1154,12 @@ export const PayrollGenerator = () => {
       };
       reader.readAsArrayBuffer(file);
    };
+
+   // Handler para gestionar el evento onBlur en los inputs
+   const handleBlur = useHandleBlur({
+      startIdx,
+      setRows,
+   });
 
    // IDs únicos para accesibilidad
    const empresaSelectId = "empresaSelect";
@@ -1276,6 +1320,12 @@ export const PayrollGenerator = () => {
                                           planillaEstado === "En Proceso" ||
                                           planillaEstado === "Activa"
                                              ? handleInputChange
+                                             : () => {}
+                                       }
+                                       onBlur={
+                                          planillaEstado === "En Proceso" ||
+                                          planillaEstado === "Activa"
+                                             ? handleBlur
                                              : () => {}
                                        }
                                        startIdx={startIdx}

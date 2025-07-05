@@ -1,0 +1,61 @@
+---
+description: Best practices for React frontend development (JavaScript) including async JS functions and utilities, emphasizing clean code, modularity, async/await, and error handling.
+globs: ["src/**"]
+alwaysApply: true
+---
+
+# React + JavaScript Functions Guidelines
+
+## General Principles for React and JS
+- Use English for variables, functions, and components.
+- Document and comment in English for clarity.
+- Write modular, readable, reusable, and clean code.
+- Prefer functional components with hooks.
+- Follow DRY and SOLID principles where applicable.
+- Use async/await for asynchronous operations.
+- Handle errors with try/catch; avoid silent failures.
+- Extract complex logic from JSX into functions/hooks.
+- Avoid nested callbacks; prefer flat functions.
+- Write small functions with a single responsibility.
+- Use early returns to reduce nesting.
+
+## Naming Conventions
+- Use camelCase for variables, functions, and props (`fetchUserData`, `isLoading`).
+- Use PascalCase for React components (`UserCard`).
+- Use kebab-case for files and folders (`user-card.js`).
+- Prefix event handlers with `handle` (`handleClick`, `handleSubmit`).
+- Prefix boolean variables with `is`, `has`, `can` (`isVisible`, `hasError`).
+
+## JavaScript and Async Functions
+- Declare functions with `async function` or `const func = async () =>`.
+- Use try/catch to handle errors in async functions.
+- Propagate errors or handle with clear messages.
+- Prefer `Promise.all` to parallelize async operations.
+- Avoid excessive nested functions; modularize.
+- Document public functions with JSDoc indicating parameters, return values, and possible errors.
+
+## Structure and Modularization
+- Export a single main entity per file.
+- Organize utility functions in folders like `src/utils/` or `src/services/`.
+- Separate UI logic (components) from business logic (services/helpers).
+- Extract custom hooks for complex state or effect logic.
+
+## State Management and Events in React
+- Use `useState`, `useReducer`, `useContext` appropriately.
+- Name handlers with the `handle` prefix.
+- Clean up side effects in `useEffect`.
+
+## Styling and Accessibility
+- Use Tailwind CSS exclusively for styling.
+- Add accessible attributes (`aria-label`, `tabIndex`).
+- Use semantic tags in JSX.
+
+## Performance and Optimization
+- Use `React.memo`, `useCallback`, and `useMemo` to optimize renders.
+- Avoid inline function definitions in JSX.
+- Use dynamic loading for heavy components.
+- Use unique keys in lists.
+
+## Documentation
+- Use JSDoc to document components, hooks, and functions.
+- Comment complex logic or important decisions clearly.
