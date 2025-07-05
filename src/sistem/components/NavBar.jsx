@@ -89,7 +89,7 @@ export const NavBar = ({ isSidebarOpen, isMobile }) => {
                      </NavLink>
                   </li>
                   
-                  <li className={`pc-item ${getActiveClass('/planillas')}`}>
+                  <li className={`pc-item ${getActiveClass('/planilla')}`}>
                      <NavLink
                         to="/planilla/lista"
                         className="pc-link"
@@ -106,7 +106,7 @@ export const NavBar = ({ isSidebarOpen, isMobile }) => {
                      </NavLink>
                   </li>
 
-                  <li className={`pc-item ${getActiveClass('/planillas')}`}>
+                  <li className={`pc-item ${getActiveClass('/planilla')}`}>
                      <NavLink
                         to="/planilla/generar"
                         className="pc-link"
