@@ -1,14 +1,14 @@
-import { SistemLayout } from "../../../layout/SistemLayout";
-import { useSegmentoRutaUrl } from "../../../../hooks/useUrlPathSegment";
-import { PlanillaLista } from "../../../views/PlanillaViews/lista/PlanillaLista";
-import { CrearPlanilla } from "../../../views/PlanillaViews/Crear/CrearPlanilla";
-import { EditarPlanilla } from "../../../views/PlanillaViews/Editar/EditarPlanilla";
-import { GenerarPlanilla } from "../../../views/PlanillaViews/Generar/GenerarPlanilla";
-import { PlanillaListaAplicadas } from "../../../views/PlanillaViews/aplicadas/PlanillaListaAplicadas";
-import { VisualizarPlanilla } from "../../../views/PlanillaViews/visualizar/visualizarPlanilla";
+import { SistemLayout } from "../../layout/SistemLayout";
+import { useSegmentoRutaUrl } from "../../../hooks/useUrlPathSegment";
+import { PlanillaLista } from "../../views/PlanillaViews/lista/PlanillaLista";
+import { CrearPlanilla } from "../../views/PlanillaViews/Crear/CrearPlanilla";
+import { EditarPlanilla } from "../../views/PlanillaViews/Editar/EditarPlanilla";
+import { GenerarPlanilla } from "../../views/PlanillaViews/Generar/GenerarPlanilla";
+import { PlanillaListaAplicadas } from "../../views/PlanillaViews/aplicadas/PlanillaListaAplicadas";
+import { VisualizarPlanilla } from "../../views/PlanillaViews/visualizar/visualizarPlanilla";
 
-import { usePermiso } from "../../../../hooks/usePermisos";
-import { TarjetaRow } from "../../../components/TarjetaRow/TarjetaRow";
+import { usePermiso } from "../../../hooks/usePermisos";
+import { TarjetaRow } from "../../components/TarjetaRow/TarjetaRow";
 
 /**
  * Página para gestionar empresas.

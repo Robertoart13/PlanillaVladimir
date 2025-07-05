@@ -1,24 +1,29 @@
-import { SistemLayout } from "../../../../layout/SistemLayout";
-import { useSegmentoRutaUrl } from "../../../../../hooks/useUrlPathSegment";
 
-import { CrearEmpresa } from "../../../../views/EmpresaViews/crear/crear";
-import { EditarEmpresa } from "../../../../views/EmpresaViews/editar/Editar";
-import { EmpresaLista } from "../../../../views/EmpresaViews/lista/Lista";
-import { usePermiso } from "../../../../../hooks/usePermisos";
-import { TarjetaRow } from "../../../../components/TarjetaRow/TarjetaRow";
+
+import { SistemLayout } from "../../layout/SistemLayout";
+import { useSegmentoRutaUrl } from "../../../hooks/useUrlPathSegment";
+import { EmpleadoLista } from "../../views/EmpleadoViews/lista/lista";
+import { CrearEmpleado } from "../../views/EmpleadoViews/crear/crear";
+import { EditarEmpleado } from "../../views/EmpleadoViews/editar/Editar";;
+
+
+
+
+import { usePermiso } from "../../../hooks/usePermisos";
+import { TarjetaRow } from "../../components/TarjetaRow/TarjetaRow";
 
 /**
  * Página para gestionar empresas.
  * Muestra la lista, creación o edición según la ruta y verifica permisos.
  */
-export const EmpresasPage = () => {
+export const EmpleadosPage = () => {
    const accion = useSegmentoRutaUrl(1);
 
    // Mapeo de permisos requeridos por acción de ruta
    const permisosPorAccion = {
-      lista: 4,
-      crear: 6,
-      editar: 5,
+      lista: 1,
+      crear: 3,
+      editar: 2,
    };
 
    // Permiso requerido basado en la acción de la URL (por defecto 0)
@@ -45,22 +50,22 @@ export const EmpresasPage = () => {
                <div className="row align-items-center">
                   {!tienePermiso ? (
                      <TarjetaRow
-                        texto="Lista de Empresas"
+                        texto="Lista de Empleados"
                         subtitulo="No tienes permiso para ver esta sección."
                      >
                         <div
                            className="alert alert-danger"
                            role="alert"
                         >
-                           No tiene permiso para ver este contenido. Por favor, contacta al
-                           administrador del sistema para solicitar acceso.
+                           No tiene permiso para ver este contenido. Por favor,
+                           contacta al administrador del sistema para solicitar acceso.
                         </div>
                      </TarjetaRow>
                   ) : (
                      <>
-                        {accion === "lista" && <EmpresaLista />}
-                        {accion === "crear" && <CrearEmpresa />}
-                        {accion === "editar" && <EditarEmpresa />}
+                         {accion === "lista" && <EmpleadoLista />}
+                        {accion === "crear" && <CrearEmpleado />}
+                        {accion === "editar" && <EditarEmpleado />}
                      </>
                   )}
                </div>
