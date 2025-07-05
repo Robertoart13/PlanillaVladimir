@@ -12,6 +12,7 @@ import { useLocation } from "react-router-dom";
  *   - useSegmentoRutaUrl(1) devuelve "lista"
  *   - useSegmentoRutaUrl(2) devuelve null 
  */
+
 export const useSegmentoRutaUrl = (indiceSegmento = 0) => {
   const ubicacion = useLocation();
   

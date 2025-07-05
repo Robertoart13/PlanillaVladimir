@@ -72,7 +72,7 @@ export const NavBar = ({ isSidebarOpen, isMobile }) => {
                      <label data-i18n="Menus">Menus</label>
                      <i className="ph-duotone ph-gauge"></i>
                   </li>
-                  <li className={`pc-item ${getActiveClass('/empleado')}`}>
+                  <li className={`pc-item ${getActiveClass('/empleados')}`}>
                      <NavLink
                         to="/empleados/lista"
                         className="pc-link"
@@ -88,25 +88,10 @@ export const NavBar = ({ isSidebarOpen, isMobile }) => {
                         </span>
                      </NavLink>
                   </li>
-                  <li className={`pc-item ${getActiveClass('/clientes')}`}>
-                     <a
-                        href="../other/sample-page.html"
-                        className="pc-link"
-                     >
-                        <span className="pc-micon">
-                           <i className="fas fa-user-circle"></i>
-                        </span>
-                        <span
-                           className="pc-mtext"
-                           data-i18n="Clientes"
-                        >
-                           Clientes
-                        </span>
-                     </a>
-                  </li>
+                  
                   <li className={`pc-item ${getActiveClass('/planillas')}`}>
-                     <a
-                        href="../other/sample-page.html"
+                     <NavLink
+                        to="/planilla/lista"
                         className="pc-link"
                      >
                         <span className="pc-micon">
@@ -118,7 +103,24 @@ export const NavBar = ({ isSidebarOpen, isMobile }) => {
                         >
                            Planillas
                         </span>
-                     </a>
+                     </NavLink>
+                  </li>
+
+                  <li className={`pc-item ${getActiveClass('/planillas')}`}>
+                     <NavLink
+                        to="/planilla/generar"
+                        className="pc-link"
+                     >
+                        <span className="pc-micon">
+                           <i className="fas fa-file-export"></i>
+                        </span>
+                        <span
+                           className="pc-mtext"
+                           data-i18n="Planillas"
+                        >
+                           Generar Planillas
+                        </span>
+                     </NavLink>
                   </li>
                   <li className={`pc-item ${getActiveClass('/calendario')}`}>
                      <a

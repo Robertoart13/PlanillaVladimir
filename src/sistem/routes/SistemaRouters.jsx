@@ -1,6 +1,7 @@
 import { EmpleadosPage } from "../pages/EmpleadosPage/EmpleadosPage";
 import { HomePage } from "../pages/HomePage/HomePage";
 import { Routes, Route, Navigate } from "react-router-dom";
+import { PlanillaPage } from "../pages/PlanillaPage/PlanillaPage";
 
 export const SistemaRouters = () => {
    return (
@@ -15,6 +16,12 @@ export const SistemaRouters = () => {
          <Route
             path="/empleados/*"
             element={<EmpleadosPage />}
+         />
+
+         {/* Ruta para el Planilla */}  
+         <Route
+            path="/planilla/*"
+            element={<PlanillaPage />}
          />
 
          {/* // ruta por defecto */}
