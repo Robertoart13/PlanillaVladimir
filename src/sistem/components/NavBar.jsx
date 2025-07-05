@@ -163,14 +163,6 @@ export const NavBar = ({ isSidebarOpen, isMobile }) => {
                      <label data-i18n="Menus">Menús</label>
                      <i className="ph-duotone ph-gauge"></i>
                   </li>
-                  {tienePermiso(1) && (
-                     <MenuItem
-                        to="/empleados/lista"
-                        icon="fas fa-users"
-                        label="Empleados"
-                        i18n="Empleados"
-                     />
-                  )}
                   {tienePermiso(4) && (
                      <MenuItem
                         to="/empresas/lista"
@@ -250,6 +242,14 @@ export const NavBar = ({ isSidebarOpen, isMobile }) => {
                               label="Planillas Aplicadas"
                               i18n="Planillas Aplicadas"
                            />
+                           {tienePermiso(1) && (
+                              <MenuItem
+                                 to="/empleados/lista"
+                                 icon="fas fa-users"
+                                 label="Empleados"
+                                 i18n="Empleados"
+                              />
+                           )}
                         </ul>
                      )}
                   </li>

@@ -1,10 +1,12 @@
 import { HomePage } from "../pages/HomePage/HomePage";
 import { Routes, Route, Navigate } from "react-router-dom";
-import { EmpleadosPage } from "../pages/EmpleadosPage/EmpleadosPage";
-import { EmpresasPage } from "../pages/EmpresasPage/EmpresasPage";
+import { EmpleadosPage } from "../pages/NturalEmpresa/EmpleadosPage/EmpleadosPage";
+import { EmpresasPage } from "../pages/NturalEmpresa/PlanillaPage/EmpresasPage/EmpresasPage";
 import { ClientesPage } from "../pages/ClientesPage/ClientePage";
 import { CalendarioPage } from "../pages/CalendarioPage/CalendarioPage";
-import { PlanillaPage } from "../pages/PlanillaPage/PlanillaPage";
+import { PlanillaPage } from "../pages/NturalEmpresa/PlanillaPage/PlanillaPage";
+
+
 // Componente principal de rutas del sistema
 export const SistemaRouters = () => {
    return (
