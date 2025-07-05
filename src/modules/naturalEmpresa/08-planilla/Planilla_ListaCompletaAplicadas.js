@@ -56,9 +56,9 @@ const QUERIES = {
 const obtenerTodosDatos = async (usuario, database, estados) => {
    const estadosArray = 
    estados === "1"
-      ? ["En Proceso", "Activa"]
+      ? ["En Proceso", "Activa", "Cerrada"]
       : estados === "2"
-      ? ["Cerrada", "Cancelada"]
+      ? ["Cancelada"]
       : estados === "3"
       ? ["Procesada"]
       : [];
