@@ -3,8 +3,6 @@ import dotenv from "dotenv";
 import path from "path";
 import helpers from "../utils/helpers.js";
 
-
-
 /**
  * ====================================================================================================================================
  * Importación de módulos relacionados con la autenticación
@@ -12,7 +10,6 @@ import helpers from "../utils/helpers.js";
  * ====================================================================================================================================
  */
 import usuarioAuth from "../modules/01-usuarioAuth/usuarioAuth.js"; // Autenticación de usuarios
-
 
 /**
  * =================================================================================== =================================================
@@ -24,7 +21,6 @@ import Empresas_Listar from "../modules/naturalEmpresa/03-Empresas/Empresas_List
 import Empresas_Crear from "../modules/naturalEmpresa/03-Empresas/Empresas_Crear.js";
 import Empresas_Editar from "../modules/naturalEmpresa/03-Empresas/Empresas_Editar.js";
 
-
 /**
  * ====================================================================================================================================
  * Importación de módulos relacionados con la empresa
@@ -32,7 +28,6 @@ import Empresas_Editar from "../modules/naturalEmpresa/03-Empresas/Empresas_Edit
  * ====================================================================================================================================
  */
 import Empleados_Listar from "../modules/naturalEmpresa/02-Empleados/Empleados_ListaCompleta.js";
-
 
 /**
  * ====================================================================================================================================
@@ -45,11 +40,9 @@ import Nacionalidad_Listar_select from "../modules/05-Selects/Nacionalidad_Lista
 import Empresas_Listar_select from "../modules/05-Selects/Empresas_Lista.js";
 import Puesto_Listar_select from "../modules/05-Selects/Puestos_Lista.js";
 import TipoContrato_Listar_select from "../modules/05-Selects/TipoContrato.js";
-import Supervisor_Listar_select from "../modules/05-Selects/Supervisores.js"; 
+import Supervisor_Listar_select from "../modules/05-Selects/Supervisores.js";
 import Planilla_Listar_select from "../modules/05-Selects/Planilla_Lista.js";
 import Permisos_Listar_select from "../modules/05-Selects/Permisos_Lista.js";
-   
-
 
 /**
  * ====================================================================================================================================
@@ -60,17 +53,15 @@ import Permisos_Listar_select from "../modules/05-Selects/Permisos_Lista.js";
 import Empleados_Crear from "../modules/naturalEmpresa/04-Empleados/Empleados_Crear.js";
 import Empleados_Editar from "../modules/naturalEmpresa/04-Empleados/Empleados_Editar.js";
 
-
 /**
  * ====================================================================================================================================
  * Importación de módulos relacionados con la Empleados
  * Estos módulos manejan la lista de empleados
  * ====================================================================================================================================
  */
-import Clientes_Listar from "../modules/naturalEmpresa/06-Clientes/Clientes_ListaCompleta.js";
-import Clientes_Crear from "../modules/naturalEmpresa/06-Clientes/Cliente_Crear.js";
-import Clientes_Editar from "../modules/naturalEmpresa/06-Clientes/Clientes_Editar.js";
-
+import Clientes_Listar from "../modules/06-Clientes/Clientes_ListaCompleta.js";
+import Clientes_Crear from "../modules/06-Clientes/Cliente_Crear.js";
+import Clientes_Editar from "../modules/06-Clientes/Clientes_Editar.js";
 
 /**
  * ====================================================================================================================================
@@ -80,11 +71,9 @@ import Clientes_Editar from "../modules/naturalEmpresa/06-Clientes/Clientes_Edit
  */
 import Calendario_Listar from "../modules/naturalEmpresa/07-Calendario/Clalendario_ListaCompleta.js";
 import Calendario_Crear from "../modules/naturalEmpresa/07-Calendario/Calendario_Crear.js";
-import Calendario_Evento from "../modules/naturalEmpresa/07-Calendario/Calendario_Evento.js";   
+import Calendario_Evento from "../modules/naturalEmpresa/07-Calendario/Calendario_Evento.js";
 import Calendario_Estado from "../modules/naturalEmpresa/07-Calendario/Calendario_Estado.js";
 import Calendario_Editar from "../modules/naturalEmpresa/07-Calendario/Calendario_Editar.js";
-
-
 
 /**
  * ====================================================================================================================================
@@ -93,7 +82,7 @@ import Calendario_Editar from "../modules/naturalEmpresa/07-Calendario/Calendari
  * ====================================================================================================================================
  */
 import Planilla_Listar from "../modules/naturalEmpresa/08-planilla/Planilla_ListaCompleta.js";
-import Planilla_Crear from "../modules/naturalEmpresa/08-planilla/Planilla_Crear.js";  
+import Planilla_Crear from "../modules/naturalEmpresa/08-planilla/Planilla_Crear.js";
 import Planilla_Editar from "../modules/naturalEmpresa/08-planilla/Planilla_Editar.js";
 import Planilla_Listar_Empleados from "../modules/naturalEmpresa/08-planilla/Planilla_Lista_empleados.js";
 import Planilla_Insertar_Empleado from "../modules/naturalEmpresa/08-planilla/Planilla_Insertar_Empleado.js";
@@ -104,7 +93,6 @@ import Planil_Empleado_Aplicadas_Empleado from "../modules/naturalEmpresa/08-pla
 import Planilla_Aplicado from "../modules/naturalEmpresa/08-planilla/Planilla_Aplicado.js";
 import Planilla_Incritos from "../modules/naturalEmpresa/08-planilla/Planilla_Incritos.js";
 import planilla_estado from "../modules/naturalEmpresa/08-planilla/Planilla_CmabioEstado.js";
-
 
 /** ====================================================================================================================================
  * @fileoverview Módulo de configuración de rutas para la aplicación.
@@ -514,7 +502,7 @@ function getModulesConfig() {
             ...Planil_Empleado_Aplicadas_Empleado,
             ...Planilla_Aplicado,
             ...Planilla_Incritos,
-            ...planilla_estado
+            ...planilla_estado,
          }, // Combinamos ambos modelos
          routes: [
             {

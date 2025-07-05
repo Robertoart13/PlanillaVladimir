@@ -43,8 +43,7 @@ const QUERIES = {
    LEFT JOIN nacionalidades_tbl n ON e.id_nacionalidad = n.id_nacionalidad
    LEFT JOIN usuarios_tbl u ON e.id_supervisor = u.id_usuario
    LEFT JOIN cuentas_iban_tbl ci ON e.id_empleado = ci.id_empleado
-   where e.id_empresa = ?;
-
+   where e.id_empresa = ?
    GROUP BY e.id_empleado;
 ;
 

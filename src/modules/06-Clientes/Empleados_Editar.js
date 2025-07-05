@@ -12,10 +12,10 @@
  * ====================================================================================================================================
  */
 
-import { realizarConsulta, manejarError } from "../../../mysql2-promise/mysql2-promise.js";  
-import { realizarValidacionesIniciales } from "../../../hooks/realizarValidacionesIniciales.js";
-import { crearRespuestaExitosa } from "../../../hooks/crearRespuestaExitosa.js";
-import { crearRespuestaErrorCrear } from "../../../hooks/crearRespuestaErrorCrear.js";
+import { realizarConsulta, manejarError } from "../../mysql2-promise/mysql2-promise.js";  
+import { realizarValidacionesIniciales } from "../../hooks/realizarValidacionesIniciales.js";
+import { crearRespuestaExitosa } from "../../hooks/crearRespuestaExitosa.js";
+import { crearRespuestaErrorCrear } from "../../hooks/crearRespuestaErrorCrear.js";
 
 /**
  * ====================================================================================================================================

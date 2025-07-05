@@ -96,6 +96,7 @@ const esConsultarExitosa = (resultado) => {
  * ====================================================================================================================================
  */
 const obtenerListaCompleta = async (req, res) => {
+   console.log("req", res);
    try {
       // 1. Validar los datos iniciales de la solicitud (por ejemplo, formato y autenticidad de los datos).
       const errorValidacion = await realizarValidacionesIniciales(res);
@@ -130,7 +131,7 @@ const obtenerListaCompleta = async (req, res) => {
  * Este módulo expone la funcionalidad de obtener la lista completa, entre otras.
  * ====================================================================================================================================
  */
-const Permisos_Listar_select = {
+const Permisos_Listar_select = { 
    Permisos_Listar_select: obtenerListaCompleta, // Método que obtiene la lista completa, con validaciones y permisos.
 };
 
