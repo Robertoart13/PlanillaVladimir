@@ -1,16 +1,17 @@
 
 
-import { SistemLayout } from "../../layout/SistemLayout";
-import { useSegmentoRutaUrl } from "../../../hooks/useUrlPathSegment";
-import { EmpleadoLista } from "../../views/EmpleadoViews/lista/lista";
-import { CrearEmpleado } from "../../views/EmpleadoViews/crear/crear";
-import { EditarEmpleado } from "../../views/EmpleadoViews/editar/Editar";;
+
+import { useSegmentoRutaUrl } from "../../../../hooks/useUrlPathSegment";
+import { EmpleadoLista } from "../../../views/EmpleadoViews/lista/lista";
+import { CrearEmpleado } from "../../../views/EmpleadoViews/crear/crear";
+import { EditarEmpleado } from "../../../views/EmpleadoViews/editar/Editar";;
 
 
 
 
-import { usePermiso } from "../../../hooks/usePermisos";
-import { TarjetaRow } from "../../components/TarjetaRow/TarjetaRow";
+import { usePermiso } from "../../../../hooks/usePermisos";
+import { TarjetaRow } from "../../../components/TarjetaRow/TarjetaRow";
+import { SistemLayout } from "../../../layout/SistemLayout";
 
 /**
  * Página para gestionar empresas.

@@ -244,8 +244,8 @@ export const EmpleadoLista = () => {
    return (
       <>
          <TarjetaRow
-            texto="Listado de Empleados"
-            subtitulo="Tabla que muestra todos los empleados disponibles."
+            texto="Listado de Empleados de la empresa Natural"
+            subtitulo="Tabla que muestra todos los empleados disponibles. solo se muestran los empleados de la empresa Natural" 
          >
             {/* Muestra mensajes de error cuando ocurren */}
             {error && (
@@ -273,8 +273,8 @@ export const EmpleadoLista = () => {
                      className="ph-duotone ph-certificate"
                      style={{ paddingRight: "5px" }}
                   ></i>
-                  Crear Empleado
-               </Button>
+                  Crear Empleado Natural
+               </Button> 
             </Stack>
 
             {/* Contenedor de la tabla */}
