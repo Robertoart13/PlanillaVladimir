@@ -37,7 +37,7 @@ const QUERIES = {
          LEFT JOIN
                 usuarios_tbl u ON p.planilla_creado_por = u.id_usuario
             WHERE
-                  p.planilla_estado IN (?)
+                  p.planilla_estado IN (?) AND p.empresa_id = 13
       `,
 };
 
