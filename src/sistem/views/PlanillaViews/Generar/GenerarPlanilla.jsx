@@ -214,7 +214,9 @@ function PayrollTable({
                            key={col.key}
                            style={getTableCellStyle(col, isSelected, idx)}
                         >
-                           {col.type === "number" && !["neta", "totalReintegros", "totalDeducciones"].includes(col.key) ? (
+                           {(["nombre", "cedula", "asegurado"].includes(col.key)) ? (
+                              row[col.key]
+                           ) : col.type === "number" && !["neta", "totalReintegros", "totalDeducciones"].includes(col.key) ? (
                               <input
                                  type="text"
                                  name={col.key}
@@ -1129,22 +1131,25 @@ export const PayrollGenerator = () => {
          const worksheet = workbook.Sheets[workbook.SheetNames[0]];
          const excelRows = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
          const headerKeyMap = {
+            'Nombre': 'nombre',
+            'Cedula': 'cedula',
+            'NumeroAsegurado': 'asegurado',
             'Semana': 'semana',
-            'Remuneración Bruta': 'bruta',
-            'FCL 1,5% ROB 3,25%': 'fcl',
-            'Rebajos de Cliente': 'rebajosCliente',
-            'Reintegro de Cliente': 'reintegroCliente',
-            'Deposito X Tecurso': 'deposito',
-            'Cuota CC.SS': 'cuota',
-            'Rebajos OPU': 'rebajosOPU',
-            'Reintegros OPU': 'reintegrosOPU',
-            'Total de Deducciones': 'totalDeducciones',
-            'Total de Reintegros': 'totalReintegros',
-            'Remuneración Neta': 'neta'
+            'RemuneracionBruta': 'bruta',
+            'FCL_1_5_ROB_3_25': 'fcl',
+            'RebajosCliente': 'rebajosCliente',
+            'ReintegroCliente': 'reintegroCliente',
+            'DepositoXTecurso': 'deposito',
+            'CuotaCCSS': 'cuota',
+            'RebajosOPU': 'rebajosOPU',
+            'ReintegrosOPU': 'reintegrosOPU',
+            'TotalDeducciones': 'totalDeducciones',
+            'TotalReintegros': 'totalReintegros',
+            'RemuneracionNeta': 'neta'
          };
          const updatedRows = [...rows];
          excelRows.forEach((row) => {
-            const cedulaValue = String(row['Cédula']).trim();
+            const cedulaValue = String(row['Cedula']).trim();
             const idx = updatedRows.findIndex(r => String(r.cedula) === cedulaValue);
             // Only update unmarked employees
             if (idx !== -1 && !selectedRows.includes(idx)) {
