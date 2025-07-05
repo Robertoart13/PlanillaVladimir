@@ -5,13 +5,13 @@ import { ErrorMessage } from "../../../components/ErrorMessage/ErrorMessage";
 import { TarjetaRow } from "../../../components/TarjetaRow/TarjetaRow";
 // Importaciones de estilos
 import "../../../styles/customstyles.css";
-import { Button, Stack, FormControl, InputLabel, Select, MenuItem } from "@mui/material";
+import { Button, Stack, FormControl, InputLabel, Select, MenuItem, Alert } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 
 // Constantes para los textos
 const TEXTOS = {
-   titulo: "Listado de Planillas",
-   subtitulo: "Tabla que muestra todas las planillas disponibles.",
+   titulo: "Listado de Planillas de todas las empresas",
+   subtitulo: "Tabla que muestra todas las planillas de todas las empresas",  
    crearEmpresa: "Crear Planilla",
    sinPermiso: "No tienes permiso para ver la lista de planillas",
    filtrarPorEstado: "Filtrar por estado",
@@ -267,6 +267,10 @@ export const PlanillaLista = () => {
                      ))}
                   </Select>
                </FormControl>
+
+               <Alert severity="info" sx={{ mb: 2 }}>
+                  Mostrando planillas en estado: {OPCIONES_ESTADO.find(op => op.value === estadoSeleccionado)?.label || "Todos"}
+               </Alert>
 
             {/* Contenedor de la tabla */}
             <div className="table-responsive">

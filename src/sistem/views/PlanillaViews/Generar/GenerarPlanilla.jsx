@@ -116,6 +116,7 @@ function formatCurrency(value, decimals = 2) {
  * @returns {number} - Suma total del campo especificado
  */
 function sumColumn(rows, field) {
+   if (field === "semana") return 0; // No sumar semanas
    return rows.reduce((acc, row) => acc + (parseFloat(row[field]) || 0), 0);
 }
 
@@ -199,7 +200,7 @@ function PayrollTable({
                         >
                            {col.type === "number" && !["neta", "totalReintegros"].includes(col.key) ? (
                               <input
-                                 type="number"
+                                 type="text"
                                  name={col.key}
                                  value={row[col.key]}
                                  onChange={(e) => onInputChange(e, idx)}
@@ -374,14 +375,18 @@ function TablePagination({
  */
 function SummaryTable({ rows, selectedRows, montoPorOperario, setMontoPorOperario, totalTarifa, financialData }) {
    if (financialData) {
-      const { montoTarifa, montoRemuneraciones, subtotal, iva, montoTotal } = financialData;
+      const { montoTarifa, montoRemuneraciones, iva, montoTotal } = financialData;
+      // Calcular el subtotal como la suma de montoTarifa y montoRemuneraciones
+      const subtotal = montoTarifa + (montoRemuneraciones || 0);
+
       return (
          <div style={{ maxWidth: 350 }}>
             <table
                className="table table-bordered"
                style={{ background: "#bcd2f7" }}
             >
-               <tbody>                  <tr>
+               <tbody>
+                  <tr>
                      <td
                         className="fw-bold"
                         style={getSummaryCellStyle("header")}
@@ -543,7 +548,7 @@ function SummaryTable({ rows, selectedRows, montoPorOperario, setMontoPorOperari
                      colSpan={2}
                      style={getSummaryCellStyle("total")}
                   >
-                     {formatCurrency(totalTarifa)}
+                     {formatCurrency(montoPorOperario * selectedRows.length)}
                   </td>
                </tr>
             </tbody>
@@ -654,8 +659,6 @@ async function fetchAndSetEmpleados({
       const empleadosRow = await dispatch(
          Planilla_Lista_Empleado_Thunks(planillaSeleccionada, empresaSeleccionada),
       );
-
-      console.log(empleadosRow);
       if (empleadosRow?.data?.array) {
          const semanaActual = getCurrentWeekNumber();
          const empleados = empleadosRow.data.array.map((emp, i) =>
@@ -778,68 +781,52 @@ function useHandleInputChange({ startIdx, setRows, setSelectedRows }) {
          const { name, value } = e.target;
          const globalIdx = startIdx + idx;
 
-         // Actualiza el valor en la fila correspondiente
+         // Solo actualiza el valor directamente mientras se escribe
+         setRows((prevRows) => {
+            const updatedRows = prevRows.map((row, i) => {
+               if (i !== globalIdx) return row;
+               return { ...row, [name]: value };
+            });
+            return updatedRows;
+         });
+      },
+      [startIdx, setRows, setSelectedRows],
+   );
+}
+
+// Y agregamos un nuevo handler para onBlur
+function useHandleBlur({ startIdx, setRows }) {
+   return useCallback(
+      (e, idx) => {
+         const { name, value } = e.target;
+         const globalIdx = startIdx + idx;
+
+         const parseNumber = (val) => {
+            if (typeof val === 'string') {
+               return parseFloat(val.replace(/\./g, '').replace(',', '.')) || 0;
+            }
+            return val;
+         };
+
+         const formatNumber = (num) => {
+            return num.toLocaleString('es-CR', {
+               minimumFractionDigits: 2,
+               maximumFractionDigits: 2,
+            });
+         };
+
          setRows((prevRows) => {
             const updatedRows = prevRows.map((row, i) => {
                if (i !== globalIdx) return row;
                
-               const updatedRow = { ...row, [name]: value };
-               
-               // Si cambiaron valores que afectan el cálculo de Deposito X Tecurso, actualizar ese valor
-               if (["bruta", "fcl", "rebajosCliente", "reintegroCliente"].includes(name)) {
-                  const bruta = parseFloat(updatedRow.bruta) || 0;
-                  const fcl = parseFloat(updatedRow.fcl) || 0;
-                  const rebajosCliente = parseFloat(updatedRow.rebajosCliente) || 0;
-                  const reintegroCliente = parseFloat(updatedRow.reintegroCliente) || 0;
-                  
-                  // Aplicar la fórmula: Bruta + FCL - Rebajos + Reintegro
-                  // Asegurar que todos los valores son positivos para la fórmula
-                  const deposito = Math.abs(bruta) + Math.abs(fcl) - Math.abs(rebajosCliente) + Math.abs(reintegroCliente);
-                  updatedRow.deposito = deposito.toFixed(2);
-               }
-               
-               // Si cambiaron valores que afectan el cálculo de Total de Deducciones, actualizar ese valor
-               if (["rebajosCliente", "cuota"].includes(name)) {
-                  const rebajosCliente = parseFloat(updatedRow.rebajosCliente) || 0;
-                  const cuota = parseFloat(updatedRow.cuota) || 0;
-                  
-                  // Aplicar la fórmula: Rebajos de Cliente + Cuota CC.SS
-                  const totalDeducciones = rebajosCliente + cuota;
-                  updatedRow.totalDeducciones = totalDeducciones.toFixed(2);
-               }
-               
-               // Si cambió el valor de Reintegro de Cliente, actualizar Total de Reintegros
-               if (name === "reintegroCliente") {
-                  const reintegroCliente = parseFloat(updatedRow.reintegroCliente) || 0;
-                  updatedRow.totalReintegros = reintegroCliente.toFixed(2);
-               }
-               
-               // Si cambiaron valores que afectan la Remuneración Neta, actualizar ese valor
-               if (["bruta", "fcl", "rebajosCliente", "reintegroCliente", "cuota"].includes(name)) {
-                  const bruta = parseFloat(updatedRow.bruta) || 0;
-                  const fcl = parseFloat(updatedRow.fcl) || 0;
-                  const rebajosCliente = parseFloat(updatedRow.rebajosCliente) || 0;
-                  const reintegroCliente = parseFloat(updatedRow.reintegroCliente) || 0;
-                  const cuota = parseFloat(updatedRow.cuota) || 0;
-                  
-                  // Aplicar la fórmula: Bruta + FCL - RebajosCliente + ReintegroCliente - Cuota
-                  const neta = bruta + fcl - rebajosCliente + reintegroCliente - cuota;
-                  updatedRow.neta = neta.toFixed(2);
-               }
-               
-               return updatedRow;
+               const numericValue = parseNumber(value);
+               const formattedValue = formatNumber(numericValue);
+               return { ...row, [name]: formattedValue };
             });
             return updatedRows;
          });
-
-         // Si la fila estaba seleccionada, la deselecciona al editarla
-         setSelectedRows((prevSelected) =>
-            prevSelected.includes(globalIdx)
-               ? prevSelected.filter((i) => i !== globalIdx)
-               : prevSelected,
-         );
       },
-      [startIdx, setRows, setSelectedRows],
+      [startIdx, setRows],
    );
 }
 
@@ -893,7 +880,8 @@ export const PayrollGenerator = () => {
    useEffect(() => {
       (async () => {
          const empresasData = await dispatch(SelectOpcion_Thunks("empresas/select"));
-         if (empresasData && empresasData.data) setEmpresas(empresasData.data.array || []);
+         const empresasFiltradas = empresasData.data.array.filter(empresa => empresa.id_empresa === 13);
+         if (empresasFiltradas && empresasFiltradas) setEmpresas(empresasFiltradas || []);
       })();
    }, [dispatch]);
 
@@ -1008,14 +996,24 @@ export const PayrollGenerator = () => {
    const startIdx = (currentPage - 1) * pageSize;   // Derivados de los datos
    const totalPages = Math.ceil(rows.length / pageSize);
    const pageRows = rows.slice(startIdx, startIdx + pageSize);
-   const totalTarifa = useMemo(
-      () => montoPorOperario * rows.length,
-      [montoPorOperario, rows.length],
-   );
+   const totalTarifa = useMemo(() => {
+      const empleadosConDatos = rows.filter(row => 
+         parseFloat(row.bruta) > 0 || 
+         parseFloat(row.fcl) > 0 || 
+         parseFloat(row.rebajosCliente) > 0
+      );
+      return montoPorOperario * empleadosConDatos.length;
+   }, [montoPorOperario, rows]);
    const montoTarifa = totalTarifa;
-   const montoRemuneraciones = useMemo(() => sumColumn(rows, "deposito"), [rows]);
-   const subtotal = montoTarifa + montoRemuneraciones; // Corregido: suma en lugar de resta
-   const iva = subtotal * 0.13;
+   const montoRemuneraciones = useMemo(() => {
+      const total = sumColumn(rows, "deposito");
+      return total > 0 ? total : "-";
+   }, [rows]);
+   const subtotal = useMemo(() => {
+      const total = sumColumn(rows, "bruta") + sumColumn(rows, "fcl");
+      return total > 0 ? total : 0;
+   }, [rows]);
+   const iva = subtotal > 0 ? subtotal * 0.13 : 0;
    const montoTotal = subtotal + iva;
 
    // Handler para gestionar los checkboxes
@@ -1308,9 +1306,8 @@ export const PayrollGenerator = () => {
                               />
                               <SummaryTable
                                  financialData={{
-                                    montoTarifa,
+                                    montoTarifa: montoPorOperario * selectedRows.length,
                                     montoRemuneraciones,
-                                    subtotal,
                                     iva,
                                     montoTotal,
                                  }}

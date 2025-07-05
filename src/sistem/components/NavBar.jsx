@@ -171,12 +171,12 @@ export const NavBar = ({ isSidebarOpen, isMobile }) => {
                         i18n="Empresas"
                      />
                   )}
-                  <MenuItem
+                  {/* <MenuItem
                      to="/calendario/planilla"
                      icon="fas fa-calendar-check"
                      label="Planilla Calendario"
                      i18n="Planilla Calendario"
-                  />
+                  /> */}
                   <MenuItem
                      to="/clientes/lista"
                      icon="fas fa-user-circle"
