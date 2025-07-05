@@ -1,6 +1,6 @@
 import { useDispatch, useSelector } from "react-redux";
 import Avatar from "@mui/material/Avatar";
-import { useLocation } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import { logout } from "../../store/auth/authThunk";
 export const NavBar = ({ isSidebarOpen, isMobile }) => {
    const { user } = useSelector((state) => state.auth);
@@ -73,8 +73,8 @@ export const NavBar = ({ isSidebarOpen, isMobile }) => {
                      <i className="ph-duotone ph-gauge"></i>
                   </li>
                   <li className={`pc-item ${getActiveClass('/empleado')}`}>
-                     <a
-                        href="../other/sample-page.html"
+                     <NavLink
+                        to="/empleados/lista"
                         className="pc-link"
                      >
                         <span className="pc-micon">
@@ -86,7 +86,7 @@ export const NavBar = ({ isSidebarOpen, isMobile }) => {
                         >
                            Empleados
                         </span>
-                     </a>
+                     </NavLink>
                   </li>
                   <li className={`pc-item ${getActiveClass('/clientes')}`}>
                      <a
