@@ -5,16 +5,23 @@ import { ErrorMessage } from "../../../components/ErrorMessage/ErrorMessage";
 import { TarjetaRow } from "../../../components/TarjetaRow/TarjetaRow";
 // Importaciones de estilos
 import "../../../styles/customstyles.css";
-import { Button, Stack } from "@mui/material";
+import { Button, Stack, FormControl, InputLabel, Select, MenuItem, Alert } from "@mui/material";
 import { useNavigate } from 'react-router-dom';
 
 // Constantes para los textos
 const TEXTOS = {
-   titulo: "Listado de Planillas Aplicadas ",
-   subtitulo: "Tabla que muestra todas las planillas Aplicadas listas para procesar",
+   titulo: "Listado de Planillas Aplicadas para la empresa Natural",
+   subtitulo: "Tabla que muestra todas las planillas Aplicadas listas para procesar", 
    crearEmpresa: "Generar Planilla",
    sinPermiso: "No tienes permiso para ver la lista de planillas",
+   filtrarPorEstado: "Filtrar por estado",
 };
+
+const OPCIONES_ESTADO = [
+   { value: "1", label: "En Proceso/Activa" },
+   { value: "2", label: "Cerrada/Cancelada" },
+   { value: "3", label: "Procesada" },
+];
 
 /**
  * Función simple para encriptar IDs para usar en URLs
@@ -110,15 +117,19 @@ const formatearDatosFila = (datosFila) => ({
 /**
  * Crea la configuración de la tabla para el componente.
  * @param {Object} usuario - Usuario autenticado.
+ * @param {string} estadoSeleccionado - Estado seleccionado para filtrar.
  * @returns {Object} Configuración de la tabla.
  */
-const crearConfiguracionTabla = (usuario) => ({
+const crearConfiguracionTabla = (usuario, estadoSeleccionado = "1") => ({
    urlEndpoint: "planilla/listaAplicadas", // API endpoint para obtener los datos.
    requestType: "POST", // Método HTTP para la solicitud.
    transaccion: {
       user: {
          id: parseInt(usuario?.id_usuario) || 0,
          rol: parseInt(usuario?.id_rol) || 0,
+      },
+      data: {
+         estados: estadoSeleccionado,
       },
       acceso: {
          type: 0,
@@ -175,8 +186,22 @@ export const PlanillaListaAplicadas = () => {
    // Estado para controlar la apertura del diálogo de edición
    const [openEdit, setOpenEdit] = useState(false);
 
+   // Estado para manejar la selección del estado
+   const [estadoSeleccionado, setEstadoSeleccionado] = useState("1");
+
    // Configuración de la tabla usando useMemo para optimizar el rendimiento.
-   const configuracionTabla = useMemo(() => crearConfiguracionTabla(user), [user?.id_usuario]);
+   const configuracionTabla = useMemo(
+      () => ({
+         ...crearConfiguracionTabla(user, estadoSeleccionado),
+         transaccion: {
+            ...crearConfiguracionTabla(user, estadoSeleccionado).transaccion,
+            data: {
+               estados: estadoSeleccionado,
+            },
+         },
+      }),
+      [user?.id_usuario, estadoSeleccionado]
+   );
 
    // Inicializa la tabla con los parámetros configurados.
    useDataTable(
@@ -240,6 +265,26 @@ export const PlanillaListaAplicadas = () => {
                   {TEXTOS.crearEmpresa}
                </Button>
             </Stack>
+
+            <FormControl sx={{ minWidth: 200, marginRight: 2, marginBottom: 2 }}>
+               <InputLabel>{TEXTOS.filtrarPorEstado}</InputLabel>
+               <Select
+                  value={estadoSeleccionado}
+                  onChange={(e) => setEstadoSeleccionado(e.target.value)}
+                  label={TEXTOS.filtrarPorEstado}
+                  sx={{ height: 40 }}
+               >
+                  {OPCIONES_ESTADO.map((opcion) => (
+                     <MenuItem key={opcion.value} value={opcion.value}>
+                        {opcion.label}
+                     </MenuItem>
+                  ))}
+               </Select>
+            </FormControl>
+
+            <Alert severity="info" sx={{ mb: 2 }}>
+               Mostrando planillas en estado: {OPCIONES_ESTADO.find(op => op.value === estadoSeleccionado)?.label || "Todos"}
+            </Alert>
 
             {/* Contenedor de la tabla */}
             <div className="table-responsive">
