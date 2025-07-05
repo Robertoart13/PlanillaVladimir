@@ -273,7 +273,7 @@ export const LoginPage = () => {
                width={250} // Podría ser gestionado por CSS para responsividad
             />
             <div className="saprator my-1">
-               <span>Iniciar sesión para continuar</span>
+               <span>Iniciar sesión</span>
             </div>
          </div>
 
