@@ -43,6 +43,7 @@ const QUERIES = {
    LEFT JOIN nacionalidades_tbl n ON e.id_nacionalidad = n.id_nacionalidad
    LEFT JOIN usuarios_tbl u ON e.id_supervisor = u.id_usuario
    LEFT JOIN cuentas_iban_tbl ci ON e.id_empleado = ci.id_empleado
+   where e.id_empresa = ?;
 
    GROUP BY e.id_empleado;
 ;
@@ -65,7 +66,7 @@ const QUERIES = {
 const obtenerTodosDatos = async (database) => {
    try {
       // Ejecuta la consulta SQL para obtener los datos de la tabla
-      return await realizarConsulta(QUERIES.QUERIES_SELECT, [], database);
+      return await realizarConsulta(QUERIES.QUERIES_SELECT, [13], database);
    } catch (error) {
       return manejarError(
          error,

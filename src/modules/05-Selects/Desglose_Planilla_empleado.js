@@ -4,17 +4,17 @@
  * @requires ../../mysql2-promise/mysql2-promise
  * @requires ../../hooks/realizarValidacionesIniciales
  * @requires ../../hooks/crearRespuestaExitosa
- * @requires ../../hooks/verificarPermisosUsuario
+ * 
  *
  * Este módulo proporciona funcionalidades para consultar y listar los registros
  * disponibles en el sistema, con validaciones de permisos y manejo de errores.
  * ====================================================================================================================================
  */
 
-import { realizarConsulta, manejarError } from "../../../mysql2-promise/mysql2-promise.js";
-import { realizarValidacionesIniciales } from "../../../hooks/realizarValidacionesIniciales.js";
-import { crearRespuestaExitosa } from "../../../hooks/crearRespuestaExitosa.js";
-import { crearRespuestaErrorCrear } from "../../../hooks/crearRespuestaErrorCrear.js";
+import { realizarConsulta, manejarError } from "../../mysql2-promise/mysql2-promise.js";  
+import { realizarValidacionesIniciales } from "../../hooks/realizarValidacionesIniciales.js";
+import { crearRespuestaExitosa } from "../../hooks/crearRespuestaExitosa.js";
+import { crearRespuestaErrorCrear } from "../../hooks/crearRespuestaErrorCrear.js";
 
 /**
  * ====================================================================================================================================
@@ -25,8 +25,8 @@ import { crearRespuestaErrorCrear } from "../../../hooks/crearRespuestaErrorCrea
 const QUERIES = {
    // Consulta SQL para obtener todos los registros de la tabla
    QUERIES_SELECT: `
-        SELECT * FROM departamentos_tbl WHERE estado_departamento = 1
-    `,
+         SELECT * from planilla_tbl where empresa_id = ? and planilla_estado NOT IN ('Procesada', 'Cerrada', 'Cancelada');
+      `,
 };
 
 /**
@@ -41,10 +41,10 @@ const QUERIES = {
  * @throws {Error} Si ocurre un error durante la consulta a la base de datos.
  * ====================================================================================================================================
  */
-const obtenerTodosDatos = async (database) => {
+const obtenerTodosDatos = async (id_planilla, database) => {      
    try {
       // Ejecuta la consulta SQL para obtener los datos de la tabla
-      return await realizarConsulta(QUERIES.QUERIES_SELECT, [], database);
+      return await realizarConsulta(QUERIES.QUERIES_SELECT, [id_planilla], database);
    } catch (error) {
       return manejarError(
          error,
@@ -97,12 +97,16 @@ const esConsultarExitosa = (resultado) => {
  */
 const obtenerListaCompleta = async (req, res) => {
    try {
+
       // 1. Validar los datos iniciales de la solicitud (por ejemplo, formato y autenticidad de los datos).
       const errorValidacion = await realizarValidacionesIniciales(res);
       if (errorValidacion) return errorValidacion; // Si hay un error en la validación, lo retorna inmediatamente.
 
+
+
       // 3. Obtener los datos de la base de datos una vez validados los permisos.
-      const resultado = await obtenerTodosDatos(res?.database);
+      const resultado = await obtenerTodosDatos(res?.transaccion?.data?.id, res?.database);
+
 
       // 4. Verificar si la edición fue exitosa.
       if (!esConsultarExitosa(resultado)) {
@@ -128,8 +132,8 @@ const obtenerListaCompleta = async (req, res) => {
  * Este módulo expone la funcionalidad de obtener la lista completa, entre otras.
  * ====================================================================================================================================
  */
-const Departamentos_Listar_select = {
-   Departamentos_Listar_select: obtenerListaCompleta, // Método que obtiene la lista completa, con validaciones y permisos.
+const Planilla_Listar_select  = {   
+      Planilla_Listar_select: obtenerListaCompleta,   // Método que obtiene la lista completa, con validaciones y permisos.
 };
 
-export default Departamentos_Listar_select;
+export default Planilla_Listar_select;    

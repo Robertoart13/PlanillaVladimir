@@ -106,7 +106,7 @@ const editarRegistroBd = async (
          datos.id_departamento,
          datos.id_puesto,
          datos.id_supervisor,
-         datos.id_empresa,
+         13,
          datos.es_inactivo,
          datos.ministerio_hacienda_empleado,
          datos.rt_ins_empleado,

@@ -11,10 +11,10 @@
  * ====================================================================================================================================
  */
 
-import { realizarConsulta, manejarError } from "../../../mysql2-promise/mysql2-promise.js";
-import { realizarValidacionesIniciales } from "../../../hooks/realizarValidacionesIniciales.js";
-import { crearRespuestaExitosa } from "../../../hooks/crearRespuestaExitosa.js";
-import { crearRespuestaErrorCrear } from "../../../hooks/crearRespuestaErrorCrear.js";
+import { realizarConsulta, manejarError } from "../../mysql2-promise/mysql2-promise.js";  
+import { realizarValidacionesIniciales } from "../../hooks/realizarValidacionesIniciales.js";
+import { crearRespuestaExitosa } from "../../hooks/crearRespuestaExitosa.js";
+import { crearRespuestaErrorCrear } from "../../hooks/crearRespuestaErrorCrear.js";
 
 /**
  * ====================================================================================================================================
@@ -25,7 +25,7 @@ import { crearRespuestaErrorCrear } from "../../../hooks/crearRespuestaErrorCrea
 const QUERIES = {
    // Consulta SQL para obtener todos los registros de la tabla
    QUERIES_SELECT: `
-        SELECT * FROM usuarios_permisos_tbl WHERE id_usuario_usuario_perm = ?
+        SELECT * FROM usuarios_tbl
     `,
 };
 
@@ -41,10 +41,10 @@ const QUERIES = {
  * @throws {Error} Si ocurre un error durante la consulta a la base de datos.
  * ====================================================================================================================================
  */
-const obtenerTodosDatos = async (id,database) => {
+const obtenerTodosDatos = async (database) => {
    try {
       // Ejecuta la consulta SQL para obtener los datos de la tabla
-      return await realizarConsulta(QUERIES.QUERIES_SELECT, [id], database);
+      return await realizarConsulta(QUERIES.QUERIES_SELECT, [], database);
    } catch (error) {
       return manejarError(
          error,
@@ -102,9 +102,7 @@ const obtenerListaCompleta = async (req, res) => {
       if (errorValidacion) return errorValidacion; // Si hay un error en la validación, lo retorna inmediatamente.
 
       // 3. Obtener los datos de la base de datos una vez validados los permisos.
-      const resultado = await obtenerTodosDatos(
-         res?.transaccion?.user?.id, // Usar el ID del usuario autenticado o un valor por defecto.
-         res?.database);
+      const resultado = await obtenerTodosDatos(res?.database);
 
       // 4. Verificar si la edición fue exitosa.
       if (!esConsultarExitosa(resultado)) {
@@ -130,8 +128,8 @@ const obtenerListaCompleta = async (req, res) => {
  * Este módulo expone la funcionalidad de obtener la lista completa, entre otras.
  * ====================================================================================================================================
  */
-const Permisos_Listar_select = {
-   Permisos_Listar_select: obtenerListaCompleta, // Método que obtiene la lista completa, con validaciones y permisos.
+const Supervisores_Listar_select = {
+   Supervisores_Listar_select: obtenerListaCompleta, // Método que obtiene la lista completa, con validaciones y permisos.
 };
 
-export default Permisos_Listar_select;
+export default Supervisores_Listar_select;

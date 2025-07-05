@@ -25,7 +25,7 @@ import { crearRespuestaErrorCrear } from "../../../hooks/crearRespuestaErrorCrea
 const QUERIES = {
    // Consulta SQL para obtener todos los registros de la tabla
    QUERIES_SELECT: `
-         SELECT * FROM empresas_tbl;
+         SELECT * FROM empresas_tbl where id_empresa = ?;
 
       `,
 };
@@ -45,7 +45,7 @@ const QUERIES = {
 const obtenerTodosDatos = async (database) => {
    try {
       // Ejecuta la consulta SQL para obtener los datos de la tabla
-      return await realizarConsulta(QUERIES.QUERIES_SELECT, [], database);
+      return await realizarConsulta(QUERIES.QUERIES_SELECT, [13], database);
    } catch (error) {
       return manejarError(
          error,

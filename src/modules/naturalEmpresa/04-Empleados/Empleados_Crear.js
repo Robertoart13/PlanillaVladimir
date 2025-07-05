@@ -124,7 +124,7 @@ const crearNuevoRegistroBd = async (datos, database) => {
          datos.id_departamento,
          datos.id_puesto,
          datos.id_supervisor,
-         datos.id_empresa,
+         13,
          datos.ministerio_hacienda_empleado,
          datos.rt_ins_empleado,
          datos.caja_costarricense_seguro_social_empleado,

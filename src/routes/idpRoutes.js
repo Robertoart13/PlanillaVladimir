@@ -3,6 +3,8 @@ import dotenv from "dotenv";
 import path from "path";
 import helpers from "../utils/helpers.js";
 
+
+
 /**
  * ====================================================================================================================================
  * Importación de módulos relacionados con la autenticación
@@ -38,13 +40,14 @@ import Empleados_Listar from "../modules/naturalEmpresa/02-Empleados/Empleados_L
  * Estos módulos manejan la lista de selecciones
  * ====================================================================================================================================
  */
-import Departamentos_Listar_select from "../modules/naturalEmpresa/05-Selects/Departamentos_Lista.js";
-import Nacionalidad_Listar_select from "../modules/naturalEmpresa/05-Selects/Nacionalidad_Lista.js";
-import Empresas_Listar_select from "../modules/naturalEmpresa/05-Selects/Empresas_Lista.js";
-import Puesto_Listar_select from "../modules/naturalEmpresa/05-Selects/Puestos_Lista.js";
-import TipoContrato_Listar_select from "../modules/naturalEmpresa/05-Selects/TipoContrato.js";
-import Supervisor_Listar_select from "../modules/naturalEmpresa/05-Selects/Supervisores.js";
-import Planilla_Listar_select from "../modules/naturalEmpresa/05-Selects/Planilla_Lista.js";
+import Departamentos_Listar_select from "../modules/05-Selects/Departamentos_Lista.js";
+import Nacionalidad_Listar_select from "../modules/05-Selects/Nacionalidad_Lista.js";
+import Empresas_Listar_select from "../modules/05-Selects/Empresas_Lista.js";
+import Puesto_Listar_select from "../modules/05-Selects/Puestos_Lista.js";
+import TipoContrato_Listar_select from "../modules/05-Selects/TipoContrato.js";
+import Supervisor_Listar_select from "../modules/05-Selects/Supervisores.js"; 
+import Planilla_Listar_select from "../modules/05-Selects/Planilla_Lista.js";
+import Permisos_Listar_select from "../modules/05-Selects/Permisos_Lista.js";
    
 
 
@@ -82,14 +85,7 @@ import Calendario_Estado from "../modules/naturalEmpresa/07-Calendario/Calendari
 import Calendario_Editar from "../modules/naturalEmpresa/07-Calendario/Calendario_Editar.js";
 
 
-/**
- * ====================================================================================================================================
- * Importación de módulos relacionados con la Empleados
- * Estos módulos manejan la lista de empleados
- * ====================================================================================================================================
- */
-import Permisos_Listar_select from "../modules/naturalEmpresa/05-Selects/Permisos_Lista.js";
-   
+
 /**
  * ====================================================================================================================================
  * Importación de módulos relacionados con la Empleados

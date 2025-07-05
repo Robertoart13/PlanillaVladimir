@@ -11,10 +11,10 @@
  * ====================================================================================================================================
  */
 
-import { realizarConsulta, manejarError } from "../../../mysql2-promise/mysql2-promise.js";
-import { realizarValidacionesIniciales } from "../../../hooks/realizarValidacionesIniciales.js";
-import { crearRespuestaExitosa } from "../../../hooks/crearRespuestaExitosa.js";
-import { crearRespuestaErrorCrear } from "../../../hooks/crearRespuestaErrorCrear.js";
+import { realizarConsulta, manejarError } from "../../mysql2-promise/mysql2-promise.js";  
+import { realizarValidacionesIniciales } from "../../hooks/realizarValidacionesIniciales.js";
+import { crearRespuestaExitosa } from "../../hooks/crearRespuestaExitosa.js";
+import { crearRespuestaErrorCrear } from "../../hooks/crearRespuestaErrorCrear.js";
 
 /**
  * ====================================================================================================================================
@@ -25,7 +25,7 @@ import { crearRespuestaErrorCrear } from "../../../hooks/crearRespuestaErrorCrea
 const QUERIES = {
    // Consulta SQL para obtener todos los registros de la tabla
    QUERIES_SELECT: `
-        SELECT * FROM usuarios_tbl
+        SELECT * FROM nacionalidades_tbl WHERE estado_nacionalidad = 1
     `,
 };
 
@@ -128,8 +128,8 @@ const obtenerListaCompleta = async (req, res) => {
  * Este módulo expone la funcionalidad de obtener la lista completa, entre otras.
  * ====================================================================================================================================
  */
-const Supervisores_Listar_select = {
-   Supervisores_Listar_select: obtenerListaCompleta, // Método que obtiene la lista completa, con validaciones y permisos.
+const Nacionalidad_Listar_select = {
+   Nacionalidad_Listar_select: obtenerListaCompleta, // Método que obtiene la lista completa, con validaciones y permisos.
 };
 
-export default Supervisores_Listar_select;
+export default Nacionalidad_Listar_select;

@@ -11,10 +11,10 @@
  * ====================================================================================================================================
  */
 
-import { realizarConsulta, manejarError } from "../../../mysql2-promise/mysql2-promise.js";
-import { realizarValidacionesIniciales } from "../../../hooks/realizarValidacionesIniciales.js";
-import { crearRespuestaExitosa } from "../../../hooks/crearRespuestaExitosa.js";
-import { crearRespuestaErrorCrear } from "../../../hooks/crearRespuestaErrorCrear.js";
+import { realizarConsulta, manejarError } from "../../mysql2-promise/mysql2-promise.js";  
+import { realizarValidacionesIniciales } from "../../hooks/realizarValidacionesIniciales.js";
+import { crearRespuestaExitosa } from "../../hooks/crearRespuestaExitosa.js";
+import { crearRespuestaErrorCrear } from "../../hooks/crearRespuestaErrorCrear.js";
 
 /**
  * ====================================================================================================================================
@@ -25,7 +25,7 @@ import { crearRespuestaErrorCrear } from "../../../hooks/crearRespuestaErrorCrea
 const QUERIES = {
    // Consulta SQL para obtener todos los registros de la tabla
    QUERIES_SELECT: `
-        SELECT * FROM empresas_tbl WHERE estado_empresa = 1
+        SELECT * FROM tipos_contrato_tbl WHERE estado_tipo_contrato = 1
     `,
 };
 
@@ -128,8 +128,8 @@ const obtenerListaCompleta = async (req, res) => {
  * Este módulo expone la funcionalidad de obtener la lista completa, entre otras.
  * ====================================================================================================================================
  */
-const Empresas_Listar_select = {
-   Empresas_Listar_select: obtenerListaCompleta, // Método que obtiene la lista completa, con validaciones y permisos.
+const Tipos_Contrato_Listar_select = {
+   Tipos_Contrato_Listar_select: obtenerListaCompleta, // Método que obtiene la lista completa, con validaciones y permisos.
 };
 
-export default Empresas_Listar_select;
+export default Tipos_Contrato_Listar_select;
