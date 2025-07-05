@@ -28,13 +28,6 @@ const PAYROLL_COLUMNS = [
 
 const PAGE_SIZES = [5, 10, 30, 60, 80, 100];
 
-// Datos de ejemplo estáticos
-const MOCK_EMPRESAS = [
-   { id_empresa: "1", nombre_comercial_empresa: "Empresa A" },
-   { id_empresa: "2", nombre_comercial_empresa: "Empresa B" },
-   { id_empresa: "3", nombre_comercial_empresa: "Empresa C" },
-];
-
 const MOCK_PLANILLAS = [
    { planilla_id: "1", planilla_codigo: "PLAN-001", planilla_estado: "En Proceso" },
    { planilla_id: "2", planilla_codigo: "PLAN-002", planilla_estado: "Activa" },
@@ -858,52 +851,8 @@ export const PayrollGenerator = () => {
                         </select>
                      </div>
 
-                     {/* Espacio para cargar archivo Excel */}
-                     <div className="mb-3">
-                        <label htmlFor="excelUpload" className="form-label">Cargar Excel de Planilla</label>
-                        <input
-                           type="file"
-                           id="excelUpload"
-                           accept=".xlsx, .xls"
-                           className="form-control"
-                           disabled={!planillaSeleccionada}
-                           onChange={handleFileUpload}
-                        />
-                     </div>
 
-                     {/* Botón o alerta según estado de planilla */}
-                     {planillaSeleccionada &&
-                        (planillaEstado === "En Proceso" ? (
-                           <div className="mb-3">
-                              <button
-                                 className="btn btn-success"
-                                 onClick={handleAplicarPlanilla}
-                              >
-                                 Aplicar Planilla
-                              </button>
-                              <div className="alert alert-dark mt-2">
-                                 <strong>Estado: En Proceso</strong> - La edición es libre.
-                                 Modifique los campos de los empleados según se requiera. Al
-                                 finalizar, presione "Aplicar Planilla". Una vez aplicada, no se
-                                 podrán editar empleados sin permisos adicionales.
-                              </div>
-                           </div>
-                        ) : planillaEstado === "Activa" ? (
-                           <div className="mb-3">
-                              <div className="alert alert-danger">
-                                 <strong>Estado: Activa</strong> - La planilla ya ha sido aplicada y
-                                 está disponible para el administrador. Solo puede modificar los
-                                 empleados <u>no marcados</u>. Si necesita editar empleados
-                                 marcados, contacte al administrador para obtener permisos. Nota:
-                                 Cuando la planilla pase a estado "Cerrada", no se podrá modificar
-                                 sin permisos especiales.
-                              </div>
-                           </div>
-                        ) : planillaEstado === "Procesada" ? (
-                           <div className="alert alert-success mb-3">
-                              Esta planilla ya fue aplicada.
-                           </div>
-                        ) : null)}
+              
 
                      {/* Mostrar tablas */}
                      {empresaSeleccionada && planillaSeleccionada && (
@@ -950,25 +899,7 @@ export const PayrollGenerator = () => {
                               onPageChange={handlePageChange}
                            />
 
-                           {/* Tablas de resumen lado a lado */}
-                           <div className="d-flex gap-3 mb-3">
-                              <SummaryTable
-                                 rows={rows}
-                                 selectedRows={selectedRows}
-                                 montoPorOperario={montoPorOperario}
-                                 setMontoPorOperario={setMontoPorOperario}
-                                 totalTarifa={montoPorOperario * selectedRows.length}
-                              />
-                              <SummaryTable
-                                 financialData={{
-                                    montoTarifa,
-                                    montoRemuneraciones,
-                                    subtotal,
-                                    iva,
-                                    montoTotal,
-                                 }}
-                              />
-                           </div>
+                      
                         </>
                      )}
                   </div>

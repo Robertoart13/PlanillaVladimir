@@ -1,15 +1,14 @@
 import { useMemo, useRef } from "react";
-import { ErrorMessage } from "../../../components/ErrorMessage/ErrorMessage";
-import { TarjetaRow } from "../../../components/TarjetaRow/TarjetaRow";
 // Importaciones de estilos
 import { Button, Stack } from "@mui/material";
 import { useNavigate } from 'react-router-dom';
+import { TarjetaRow } from "../../../../components/TarjetaRow/TarjetaRow";
 
 // Constantes para los textos
 const TEXTOS = {
-   titulo: "Listado de Planillas",
-   subtitulo: "Tabla que muestra todas las planillas disponibles.",
-   crearEmpresa: "Crear Planilla",
+   titulo: "Listado de Aumentos",
+   subtitulo: "Tabla que muestra todos los aumentos disponibles.",
+   crearEmpresa: "Crear Aumento",
 };
 
 /**
@@ -17,19 +16,15 @@ const TEXTOS = {
  * @returns {Array} Arreglo de objetos de configuración de columnas.
  */
 const obtenerColumnasTabla = () => [
+  
    {
-      data: "planilla_codigo",
-      title: "Consecutivo",
+      data: "nombre_empleado",
+      title: "Nombre del Empleado",
       searchPanes: { show: true },
    },
    {
-      data: "nombre_empresa",
-      title: "Nombre Empresa",
-      searchPanes: { show: true },
-   },
-   {
-      data: "nombre_usuario",
-      title: "Creado por",
+      data: "planilla_afectada",
+      title: "Planilla Afectada",
       searchPanes: { show: true },
    },
    {
@@ -38,37 +33,41 @@ const obtenerColumnasTabla = () => [
       searchPanes: { show: true },
    },
    {
-      data: "planilla_fecha_inicio",
-      title: "Fecha Inicio",
+      data: "aumento_monto",
+      title: "Monto del Aumento",
       searchPanes: { show: true },
-      render: (data) => data ? String(data).split('T')[0] : "",
+      render: (data) => {
+         if (!data) return "";
+         const monto = parseFloat(data);
+         if (isNaN(monto)) return data;
+         return new Intl.NumberFormat('es-CR', {
+            style: 'currency',
+            currency: 'CRC',
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 0
+         }).format(monto);
+      },
    },
    {
-      data: "planilla_fecha_fin",
-      title: "Fecha Fin",
-      searchPanes: { show: true },
-      render: (data) => data ? String(data).split('T')[0] : "",
-   },
-   {
-      data: "planilla_estado",
+      data: "aumento_estado",
       title: "Estado",
       searchPanes: { show: true },
       render: (data) => {
-         // Mapea cada estado a un color y texto descriptivo
-         const estados = {
-            "En Proceso": { color: "secondary", texto: "En Proceso" },    // Fase inicial de edición
-            "Activa":     { color: "success",   texto: "Activa" },        // Lista para carga de datos
-            "Cerrada":    { color: "warning",   texto: "Cerrada" },       // Solo revisión o validación
-            "Procesada":  { color: "primary",   texto: "Procesada" },     // Lista para pagar o archivar
-            "Cancelada":  { color: "danger",    texto: "Cancelada" },     // Descartada
-         };
-         const estado = estados[data] || { color: "secondary", texto: data };
-         return (
-            <span className={`badge bg-light-${estado.color}`}>
-               {estado.texto}
-            </span>
-         );
-      },
+        // Mapea cada estado a un color y texto descriptivo
+        const estados = {
+           "En Proceso": { color: "secondary", texto: "En Proceso" },    // Fase inicial de edición
+           "Activa":     { color: "success",   texto: "Activa" },        // Lista para carga de datos
+           "Cerrada":    { color: "warning",   texto: "Cerrada" },       // Solo revisión o validación
+           "Procesada":  { color: "primary",   texto: "Procesada" },     // Lista para pagar o archivar
+           "Cancelada":  { color: "danger",    texto: "Cancelada" },     // Descartada
+        };
+        const estado = estados[data] || { color: "secondary", texto: data };
+        return (
+           <span className={`badge bg-light-${estado.color}`}>
+              {estado.texto}
+           </span>
+        );
+     },
    },
 ];
 
@@ -79,15 +78,11 @@ const obtenerColumnasTabla = () => [
  */
 const formatearDatosFila = (datosFila) => ({
    planilla_id: datosFila.planilla_id,
-   planilla_codigo: datosFila.planilla_codigo,
-   empresa_id: datosFila.empresa_id,
+   nombre_empleado: datosFila.nombre_empleado,
+   planilla_afectada: datosFila.planilla_afectada,
    planilla_tipo: datosFila.planilla_tipo,
-   planilla_descripcion: datosFila.planilla_descripcion,
-   planilla_estado: datosFila.planilla_estado,
-   planilla_fecha_inicio: datosFila.planilla_fecha_inicio,
-   planilla_fecha_fin: datosFila.planilla_fecha_fin,
-   planilla_fecha_creacion: datosFila.planilla_fecha_creacion,
-   planilla_creado_por: datosFila.planilla_creado_por,
+   aumento_monto: datosFila.aumento_monto,
+   aumento_estado: datosFila.aumento_estado,
 });
 
 /**
@@ -102,18 +97,18 @@ const crearConfiguracionTabla = () => ({
 
 
 /**
- * Navega a la página de creación de una nueva planilla.
+ * Navega a la página de creación de una nueva aumento.
  * @param {Function} navigate - Función de navegación de React Router.
  */
-const navegarCrearPlanilla = (navigate) => {
-   navigate('/planilla/crear');
+const navegarCrearAumento = (navigate) => {
+   navigate('/acciones/aumentos/crear');
 };
 
 /**
- * Componente principal que muestra la lista de planilla.
- * @returns {JSX.Element} Componente de lista de planilla.
+ * Componente principal que muestra la lista de aumento.
+ * @returns {JSX.Element} Componente de lista de aumento.
  */
-export const PlanillaLista = () => {
+export const AumentosLista = () => {
    const navigate = useNavigate();
 
    const tableRef = useRef(null);
@@ -127,24 +122,20 @@ export const PlanillaLista = () => {
    // Datos de ejemplo para mostrar en la tabla
    const datosEjemplo = [
       {
-         planilla_id: 1,
-         planilla_codigo: "001",
-         nombre_empresa: "Empresa Ejemplo",
-         nombre_usuario: "Usuario Demo",
+         aumento_id: 1,
+         nombre_empleado: "Juan Perez",
+         planilla_afectada: "Planilla 1",
          planilla_tipo: "Mensual",
-         planilla_fecha_inicio: "2024-01-01",
-         planilla_fecha_fin: "2024-01-31",
-         planilla_estado: "Activa",
+         aumento_monto: 100000,
+         aumento_estado: "Activa",
       },
       {
-         planilla_id: 2,
-         planilla_codigo: "002",
-         nombre_empresa: "Otra Empresa",
-         nombre_usuario: "Otro Usuario",
+         aumento_id: 2,
+         nombre_empleado: "Maria Lopez",
+         planilla_afectada: "Planilla 2",
          planilla_tipo: "Quincenal",
-         planilla_fecha_inicio: "2024-02-01",
-         planilla_fecha_fin: "2024-02-15",
-         planilla_estado: "En Proceso",
+         aumento_monto: 150000,
+         aumento_estado: "En Proceso",
       }
    ];
 
@@ -165,7 +156,7 @@ export const PlanillaLista = () => {
           >
              <Button
                 variant="contained"
-                onClick={() => navegarCrearPlanilla(navigate)}
+                onClick={() => navegarCrearAumento(navigate)}
                 className="user-detail-dialog-buttonSecondary"
              >
                 <i

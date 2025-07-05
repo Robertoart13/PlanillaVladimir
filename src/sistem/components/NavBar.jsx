@@ -2,13 +2,39 @@ import { useDispatch, useSelector } from "react-redux";
 import Avatar from "@mui/material/Avatar";
 import { NavLink, useLocation } from 'react-router-dom';
 import { logout } from "../../store/auth/authThunk";
+import { useState } from "react";
 export const NavBar = ({ isSidebarOpen, isMobile }) => {
    const { user } = useSelector((state) => state.auth);
    const location = useLocation();
    const dispatch = useDispatch();
+   const [openSubMenu, setOpenSubMenu] = useState(null);
 
    const getActiveClass = (path) => {
-      return location.pathname.includes(path) ? 'active' : '';
+      const pathSegments = location.pathname.split('/');
+      // Solo activar si es exactamente la primera ruta y no hay una segunda ruta específica
+      return pathSegments.length === 2 && pathSegments[1] === path.replace('/', '') ? 'active' : '';
+   };
+
+   const getActiveClassSecondSegment = (path) => {
+      const pathSegments = location.pathname.split('/');
+      return pathSegments.length >= 3 && pathSegments[2] === path.replace('/', '') ? 'active' : '';
+   };
+
+   const getActiveClassForPlanilla = () => {
+      const pathSegments = location.pathname.split('/');
+      // Se activa si la primera ruta es 'planilla' y no estamos en 'generar'
+      return pathSegments.length >= 2 && pathSegments[1] === 'planilla' && pathSegments[2] !== 'generar' ? 'active' : '';
+   };
+
+   const getActiveClassForEmpleados = () => {
+      const pathSegments = location.pathname.split('/');
+      // Se activa si la primera ruta es 'empleados'
+      return pathSegments.length >= 2 && pathSegments[1] === 'empleados' ? 'active' : '';
+   };
+
+    // Maneja la apertura/cierre de submenús
+    const handleSubMenuToggle = (menu) => {
+      setOpenSubMenu((prev) => (prev === menu ? null : menu));
    };
 
 
@@ -72,7 +98,7 @@ export const NavBar = ({ isSidebarOpen, isMobile }) => {
                      <label data-i18n="Menus">Menus</label>
                      <i className="ph-duotone ph-gauge"></i>
                   </li>
-                  <li className={`pc-item ${getActiveClass('/empleados')}`}>
+                  <li className={`pc-item ${getActiveClassForEmpleados()}`}>
                      <NavLink
                         to="/empleados/lista"
                         className="pc-link"
@@ -89,7 +115,7 @@ export const NavBar = ({ isSidebarOpen, isMobile }) => {
                      </NavLink>
                   </li>
                   
-                  <li className={`pc-item ${getActiveClass('/planilla')}`}>
+                  <li className={`pc-item ${getActiveClassForPlanilla()}`}>
                      <NavLink
                         to="/planilla/lista"
                         className="pc-link"
@@ -106,7 +132,7 @@ export const NavBar = ({ isSidebarOpen, isMobile }) => {
                      </NavLink>
                   </li>
 
-                  <li className={`pc-item ${getActiveClass('/planilla')}`}>
+                  <li className={`pc-item ${getActiveClassSecondSegment('/generar')}`}>
                      <NavLink
                         to="/planilla/generar"
                         className="pc-link"
@@ -122,22 +148,96 @@ export const NavBar = ({ isSidebarOpen, isMobile }) => {
                         </span>
                      </NavLink>
                   </li>
-                  <li className={`pc-item ${getActiveClass('/calendario')}`}>
-                     <a
-                        href="../other/sample-page.html"
-                        className="pc-link"
-                     >
-                        <span className="pc-micon">
-                           <i className="fas fa-calendar-alt"></i>
-                        </span>
-                        <span
-                           className="pc-mtext"
-                           data-i18n="Calendario"
-                        >
-                           Calendario
-                        </span>
-                     </a>
-                  </li>
+
+                                             {/* Submenú Acciones */}
+                       <li
+                          className={`pc-item pc-submenu ${
+                             openSubMenu === "gestion-acciones" ? "open" : ""
+                          }`}
+                       >
+                          <div
+                             className="pc-link pc-submenu-toggle d-flex align-items-center justify-content-between"
+                             style={{ cursor: "pointer", width: "100%" }}
+                             onClick={() => handleSubMenuToggle("gestion-acciones")}
+                          >
+                             <span className="d-flex align-items-center">
+                                <span className="pc-micon">
+                                   <i className="fas fa-users-cog"></i>
+                                </span>
+                                <span
+                                   className="pc-mtext"
+                                   data-i18n="Acciones"
+                                >
+                                   Acciones
+                                </span>
+                             </span>
+                             <span className="submenu-arrow ms-auto">
+                                <i
+                                   className={`fas fa-chevron-${
+                                      openSubMenu === "gestion-acciones" ? "down" : "right"
+                                   }`}
+                                ></i>
+                             </span>
+                          </div>
+
+                          {openSubMenu === "gestion-acciones" && (
+                             <ul
+                                className="pc-navbar"
+                                style={{ paddingLeft: "10px", margin: 0 }}
+                             >
+                                <li className="pc-item">
+                                   <NavLink
+                                      to="/acciones/aumentos/lista"
+                                      className="pc-link"
+                                   >
+                                      <span className="pc-micon">
+                                         <i className="fas fa-folder-plus"></i>
+                                      </span>
+                                      <span
+                                         className="pc-mtext"
+                                         data-i18n="Aumentos"
+                                      >
+                                         Aumentos
+                                      </span>
+                                   </NavLink>
+                                </li>
+                                <li className="pc-item">
+                                   <NavLink
+                                       to="/acciones/compensacion-extra/lista"
+                                       className="pc-link"
+                                    >
+                                       <span className="pc-micon">
+                                          <i className="fas fa-user-clock"></i>
+                                       </span>
+                                       <span
+                                          className="pc-mtext"
+                                          data-i18n="Compensacion Extra"
+                                       >
+                                          Compensacion Extra
+                                       </span>
+                                    </NavLink>
+                                </li>
+                                <li className="pc-item">
+                                    <NavLink
+                                       to="/acciones/rebajo-compensacion/lista"
+                                       className="pc-link"
+                                    >
+                                       <span className="pc-micon">
+                                          <i className="fas fa-folder-minus"></i>
+                                       </span>
+                                       <span
+                                          className="pc-mtext"
+                                          data-i18n="Rebajo a Compensacion"
+                                       >
+                                          Rebajo a Compensacion
+                                       </span>
+                                    </NavLink>
+                                </li>
+                              
+                             </ul>
+                          )}
+                       </li>
+                
                </ul>
                <div
                   className="card pc-user-card"

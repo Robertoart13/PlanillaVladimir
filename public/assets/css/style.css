@@ -20089,7 +20089,7 @@ pre[class*=language-] > code {
 }
 .pc-sidebar .pc-link {
   display: block;
-  padding: 14px 20px;
+  padding: 14px 16px;
   color: var(--pc-sidebar-color);
   position: relative;
   font-size: 14px;
