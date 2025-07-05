@@ -18,8 +18,8 @@ const TEXTOS = {
 };
 
 const OPCIONES_ESTADO = [
-   { value: "1", label: "En Proceso/Activa" },
-   { value: "2", label: "Cerrada/Cancelada" },
+   { value: "1", label: "En Proceso/Activa/Cerrada" },
+   { value: "2", label: "Cancelada" },
    { value: "3", label: "Procesada" },
 ];
 
