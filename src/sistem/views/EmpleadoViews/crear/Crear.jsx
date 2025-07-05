@@ -210,7 +210,7 @@ export const CrearEmpleado = () => {
          const supervisoresData = await dispatch(SelectOpcion_Thunks("supervisores/select"));
          if (departamentosData.success) setDepartamentos(departamentosData.data.array || []);
          if (nacionalidadesData.success) setNacionalidades(nacionalidadesData.data.array || []);
-         if (empresasData.success) setEmpresas(empresasData.data.array || []);
+         if (empresasData.success) setEmpresas(empresasData.data.array.filter(empresa => empresa.id_empresa === 13)); 
          if (puestosData.success) setPuestos(puestosData.data.array || []);
          if (tiposContratoData.success) setTiposContrato(tiposContratoData.data.array || []);
          if (supervisoresData.success) setSupervisores(supervisoresData.data.array || []);
@@ -223,8 +223,8 @@ export const CrearEmpleado = () => {
 
    return (
       <TarjetaRow
-         texto="Crear un nuevo empleado"
-         subtitulo="Vista esta pagina para crear un nuevo empleado"
+         texto="Crear un nuevo empleado para la empresa Natural"
+         subtitulo="Vista esta pagina para crear un nuevo empleado para la empresa Natural"
       >
          {error && (
             <ErrorMessage
