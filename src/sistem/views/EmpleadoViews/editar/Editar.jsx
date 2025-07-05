@@ -116,7 +116,7 @@ export const EditarEmpleado = () => {
    function actualizarOpcionesSeleccion(departamentosData, nacionalidadesData, empresasData, puestosData, tiposContratoData, supervisoresData) {
       if (departamentosData.success) setDepartamentos(departamentosData.data.array || []);
       if (nacionalidadesData.success) setNacionalidades(nacionalidadesData.data.array || []);
-      if (empresasData.success) setEmpresas(empresasData.data.array || []);
+      if (empresasData.success) setEmpresas(empresasData.data.array.filter(empresa => empresa.id_empresa === 13)); 
       if (puestosData.success) setPuestos(puestosData.data.array || []);
       if (tiposContratoData.success) setTiposContrato(tiposContratoData.data.array || []);
       if (supervisoresData.success) setSupervisores(supervisoresData.data.array || []);
