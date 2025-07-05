@@ -94,6 +94,8 @@ const QUERIES = {
  * if (resultado.status === 200) { ... }
  */
 const crearNuevoRegistroBd = async (datos, userID, database) => {
+
+   console.log(datos);
    // Buscar si ya existe el registro
    let result = await realizarConsulta(
       QUERIES.SELECT_INSERT,
