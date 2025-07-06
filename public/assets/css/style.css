@@ -20099,7 +20099,7 @@ pre[class*=language-] > code {
   text-decoration: none;
 }
 .pc-sidebar .pc-navbar > .pc-item {
-  margin: 0 10px;
+  margin: 0 0px !important;
 }
 .pc-sidebar .pc-navbar > .pc-item > .pc-link::after {
   content: "";

@@ -10,16 +10,16 @@ const empleados = [
   "Luis Rodriguez",
 ];
 
-export const CrearDeduccion = () => {
+export const CrearBonificaciones = () => {
   const [formData, setFormData] = useState({
     planilla: "",
     empleado: "",
-    monto_rebajo: "",
+    monto_bonificacion: "",
     aplica_Compensacion_Anual: false,
     estado: "Activo",
   });
 
-  // Manejar cambios en los inputs 
+  // Manejar cambios en los inputs   
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
@@ -37,9 +37,9 @@ export const CrearDeduccion = () => {
   return (
     <div className="card">
       <div className="card-header">
-        <h5>Crear Rebajo a Compensacion</h5>
+        <h5>Crear Compensacion por Metrica</h5>
         <p className="text-muted">
-          Complete el formulario para crear un nuevo registro de Rebajo a Compensacion.
+          Complete el formulario para crear un nuevo registro de Compensacion por Metrica.
         </p>
       </div>
       
@@ -117,15 +117,15 @@ export const CrearDeduccion = () => {
 
             {/* Total de Horas Extras */}
             <div className="col-md-6 mb-3">
-              <label className="form-label" htmlFor="remuneracion_horas_extras">
-                Remuneracion Horas Extras <span className="text-danger">*</span>
+              <label className="form-label" htmlFor="monto_bonificacion">
+                Monto de Compensacion por Metrica <span className="text-danger">*</span>
               </label>
               <input
                 type="number"
                 className="form-control"
-                id="remuneracion_horas_extras"
-                name="remuneracion_horas_extras"
-                value={formData.remuneracion_horas_extras}
+                id="monto_bonificacion"
+                name="monto_bonificacion"
+                value={formData.monto_bonificacion}
                 onChange={handleChange}
                 placeholder="0"
                 step="0.5"
@@ -162,7 +162,7 @@ export const CrearDeduccion = () => {
               className="btn btn-primary"
             >
               <i className="fas fa-save me-2"></i>
-              Crear Rebajo a Compensacion
+              Crear Compensacion por Metrica
             </button>
           </div>
         </form>

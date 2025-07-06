@@ -4,6 +4,8 @@ import { useSegmentoRutaUrl } from "../../../hooks/useUrlPathSegment";
 import { SistemLayout } from "../../layout/SistemLayout";
 import { CrearAumento } from "../../views/AccionesViews/Aumentos/Crear/CrearAumento";
 import { AumentosLista } from "../../views/AccionesViews/Aumentos/Lista/AumentosLista";
+import { CrearBonificaciones } from "../../views/AccionesViews/Bonificaciones/Crear/CrearBonificaciones";
+import { BonificacionesLista } from "../../views/AccionesViews/Bonificaciones/Lista/BonificacionesLista";
 import { CrearDeduccion } from "../../views/AccionesViews/Deducciones/Crear/CrearDeduccion";
 import { DeduccionesLista } from "../../views/AccionesViews/Deducciones/Lista/DeduccionesLista";
 import { CrearHoraExtra } from "../../views/AccionesViews/Horas-extra/Crear/CrearHoraExtra";
@@ -45,6 +47,12 @@ export const AccionesPage = () => {
                               <div className="row align-items-center">
                                  {accion2 === "lista" && <DeduccionesLista />}
                                  {accion2 === "crear" && <CrearDeduccion />}
+                              </div>
+                           )}
+                           {accion === "compensacion-metrica" && (
+                              <div className="row align-items-center">
+                                 {accion2 === "lista" && <BonificacionesLista />}
+                                 {accion2 === "crear" && <CrearBonificaciones />}
                               </div>
                            )}
                            </div>
