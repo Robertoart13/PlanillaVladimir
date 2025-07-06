@@ -156,7 +156,7 @@ export const CrearPlanilla = () => {
         didOpen: () => {
           Swal.showLoading();
         },
-      }).then(async () => {
+      })
       const respuesta = await dispatch(Planilla_Crear_Thunks(formData));
       console.log(respuesta);
       if (respuesta.success) {
@@ -172,7 +172,6 @@ export const CrearPlanilla = () => {
           confirmButtonText: "Aceptar"
         });
       }
-      });
     }
   };
 
