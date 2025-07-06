@@ -120,6 +120,7 @@ export const EditarAumento = () => {
    const [message, setMessage] = useState("");
    const [isDataLoaded, setIsDataLoaded] = useState(false);
    const [canEdit, setCanEdit] = useState(true);
+   const [isReady, setIsReady] = useState(false);
 
    // Cargar datos del aumento desde localStorage al montar el componente
    useEffect(() => {
@@ -167,16 +168,19 @@ export const EditarAumento = () => {
 
    // Verificar si la planilla del localStorage existe en las opciones disponibles
    useEffect(() => {
-      if (isDataLoaded && planillaData.length > 0 && formData.planilla) {
+      if (isDataLoaded && formData.planilla) {
+         // Si no hay planillas cargadas aún, no hacer nada
+         if (planillaData.length === 0) {
+            return;
+         }
+
          const planillaObj = findById(planillaData, formData.planilla, "planilla_id");
 
          if (!planillaObj) {
             // La planilla no está disponible en las opciones
             setCanEdit(false);
             setError(true);
-            setMessage(
-               "No se pudo seleccionar la planilla. Puede que esté cerrada, aplicada o procesada. Favor verificar en la vista de planillas si está en proceso.",
-            );
+
          } else {
             // La planilla existe, verificar su estado
             const planillaEstado = planillaObj.planilla_estado;
@@ -222,7 +226,7 @@ export const EditarAumento = () => {
          fetchEmpleados();
       } else {
          setSelectedPlanillaData(null);
-         setCanEdit(true);
+         setCanEdit(false);
          setError(false);
          setMessage("");
       }
@@ -282,6 +286,10 @@ export const EditarAumento = () => {
          }));
       }
    }, [formData.Remuneracion_Actual, formData.monto_aumento]);
+
+   useEffect(() => {
+      setIsReady(isDataLoaded && !isLoadingPlanillas);
+   }, [isDataLoaded, isLoadingPlanillas]);
 
    /**
     * Maneja el cambio de cualquier input del formulario.
@@ -408,339 +416,339 @@ export const EditarAumento = () => {
 
    return (
       <div className="card">
-         <div className="card-header">
-            <h5>Editar Aumento de Remuneracion</h5>
-            <p className="text-muted">
-               Modifique el formulario para actualizar el aumento de remuneracion.
-            </p>
-         </div>
-         <div className="card-body">
-            <form onSubmit={handleSubmit}>
-               {/* Alert for Planilla Status */}
-               {selectedPlanillaData && (
-                  <div
-                     className={`alert ${canEdit ? "alert-info" : "alert-warning"} mb-3`}
-                     role="alert"
-                  >
-                     <div className="d-flex align-items-center">
-                        <i
-                           className={`fas ${
-                              canEdit ? "fa-info-circle" : "fa-exclamation-triangle"
-                           } me-2`}
-                        ></i>
-                        <div>
-                           <strong>Estado de la Planilla:</strong>{" "}
-                           {selectedPlanillaData.planilla_estado || "No disponible"}
-                           {selectedPlanillaData.planilla_codigo && (
-                              <span className="ms-2">
-                                 <strong>Código:</strong> {selectedPlanillaData.planilla_codigo}
-                              </span>
-                           )}
-                           {!canEdit && (
-                              <div className="mt-2">
-                                 <strong>⚠️ No se puede editar:</strong> Solo se pueden editar
-                                 aumentos cuando la planilla está "En Proceso".
+         {!isReady ? (
+            <div style={{ minHeight: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+               <div className="text-center">
+                  <div className="spinner-border text-primary mb-2" role="status">
+                     <span className="visually-hidden">Cargando...</span>
+                  </div>
+                  <div>Cargando información...</div>
+               </div>
+            </div>
+         ) : (
+            <>
+               <div className="card-header">
+                  <h5>Editar Aumento de Remuneracion</h5>
+                  <p className="text-muted">
+                     Modifique el formulario para actualizar el aumento de remuneracion.
+                  </p>
+               </div>
+               <div className="card-body">
+                  <form onSubmit={handleSubmit}>
+                     {/* Alert for Planilla Status */}
+                     {selectedPlanillaData && (
+                        <div
+                           className={`alert ${canEdit ? "alert-info" : "alert-warning"} mb-3`}
+                           role="alert"
+                        >
+                           <div className="d-flex align-items-center">
+                              <i
+                                 className={`fas ${
+                                    canEdit ? "fa-info-circle" : "fa-exclamation-triangle"
+                                 } me-2`}
+                              ></i>
+                              <div>
+                                 <strong>Estado de la Planilla:</strong>{" "}
+                                 {selectedPlanillaData.planilla_estado || "No disponible"}
+                                 {selectedPlanillaData.planilla_codigo && (
+                                    <span className="ms-2">
+                                       <strong>Código:</strong> {selectedPlanillaData.planilla_codigo}
+                                    </span>
+                                 )}
+                                 {!canEdit && (
+                                    <div className="mt-2">
+                                       <strong>⚠️ No se puede editar:</strong> Solo se pueden editar
+                                       aumentos cuando la planilla está "En Proceso".
+                                    </div>
+                                 )}
                               </div>
-                           )}
+                           </div>
+                        </div>
+                     )}
+
+                     {/* Alert for Planilla Not Available */}
+                     {isDataLoaded &&
+                        formData.planilla &&
+                        !selectedPlanillaData && (
+                           <div
+                              className="alert alert-danger mb-3"
+                              role="alert"
+                           >
+                              <div className="d-flex align-items-center">
+                                 <i className="fas fa-exclamation-triangle me-2"></i>
+                                 <div>
+                                    <strong>Planilla no disponible:</strong> La planilla seleccionada no
+                                    está disponible en las opciones actuales.
+                                    <div className="mt-2">
+                                       <strong>Posibles razones:</strong>
+                                       <ul className="mb-0 mt-1">
+                                          <li>La planilla puede estar cerrada</li>
+                                          <li>La planilla puede estar aplicada</li>
+                                          <li>La planilla puede estar procesada</li>
+                                          <li>La planilla puede estar cancelada</li>
+                                       </ul>
+                                    </div>
+                                    <div className="mt-2">
+                                       <strong>Acción requerida:</strong> Favor verificar en la vista de
+                                       planillas si está en proceso.
+                                    </div>
+                                 </div>
+                              </div>
+                           </div>
+                        )}
+                     {/* Alert for Empleado Seleccionado */}
+                     {selectedEmpleadoData && (
+                        <div
+                           className="alert alert-success mb-3"
+                           role="alert"
+                           style={{ background: "#c6fcf5" }}
+                        >
+                           <div className="d-flex align-items-center">
+                              <i className="fas fa-user-edit me-2"></i>
+                              <div>
+                                 <strong>Socio:</strong>{" "}
+                                 {selectedEmpleadoData.nombre_completo_empleado_gestor} |
+                                 <strong> Cédula:</strong> {selectedEmpleadoData.cedula_empleado_gestor} |
+                                 <strong> Número de Socio:</strong>{" "}
+                                 {selectedEmpleadoData.numero_socio_empleado_gestor}
+                              </div>
+                           </div>
+                        </div>
+                     )}
+                     {/* Mostrar mensaje de error general */}
+                     {error && message && !selectedPlanillaData && (
+                        <div
+                           className="alert alert-danger mt-2"
+                           role="alert"
+                        >
+                           {message}
+                        </div>
+                     )}
+
+                     {/* Mostrar mensaje de error cuando la planilla existe pero no se puede editar */}
+                     {error && message && selectedPlanillaData && !canEdit && (
+                        <div
+                           className="alert alert-warning mt-2"
+                           role="alert"
+                        >
+                           {message}
+                        </div>
+                     )}
+                     {/* Estado */}
+                     <div
+                        className="col-md-12 mb-3"
+                        style={{
+                           display: "flex",
+                           justifyContent: "flex-end",
+                           alignItems: "flex-end",
+                           flexDirection: "column",
+                        }}
+                     >
+                        <label className="form-label d-block">Estado</label>
+                        <div className="form-check form-switch">
+                           <input
+                              className="form-check-input"
+                              type="checkbox"
+                              id="estado"
+                              name="estado"
+                              checked={formData.estado === "Activo"}
+                              onChange={(e) =>
+                                 setFormData((prev) => ({
+                                    ...prev,
+                                    estado: e.target.checked ? "Activo" : "Inactivo",
+                                 }))
+                              }
+                              disabled={!canEdit}
+                           />
+                           <label
+                              className="form-check-label"
+                              htmlFor="estado"
+                           >
+                              {formData.estado === "Activo" ? "Activo" : "Inactivo"}
+                           </label>
                         </div>
                      </div>
-                  </div>
-               )}
-
-               {/* Alert for Planilla Not Available */}
-               {isDataLoaded &&
-                  planillaData.length > 0 &&
-                  formData.planilla &&
-                  !selectedPlanillaData && (
-                     <div
-                        className="alert alert-danger mb-3"
-                        role="alert"
-                     >
-                        <div className="d-flex align-items-center">
-                           <i className="fas fa-exclamation-triangle me-2"></i>
-                           <div>
-                              <strong>Planilla no disponible:</strong> La planilla seleccionada no
-                              está disponible en las opciones actuales.
-                              <div className="mt-2">
-                                 <strong>Posibles razones:</strong>
-                                 <ul className="mb-0 mt-1">
-                                    <li>La planilla puede estar cerrada</li>
-                                    <li>La planilla puede estar aplicada</li>
-                                    <li>La planilla puede estar procesada</li>
-                                    <li>La planilla puede estar cancelada</li>
-                                 </ul>
-                              </div>
-                              <div className="mt-2">
-                                 <strong>Acción requerida:</strong> Favor verificar en la vista de
-                                 planillas si está en proceso.
+                     <div className="row">
+                        {/* Planilla */}
+                        <div className="col-md-6 mb-3">
+                           <label
+                              className="form-label"
+                              htmlFor="planilla"
+                           >
+                              Planilla <span className="text-danger">*</span>
+                           </label>
+                           <select
+                              className="form-select"
+                              id="planilla"
+                              name="planilla"
+                              value={formData.planilla}
+                              onChange={handleChange}
+                              required
+                              disabled
+                           >
+                              <option value="">
+                                 {isLoadingPlanillas ? "Cargando planillas..." : "Seleccione planilla"}
+                              </option>
+                              {planillaOptions.map((option) => (
+                                 <option
+                                    key={option.value}
+                                    value={option.value}
+                                 >
+                                    {option.label}
+                                 </option>
+                              ))}
+                           </select>
+                        </div>
+                        {/* Empleado */}
+                        <div className="col-md-6 mb-3">
+                           <label
+                              className="form-label"
+                              htmlFor="empleado"
+                           >
+                              Socio <span className="text-danger">*</span>
+                           </label>
+                           <select
+                              className="form-select"
+                              id="empleado"
+                              name="empleado"
+                              value={formData.empleado}
+                              onChange={handleChange}
+                              required
+                              disabled
+                           >
+                              <option value="">
+                                 {!formData.planilla
+                                    ? "Seleccione primero una planilla"
+                                    : isLoadingEmpleados
+                                    ? "Cargando empleados..."
+                                    : "Seleccione el Socio"}
+                              </option>
+                              {empleadoOptions.map((option) => (
+                                 <option
+                                    key={option.value}
+                                    value={option.value}
+                                 >
+                                    {option.label}
+                                 </option>
+                              ))}
+                           </select>
+                        </div>
+                        {/* Remuneracion Actual */}
+                        <div className="col-md-4 mb-3">
+                           <label
+                              className="form-label"
+                              htmlFor="Remuneracion_Actual"
+                           >
+                              Remuneracion Actual
+                           </label>
+                           <div className="input-group">
+                              <span className="input-group-text">₡</span>
+                              <input
+                                 type="text"
+                                 className="form-control"
+                                 id="Remuneracion_Actual"
+                                 name="Remuneracion_Actual"
+                                 value={formatCurrency(formData.Remuneracion_Actual || 0)}
+                                 readOnly
+                                 placeholder="₡0.00"
+                              />
+                           </div>
+                        </div>
+                        {/* Monto del Aumento */}
+                        <div className="col-md-4 mb-3">
+                           <label
+                              className="form-label"
+                              htmlFor="monto_aumento"
+                           >
+                              Monto del Aumento <span className="text-danger">*</span>
+                           </label>
+                           <div className="input-group">
+                              <span className="input-group-text">₡</span>
+                              <input
+                                 type="number"
+                                 className="form-control"
+                                 id="monto_aumento"
+                                 name="monto_aumento"
+                                 value={formData.monto_aumento}
+                                 onChange={handleChange}
+                                 placeholder="0.00"
+                                 step="0.01"
+                                 min="0"
+                                 disabled={!canEdit}
+                              />
+                           </div>
+                        </div>
+                        {/* Remuneracion Nueva */}
+                        <div className="col-md-4 mb-3">
+                           <label
+                              className="form-label"
+                              htmlFor="Remuneracion_Nueva"
+                           >
+                              Remuneracion Nueva
+                           </label>
+                           <div className="input-group">
+                              <span className="input-group-text">₡</span>
+                              <input
+                                 type="text"
+                                 className="form-control"
+                                 id="Remuneracion_Nueva"
+                                 name="Remuneracion_Nueva"
+                                 value={formatCurrency(formData.Remuneracion_Nueva || 0)}
+                                 readOnly
+                                 placeholder="Se calcula automáticamente"
+                              />
+                           </div>
+                        </div>
+                        {/* Aplica Aguinaldo */}
+                        <div className="col-md-6 mb-3">
+                           <div className="form-check">
+                              <input
+                                 className="form-check-input"
+                                 type="checkbox"
+                                 id="aplica_aguinaldo"
+                                 name="aplica_aguinaldo"
+                                 checked={formData.aplica_aguinaldo}
+                                 onChange={handleChange}
+                                 disabled={!canEdit}
+                              />
+                              <label
+                                 className="form-check-label"
+                                 htmlFor="aplica_aguinaldo"
+                              >
+                                 ¿Aplica a la Compensacion Anual?
+                              </label>
+                              <div className="form-text">
+                                 Marque esta casilla si el aumento debe aplicarse también al cálculo de la
+                                 Compensacion Anual
                               </div>
                            </div>
                         </div>
                      </div>
-                  )}
-               {/* Alert for Empleado Seleccionado */}
-               {selectedEmpleadoData && (
-                  <div
-                     className="alert alert-success mb-3"
-                     role="alert"
-                     style={{ background: "#c6fcf5" }}
-                  >
-                     <div className="d-flex align-items-center">
-                        <i className="fas fa-user-edit me-2"></i>
-                        <div>
-                           <strong>Socio:</strong>{" "}
-                           {selectedEmpleadoData.nombre_completo_empleado_gestor} |
-                           <strong> Cédula:</strong> {selectedEmpleadoData.cedula_empleado_gestor} |
-                           <strong> Número de Socio:</strong>{" "}
-                           {selectedEmpleadoData.numero_socio_empleado_gestor}
-                        </div>
-                     </div>
-                  </div>
-               )}
-               {/* Mostrar mensaje de error general */}
-               {error && message && !selectedPlanillaData && (
-                  <div
-                     className="alert alert-danger mt-2"
-                     role="alert"
-                  >
-                     {message}
-                  </div>
-               )}
-
-               {/* Mostrar mensaje de error cuando la planilla existe pero no se puede editar */}
-               {error && message && selectedPlanillaData && !canEdit && (
-                  <div
-                     className="alert alert-warning mt-2"
-                     role="alert"
-                  >
-                     {message}
-                  </div>
-               )}
-               {/* Estado */}
-               <div
-                  className="col-md-12 mb-3"
-                  style={{
-                     display: "flex",
-                     justifyContent: "flex-end",
-                     alignItems: "flex-end",
-                     flexDirection: "column",
-                  }}
-               >
-                  <label className="form-label d-block">Estado</label>
-                  <div className="form-check form-switch">
-                     <input
-                        className="form-check-input"
-                        type="checkbox"
-                        id="estado"
-                        name="estado"
-                        checked={formData.estado === "Activo"}
-                        onChange={(e) =>
-                           setFormData((prev) => ({
-                              ...prev,
-                              estado: e.target.checked ? "Activo" : "Inactivo",
-                           }))
-                        }
-                        disabled={!canEdit}
-                     />
-                     <label
-                        className="form-check-label"
-                        htmlFor="estado"
-                     >
-                        {formData.estado === "Activo" ? "Activo" : "Inactivo"}
-                     </label>
-                  </div>
-               </div>
-               <div className="row">
-                  {/* Planilla */}
-                  <div className="col-md-6 mb-3">
-                     <label
-                        className="form-label"
-                        htmlFor="planilla"
-                     >
-                        Planilla <span className="text-danger">*</span>
-                     </label>
-                     <select
-                        className="form-select"
-                        id="planilla"
-                        name="planilla"
-                        value={formData.planilla}
-                        onChange={handleChange}
-                        required
-                        disabled={isLoadingPlanillas || !canEdit}
-                     >
-                        <option value="">
-                           {isLoadingPlanillas ? "Cargando planillas..." : "Seleccione planilla"}
-                        </option>
-                        {planillaOptions.map((option) => (
-                           <option
-                              key={option.value}
-                              value={option.value}
-                           >
-                              {option.label}
-                           </option>
-                        ))}
-                        {/* Mostrar la planilla actual si no está en las opciones */}
-                        {isDataLoaded &&
-                           planillaData.length > 0 &&
-                           formData.planilla &&
-                           !selectedPlanillaData && (
-                              <option
-                                 value={formData.planilla}
-                                 disabled
-                              >
-                                 Planilla ID: {formData.planilla} (No disponible)
-                              </option>
-                           )}
-                     </select>
-                  </div>
-                  {/* Empleado */}
-                  <div className="col-md-6 mb-3">
-                     <label
-                        className="form-label"
-                        htmlFor="empleado"
-                     >
-                        Socio <span className="text-danger">*</span>
-                     </label>
-                     <select
-                        className="form-select"
-                        id="empleado"
-                        name="empleado"
-                        value={formData.empleado}
-                        onChange={handleChange}
-                        required
-                        disabled={!formData.planilla || isLoadingEmpleados || !canEdit}
-                     >
-                        <option value="">
-                           {!formData.planilla
-                              ? "Seleccione primero una planilla"
-                              : isLoadingEmpleados
-                              ? "Cargando empleados..."
-                              : "Seleccione el Socio"}
-                        </option>
-                        {empleadoOptions.map((option) => (
-                           <option
-                              key={option.value}
-                              value={option.value}
-                           >
-                              {option.label}
-                           </option>
-                        ))}
-                     </select>
-                  </div>
-                  {/* Remuneracion Actual */}
-                  <div className="col-md-4 mb-3">
-                     <label
-                        className="form-label"
-                        htmlFor="Remuneracion_Actual"
-                     >
-                        Remuneracion Actual
-                     </label>
-                     <div className="input-group">
-                        <span className="input-group-text">₡</span>
-                        <input
-                           type="text"
-                           className="form-control"
-                           id="Remuneracion_Actual"
-                           name="Remuneracion_Actual"
-                           value={formatCurrency(formData.Remuneracion_Actual || 0)}
-                           readOnly
-                           placeholder="₡0.00"
-                        />
-                     </div>
-                  </div>
-                  {/* Monto del Aumento */}
-                  <div className="col-md-4 mb-3">
-                     <label
-                        className="form-label"
-                        htmlFor="monto_aumento"
-                     >
-                        Monto del Aumento <span className="text-danger">*</span>
-                     </label>
-                     <div className="input-group">
-                        <span className="input-group-text">₡</span>
-                        <input
-                           type="number"
-                           className="form-control"
-                           id="monto_aumento"
-                           name="monto_aumento"
-                           value={formData.monto_aumento}
-                           onChange={handleChange}
-                           placeholder="0.00"
-                           step="0.01"
-                           min="0"
+                     {/* Botones de acción */}
+                     <div className="d-flex gap-2 mt-4">
+                        <button
+                           type="submit"
+                           className="btn btn-primary"
                            disabled={!canEdit}
-                        />
-                     </div>
-                  </div>
-                  {/* Remuneracion Nueva */}
-                  <div className="col-md-4 mb-3">
-                     <label
-                        className="form-label"
-                        htmlFor="Remuneracion_Nueva"
-                     >
-                        Remuneracion Nueva
-                     </label>
-                     <div className="input-group">
-                        <span className="input-group-text">₡</span>
-                        <input
-                           type="text"
-                           className="form-control"
-                           id="Remuneracion_Nueva"
-                           name="Remuneracion_Nueva"
-                           value={formatCurrency(formData.Remuneracion_Nueva || 0)}
-                           readOnly
-                           placeholder="Se calcula automáticamente"
-                        />
-                     </div>
-                  </div>
-                  {/* Aplica Aguinaldo */}
-                  <div className="col-md-6 mb-3">
-                     <div className="form-check">
-                        <input
-                           className="form-check-input"
-                           type="checkbox"
-                           id="aplica_aguinaldo"
-                           name="aplica_aguinaldo"
-                           checked={formData.aplica_aguinaldo}
-                           onChange={handleChange}
-                           disabled={!canEdit}
-                        />
-                        <label
-                           className="form-check-label"
-                           htmlFor="aplica_aguinaldo"
                         >
-                           ¿Aplica a la Compensacion Anual?
-                        </label>
-                        <div className="form-text">
-                           Marque esta casilla si el aumento debe aplicarse también al cálculo de la
-                           Compensacion Anual
-                        </div>
+                           <i className="fas fa-save me-2"></i>
+                           Actualizar Aumento
+                        </button>
+                        {!canEdit && (
+                           <button
+                              type="button"
+                              className="btn btn-secondary"
+                              onClick={() => navigate("/acciones/aumentos/lista")}
+                           >
+                              <i className="fas fa-arrow-left me-2"></i>
+                              Volver a la Lista
+                           </button>
+                        )}
                      </div>
-                  </div>
+                  </form>
                </div>
-               {/* Botones de acción */}
-               <div className="d-flex gap-2 mt-4">
-                  <button
-                     type="submit"
-                     className="btn btn-primary"
-                     disabled={!canEdit}
-                  >
-                     <i className="fas fa-save me-2"></i>
-                     Actualizar Aumento
-                  </button>
-                  {!canEdit && (
-                     <button
-                        type="button"
-                        className="btn btn-secondary"
-                        onClick={() => navigate("/acciones/aumentos/lista")}
-                     >
-                        <i className="fas fa-arrow-left me-2"></i>
-                        Volver a la Lista
-                     </button>
-                  )}
-               </div>
-            </form>
-         </div>
+            </>
+         )}
       </div>
    );
 };

@@ -10,9 +10,8 @@ const tiposPlanilla = ["Mensual", "Quincenal", "Semanal", "Otro"];
 const estadosPlanilla = [
   "En Proceso",
   "Activa",
-  "Cerrada",
   "Cancelada",
-  "Procesada",
+
 ];
 
 // Abreviaturas para tipos de planilla
@@ -65,6 +64,10 @@ export const EditarPlanilla = () => {
   // Cargar planilla seleccionada de localStorage
   const selectedPlanilla = JSON.parse(localStorage.getItem("selectedPlanilla") || "{}");
   const [identificador, setIdentificador] = useState(extraerIdentificador(selectedPlanilla.planilla_codigo));
+
+  // Estados que no permiten edición
+  const estadosNoEditables = ["Procesada", "Cancelada", "Cerrada"];
+  const planillaNoEditable = estadosNoEditables.includes(selectedPlanilla.planilla_estado);
 
   const [formData, setFormData] = useState({
     planilla_id: selectedPlanilla.planilla_id || "",
@@ -155,6 +158,18 @@ export const EditarPlanilla = () => {
   // Manejar submit
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validar si la planilla se puede editar
+    if (planillaNoEditable) {
+      Swal.fire({
+        title: "No se puede editar",
+        text: `No se puede editar una planilla con estado "${selectedPlanilla.planilla_estado}".`,
+        icon: "warning",
+        confirmButtonText: "Entendido"
+      });
+      return;
+    }
+
     setTouched({
       planilla_tipo: true,
       planilla_estado: true,
@@ -211,6 +226,11 @@ export const EditarPlanilla = () => {
         <p className="text-muted">
           Empresa: {user?.nombre_empresa || "No disponible"}
         </p>
+        {planillaNoEditable && (
+          <div className="alert alert-warning mt-2 mb-0">
+            <strong>No editable:</strong> Esta planilla no se puede editar porque tiene el estado "{selectedPlanilla.planilla_estado}".
+          </div>
+        )}
       </div>
       <div className="card-body">
 
@@ -241,6 +261,7 @@ export const EditarPlanilla = () => {
               name="planilla_tipo"
               value={formData.planilla_tipo}
               onChange={handleChange}
+              disabled={planillaNoEditable}
               required
             >
               <option value="">Seleccione tipo</option>
@@ -263,6 +284,7 @@ export const EditarPlanilla = () => {
               name="planilla_estado"
               value={formData.planilla_estado}
               onChange={handleChange}
+              disabled={planillaNoEditable}
               required
             >
               {estadosPlanilla.map((estado) => (
@@ -285,6 +307,7 @@ export const EditarPlanilla = () => {
               name="planilla_fecha_inicio"
               value={formData.planilla_fecha_inicio}
               onChange={handleChange}
+              disabled={planillaNoEditable}
               required
             />
           </div>
@@ -301,6 +324,7 @@ export const EditarPlanilla = () => {
               name="planilla_fecha_fin"
               value={formData.planilla_fecha_fin}
               onChange={handleChange}
+              disabled={planillaNoEditable}
               required
             />
             {fechaInvalida && (
@@ -327,6 +351,7 @@ export const EditarPlanilla = () => {
               name="planilla_descripcion"
               value={formData.planilla_descripcion}
               onChange={handleChange}
+              disabled={planillaNoEditable}
               rows={3}
               placeholder="Descripción opcional de la planilla"
             ></textarea>
@@ -335,6 +360,7 @@ export const EditarPlanilla = () => {
         <button
           className="btn btn-primary"
           onClick={handleSubmit}
+          disabled={planillaNoEditable}
         >
           Editar Planilla  </button>
       </div>
