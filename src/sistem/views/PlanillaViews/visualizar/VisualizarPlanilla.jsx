@@ -831,11 +831,23 @@ const obtenerEmpleados = async () => {
  * Componente para mostrar la información general de la planilla
  * @param {Object} props - Propiedades del componente
  * @param {Object} props.planilla - Datos de la planilla
+ * @param {Array} props.empleados - Array de empleados para calcular totales
  * @returns {JSX.Element} Información de la planilla
  */
 // Original InfoPlanilla implementation has been replaced with the new implementation above
-const InfoPlanilla = ({ planilla }) => {
+const InfoPlanilla = ({ planilla, empleados = [] }) => {
    const dispatch = useDispatch();
+   
+   /**
+    * Calcula el total de remuneración neta de todos los empleados
+    * @returns {number} Total de remuneración neta
+    */
+   const calcularTotalRemuneracionNeta = () => {
+      return empleados.reduce((total, empleado) => {
+         const remuneracionNeta = parseFloat(empleado.remuneracion_neta_epd) || 0;
+         return total + remuneracionNeta;
+      }, 0);
+   };
    
    /**
     * Maneja el cambio de estado de la planilla
@@ -940,6 +952,12 @@ const InfoPlanilla = ({ planilla }) => {
             <div className="info-planilla-item">
                <span className="info-label">Descripción:</span>
                <span className="info-value">{planilla.descripcion}</span>
+            </div>
+            <div className="info-planilla-item">
+               <span className="info-label">Total Rem. Neta:</span>
+               <span className="info-value total-remuneracion">
+                  {formatCurrency(calcularTotalRemuneracionNeta())}
+               </span>
             </div>
          </div>
       </div>
@@ -1522,7 +1540,7 @@ export const VisualizarPlanilla = () => {
          icono="fa-solid fa-users"
       >
          <div className="remuneraciones-container">
-            <InfoPlanilla planilla={datosPlanilla} />
+            <InfoPlanilla planilla={datosPlanilla} empleados={empleados} />
 
             <div className="controles-filtros-container">
                <TarjetasSelector
