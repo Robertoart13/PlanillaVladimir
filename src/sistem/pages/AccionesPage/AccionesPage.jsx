@@ -3,6 +3,7 @@
 import { useSegmentoRutaUrl } from "../../../hooks/useUrlPathSegment";
 import { SistemLayout } from "../../layout/SistemLayout";
 import { CrearAumento } from "../../views/AccionesViews/Aumentos/Crear/CrearAumento";
+import { EditarAumento } from "../../views/AccionesViews/Aumentos/Editar/EditarAumento";
 import { AumentosLista } from "../../views/AccionesViews/Aumentos/Lista/AumentosLista";
 import { CrearBonificaciones } from "../../views/AccionesViews/Bonificaciones/Crear/CrearBonificaciones";
 import { BonificacionesLista } from "../../views/AccionesViews/Bonificaciones/Lista/BonificacionesLista";
@@ -36,7 +37,7 @@ export const AccionesPage = () => {
                               <div className="row align-items-center">
                                  {accion2 === "lista" && <AumentosLista />}
                                  {accion2 === "crear" && <CrearAumento />}
-                                
+                                 {accion2 === "editar" && <EditarAumento />}
                               </div>
                            )}
                            {accion === "compensacion-extra" && (

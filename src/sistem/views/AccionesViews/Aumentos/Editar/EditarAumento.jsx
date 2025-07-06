@@ -81,7 +81,7 @@ function useEmpleados(dispatch) {
    return { empleadoOptions, empleadoData, isLoading, fetchEmpleados };
 }
 
-export const CrearAumento = () => {
+export const EditarAumento = () => {
    const dispatch = useDispatch();
    const navigate = useNavigate();
 
@@ -101,6 +101,7 @@ export const CrearAumento = () => {
 
    // Estados de selección y formulario
    const [formData, setFormData] = useState({
+      id_aumento_gestor: "",
       empresa: "",
       planilla: "",
       empleado: "",
@@ -109,6 +110,7 @@ export const CrearAumento = () => {
       estado: "Activo",
       Remuneracion_Actual: "",
       Remuneracion_Nueva: "",
+      estado_procesado: "",
    });
    const [selectedPlanillaData, setSelectedPlanillaData] = useState(null);
    const [selectedEmpleadoData, setSelectedEmpleadoData] = useState(null);
@@ -116,6 +118,41 @@ export const CrearAumento = () => {
    // Estado de error y mensaje
    const [error, setError] = useState(false);
    const [message, setMessage] = useState("");
+   const [isDataLoaded, setIsDataLoaded] = useState(false);
+   const [canEdit, setCanEdit] = useState(true);
+
+   // Cargar datos del aumento desde localStorage al montar el componente
+   useEffect(() => {
+      const selectedAumento = localStorage.getItem("selectedAumento");
+      if (selectedAumento) {
+         try {
+            const aumentoData = JSON.parse(selectedAumento);
+
+            // Mapear los datos del localStorage al formData
+            const mappedData = {
+               id_aumento_gestor: aumentoData.id_aumento_gestor || "",
+               empresa: "",
+               planilla: aumentoData.planilla_id_aumento_gestor || "",
+               empleado: aumentoData.empleado_id_aumento_gestor || "",
+               monto_aumento: aumentoData.monto_aumento_gestor || "",
+               aplica_aguinaldo: aumentoData.aplica_aguinaldo_aumento_gestor === 1,
+               estado: aumentoData.estado_aumento_gestor === 1 ? "Activo" : "Inactivo",
+               Remuneracion_Actual: aumentoData.remuneracion_actual_aumento_gestor || "",
+               Remuneracion_Nueva: aumentoData.remuneracion_nueva_aumento_gestor || "",
+               estado_procesado: aumentoData.estado_planilla_aumento_gestor || "",
+            };
+
+            setFormData(mappedData);
+            setIsDataLoaded(true);
+         } catch (error) {
+            setError(true);
+            setMessage("Error al cargar los datos del aumento");
+         }
+      } else {
+         // Si no hay datos en localStorage, redirigir a la lista
+         navigate("/acciones/aumentos/lista");
+      }
+   }, [navigate]);
 
    // Limpia el mensaje de error al montar el componente
    useEffect(() => {
@@ -128,26 +165,83 @@ export const CrearAumento = () => {
       fetchPlanillas();
    }, [fetchPlanillas]);
 
+   // Verificar si la planilla del localStorage existe en las opciones disponibles
+   useEffect(() => {
+      if (isDataLoaded && planillaData.length > 0 && formData.planilla) {
+         const planillaObj = findById(planillaData, formData.planilla, "planilla_id");
+         
+         if (!planillaObj) {
+            // La planilla no está disponible en las opciones
+            setCanEdit(false);
+            setError(true);
+            setMessage(
+               "No se pudo seleccionar la planilla. Puede que esté cerrada, aplicada o procesada. Favor verificar en la vista de planillas si está en proceso."
+            );
+         } else {
+            // La planilla existe, verificar su estado
+            const planillaEstado = planillaObj.planilla_estado;
+            const puedeEditar = planillaEstado === "En Proceso";
+            setCanEdit(puedeEditar);
+            
+            if (!puedeEditar) {
+               setError(true);
+               setMessage(
+                  `No se puede editar el aumento. El estado de la planilla es "${planillaEstado}". Solo se pueden editar aumentos cuando la planilla está "En Proceso".`,
+               );
+            } else {
+               setError(false);
+               setMessage("");
+            }
+         }
+      }
+   }, [isDataLoaded, planillaData, formData.planilla]);
+
    // Cuando cambia la planilla, buscar datos y empleados
    useEffect(() => {
       if (formData.planilla) {
          const planillaObj = findById(planillaData, formData.planilla, "planilla_id");
          setSelectedPlanillaData(planillaObj);
+
+         // Verificar si se puede editar basado en el estado de la planilla
+         if (planillaObj) {
+          
+            const planillaEstado = planillaObj.planilla_estado;
+            const puedeEditar = planillaEstado === "En Proceso";
+            setCanEdit(puedeEditar);
+            
+
+            if (!puedeEditar) {
+               setError(true);
+               setMessage(
+                  `No se puede editar el aumento. El estado de la planilla es "${planillaEstado}". Solo se pueden editar aumentos cuando la planilla está "En Proceso".`,
+               );
+            } else {
+               setError(false);
+               setMessage("");
+            }
+         }
+
          fetchEmpleados();
-         setFormData((prev) => ({ ...prev, empleado: "" })); // Limpiar selección de empleado
       } else {
          setSelectedPlanillaData(null);
-         setFormData((prev) => ({ ...prev, empleado: "" }));
+         setCanEdit(true);
+         setError(false);
+         setMessage("");
       }
-      // eslint-disable-next-line
-   }, [formData.planilla]);
+   }, [formData.planilla, planillaData, fetchEmpleados]);
 
    // Cuando cambia el empleado, buscar datos y actualizar remuneración
    useEffect(() => {
-      if (formData.empleado) {
+      if (formData.empleado && empleadoData.length > 0) {
          const empleadoObj = findById(empleadoData, formData.empleado, "id_empleado_gestor");
          setSelectedEmpleadoData(empleadoObj);
-         if (empleadoObj?.salario_base_empleado_gestor) {
+
+         // Solo actualizar remuneración actual si no hay datos cargados desde localStorage
+         if (
+            isDataLoaded &&
+            !formData.Remuneracion_Actual &&
+            empleadoObj?.salario_base_empleado_gestor
+         ) {
             setFormData((prev) => ({
                ...prev,
                Remuneracion_Actual: empleadoObj.salario_base_empleado_gestor.toString(),
@@ -155,10 +249,18 @@ export const CrearAumento = () => {
          }
       } else {
          setSelectedEmpleadoData(null);
-         setFormData((prev) => ({ ...prev, Remuneracion_Actual: "" }));
       }
-      // eslint-disable-next-line
-   }, [formData.empleado, empleadoData]);
+   }, [formData.empleado, empleadoData, isDataLoaded, formData.Remuneracion_Actual]);
+
+   // Asegurar que el empleado se mantenga seleccionado cuando se cargan los empleados
+   useEffect(() => {
+      if (isDataLoaded && formData.empleado && empleadoData.length > 0) {
+         const empleadoObj = findById(empleadoData, formData.empleado, "id_empleado_gestor");
+         if (empleadoObj) {
+            setSelectedEmpleadoData(empleadoObj);
+         }
+      }
+   }, [empleadoData, isDataLoaded, formData.empleado]);
 
    // Calcular Remuneracion nueva cuando cambie el monto de aumento o Remuneracion actual
    useEffect(() => {
@@ -170,9 +272,10 @@ export const CrearAumento = () => {
       const aumento = parseFloat(formData.monto_aumento);
       if (!isNaN(actual) && !isNaN(aumento) && formData.monto_aumento !== "") {
          const nuevo = actual + aumento;
+         const nuevoCalculado = nuevo.toFixed(2);
          setFormData((prev) => ({
             ...prev,
-            Remuneracion_Nueva: nuevo.toFixed(2),
+            Remuneracion_Nueva: nuevoCalculado,
          }));
       } else {
          setFormData((prev) => ({
@@ -200,8 +303,21 @@ export const CrearAumento = () => {
       e.preventDefault();
       if (!selectedEmpleadoData) return;
 
+      // Verificar si se puede editar
+      if (!canEdit) {
+         setError(true);
+         setMessage(
+            "No se puede editar el aumento. El estado de la planilla no permite ediciones.",
+         );
+         return;
+      }
+
       // Validación de monto del aumento
-      if (!formData.monto_aumento || isNaN(formData.monto_aumento) || Number(formData.monto_aumento) <= 0) {
+      if (
+         !formData.monto_aumento ||
+         isNaN(formData.monto_aumento) ||
+         Number(formData.monto_aumento) <= 0
+      ) {
          setError(true);
          setMessage("El monto del aumento es obligatorio y debe ser mayor a cero.");
          return;
@@ -238,11 +354,11 @@ export const CrearAumento = () => {
     `;
 
       const result = await Swal.fire({
-         title: "¿Está seguro de crear esta acción de personal?",
+         title: "¿Está seguro de actualizar esta acción de personal?",
          html: htmlMsg,
          icon: aplicaAguinaldo ? "question" : "warning",
          showCancelButton: true,
-         confirmButtonText: "Sí, crear",
+         confirmButtonText: "Sí, actualizar",
          cancelButtonText: "Cancelar",
          focusCancel: true,
          customClass: {
@@ -250,51 +366,54 @@ export const CrearAumento = () => {
             cancelButton: "btn btn-secondary ms-2",
          },
          buttonsStyling: false,
+      });
+      if (result.isConfirmed) {
+         Swal.fire({
+            title: "Actualizando aumento",
+            text: "Por favor espere...",
+            allowOutsideClick: false,
+            didOpen: () => {
+               Swal.showLoading();
+            },
          });
-         if (result.isConfirmed) {  
-        Swal.fire({
-          title: "Creando planilla",
-          text: "Por favor espere...",
-          allowOutsideClick: false,
-          didOpen: () => {
-            Swal.showLoading();
-          },
-        });
-         const response = await dispatch(fetchData_api(formData, "gestor/planilla/aumentos/crear"));
+
+         const response = await dispatch(
+            fetchData_api(formData, "gestor/planilla/aumentos/editar"),
+         );
 
          if (response.success) {
             setError(false);
 
             Swal.fire({
-                  title: "Aumento creado exitosamente",
-                  text: "El Aumento ha sido creado exitosamente",
-                  icon: "success",
-                  confirmButtonText: "Aceptar",
-               })
-               .then(() => {
-                  navigate("/acciones/aumentos/lista");
-               });
+               title: "Aumento actualizado exitosamente",
+               text: "El Aumento ha sido actualizado exitosamente",
+               icon: "success",
+               confirmButtonText: "Aceptar",
+            }).then(() => {
+               navigate("/acciones/aumentos/lista");
+            });
          } else {
-            const errorMessage = response.message || "Error al crear el Aumento";
+            const errorMessage = response.message || "Error al actualizar el Aumento";
             setError(true);
             setMessage(errorMessage);
-            swal.fire({
-               title: "Error al crear el Socio",
+            Swal.fire({
+               title: "Error al actualizar el Aumento",
                text: errorMessage,
                icon: "error",
                confirmButtonText: "Aceptar",
             });
          }
       }
+
       // Si cancela, no hacer nada
    };
 
    return (
       <div className="card">
          <div className="card-header">
-            <h5>Crear Aumento de Remuneracion</h5>
+            <h5>Editar Aumento de Remuneracion</h5>
             <p className="text-muted">
-               Complete el formulario para crear un nuevo aumento de remuneracion.
+               Modifique el formulario para actualizar el aumento de remuneracion.
             </p>
          </div>
          <div className="card-body">
@@ -302,11 +421,15 @@ export const CrearAumento = () => {
                {/* Alert for Planilla Status */}
                {selectedPlanillaData && (
                   <div
-                     className="alert alert-info mb-3"
+                     className={`alert ${canEdit ? "alert-info" : "alert-warning"} mb-3`}
                      role="alert"
                   >
                      <div className="d-flex align-items-center">
-                        <i className="fas fa-info-circle me-2"></i>
+                        <i
+                           className={`fas ${
+                              canEdit ? "fa-info-circle" : "fa-exclamation-triangle"
+                           } me-2`}
+                        ></i>
                         <div>
                            <strong>Estado de la Planilla:</strong>{" "}
                            {selectedPlanillaData.planilla_estado || "No disponible"}
@@ -315,6 +438,36 @@ export const CrearAumento = () => {
                                  <strong>Código:</strong> {selectedPlanillaData.planilla_codigo}
                               </span>
                            )}
+                           {!canEdit && (
+                              <div className="mt-2">
+                                 <strong>⚠️ No se puede editar:</strong> Solo se pueden editar
+                                 aumentos cuando la planilla está "En Proceso".
+                              </div>
+                           )}
+                        </div>
+                     </div>
+                  </div>
+               )}
+               
+               {/* Alert for Planilla Not Available */}
+               {isDataLoaded && planillaData.length > 0 && formData.planilla && !selectedPlanillaData && (
+                  <div className="alert alert-danger mb-3" role="alert">
+                     <div className="d-flex align-items-center">
+                        <i className="fas fa-exclamation-triangle me-2"></i>
+                        <div>
+                           <strong>Planilla no disponible:</strong> La planilla seleccionada no está disponible en las opciones actuales.
+                           <div className="mt-2">
+                              <strong>Posibles razones:</strong>
+                              <ul className="mb-0 mt-1">
+                                 <li>La planilla puede estar cerrada</li>
+                                 <li>La planilla puede estar aplicada</li>
+                                 <li>La planilla puede estar procesada</li>
+                                 <li>La planilla puede estar cancelada</li>
+                              </ul>
+                           </div>
+                           <div className="mt-2">
+                              <strong>Acción requerida:</strong> Favor verificar en la vista de planillas si está en proceso.
+                           </div>
                         </div>
                      </div>
                   </div>
@@ -338,10 +491,20 @@ export const CrearAumento = () => {
                      </div>
                   </div>
                )}
-               {/* Mostrar mensaje de error debajo del socio */}
-               {error && message && (
+               {/* Mostrar mensaje de error general */}
+               {error && message && !selectedPlanillaData && (
                   <div
                      className="alert alert-danger mt-2"
+                     role="alert"
+                  >
+                     {message}
+                  </div>
+               )}
+               
+               {/* Mostrar mensaje de error cuando la planilla existe pero no se puede editar */}
+               {error && message && selectedPlanillaData && !canEdit && (
+                  <div
+                     className="alert alert-warning mt-2"
                      role="alert"
                   >
                      {message}
@@ -371,6 +534,7 @@ export const CrearAumento = () => {
                               estado: e.target.checked ? "Activo" : "Inactivo",
                            }))
                         }
+                        disabled={!canEdit}
                      />
                      <label
                         className="form-check-label"
@@ -396,7 +560,7 @@ export const CrearAumento = () => {
                         value={formData.planilla}
                         onChange={handleChange}
                         required
-                        disabled={isLoadingPlanillas}
+                        disabled={isLoadingPlanillas || !canEdit}
                      >
                         <option value="">
                            {isLoadingPlanillas ? "Cargando planillas..." : "Seleccione planilla"}
@@ -409,6 +573,12 @@ export const CrearAumento = () => {
                               {option.label}
                            </option>
                         ))}
+                        {/* Mostrar la planilla actual si no está en las opciones */}
+                        {isDataLoaded && planillaData.length > 0 && formData.planilla && !selectedPlanillaData && (
+                           <option value={formData.planilla} disabled>
+                              Planilla ID: {formData.planilla} (No disponible)
+                           </option>
+                        )}
                      </select>
                   </div>
                   {/* Empleado */}
@@ -426,7 +596,7 @@ export const CrearAumento = () => {
                         value={formData.empleado}
                         onChange={handleChange}
                         required
-                        disabled={!formData.planilla || isLoadingEmpleados}
+                        disabled={!formData.planilla || isLoadingEmpleados || !canEdit}
                      >
                         <option value="">
                            {!formData.planilla
@@ -486,6 +656,7 @@ export const CrearAumento = () => {
                            placeholder="0.00"
                            step="0.01"
                            min="0"
+                           disabled={!canEdit}
                         />
                      </div>
                   </div>
@@ -520,6 +691,7 @@ export const CrearAumento = () => {
                            name="aplica_aguinaldo"
                            checked={formData.aplica_aguinaldo}
                            onChange={handleChange}
+                           disabled={!canEdit}
                         />
                         <label
                            className="form-check-label"
@@ -539,10 +711,21 @@ export const CrearAumento = () => {
                   <button
                      type="submit"
                      className="btn btn-primary"
+                     disabled={!canEdit}
                   >
                      <i className="fas fa-save me-2"></i>
-                     Crear Aumento
+                     Actualizar Aumento
                   </button>
+                  {!canEdit && (
+                     <button
+                        type="button"
+                        className="btn btn-secondary"
+                        onClick={() => navigate("/acciones/aumentos/lista")}
+                     >
+                        <i className="fas fa-arrow-left me-2"></i>
+                        Volver a la Lista
+                     </button>
+                  )}
                </div>
             </form>
          </div>

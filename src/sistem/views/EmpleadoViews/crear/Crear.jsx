@@ -216,36 +216,37 @@ const useEmployeeForm = () => {
             allowEscapeKey: false,
             allowEnterKey: false,
             allowClosePropagation: false,
+         }).then(async () => {   
+
+            const response = await dispatch(fetchData_api(formData, "gestor/empleados/crear"));
+
+            if (response.success) {
+               setError(false);
+
+               swal.fire({
+                  title: "Socio creado exitosamente",
+                  text: "El Socio ha sido creado exitosamente",
+                  icon: "success",
+                  confirmButtonText: "Aceptar",
+               }).then(() => {
+                  setFormData(getInitialFormData());
+                  validation.clearAllErrors();
+                  navigate("/empleados/lista");
+               });
+            
+            } else {
+               const errorMessage = improveErrorMessage(response.message || "Error al crear el Socio");
+
+               swal.fire({
+                  title: "Error al crear el Socio",
+                  text: errorMessage,
+                  icon: "error",
+                  confirmButtonText: "Aceptar",
+               });
+               setError(true);
+               setMessage(errorMessage);
+            }
          });
-
-         const response = await dispatch(fetchData_api(formData, "gestor/empleados/crear"));
-
-         if (response.success) {
-            setError(false);
-
-            swal.fire({
-               title: "Socio creado exitosamente",
-               text: "El Socio ha sido creado exitosamente",
-               icon: "success",
-               confirmButtonText: "Aceptar",
-            }).then(() => {
-               setFormData(getInitialFormData());
-               validation.clearAllErrors();
-               navigate("/empleados/lista");
-            });
-           
-         } else {
-            const errorMessage = improveErrorMessage(response.message || "Error al crear el Socio");
-
-            swal.fire({
-               title: "Error al crear el Socio",
-               text: errorMessage,
-               icon: "error",
-               confirmButtonText: "Aceptar",
-            });
-            setError(true);
-            setMessage(errorMessage);
-         }
       } catch (error) {
          setError(true);
          setMessage("Error inesperado al crear el Socio");

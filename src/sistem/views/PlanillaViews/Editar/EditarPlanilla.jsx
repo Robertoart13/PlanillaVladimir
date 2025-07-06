@@ -170,7 +170,7 @@ export const EditarPlanilla = () => {
       showCancelButton: true,
       confirmButtonText: "Sí, editar",
       cancelButtonText: "Cancelar",
-    });
+    })  
 
     if (result.isConfirmed) {
       Swal.fire({

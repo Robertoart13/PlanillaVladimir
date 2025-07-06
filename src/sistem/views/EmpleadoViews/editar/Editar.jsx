@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Switch } from "@mui/material";
 import { fetchData_api } from "../../../../store/fetchData_api/fetchData_api_Thunks";
 import { useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux";   
+import { useDispatch } from "react-redux";
 import swal from "sweetalert2";
 import {
    validationUtils,
@@ -70,26 +70,60 @@ const useFormValidation = () => {
 
    const hasErrors = () => {
       return !!(
-         emailError || cedulaError || nombreError || telefonoError ||
-         salarioError || tipoContratoError || departamentoError || puestoError ||
-         jornadaError || fechaIngresoError || numeroAseguradoError ||
-         numeroInsError || numeroHaciendaError || monedaPagoError || tipoPlanillaError
+         emailError ||
+         cedulaError ||
+         nombreError ||
+         telefonoError ||
+         salarioError ||
+         tipoContratoError ||
+         departamentoError ||
+         puestoError ||
+         jornadaError ||
+         fechaIngresoError ||
+         numeroAseguradoError ||
+         numeroInsError ||
+         numeroHaciendaError ||
+         monedaPagoError ||
+         tipoPlanillaError
       );
    };
 
    return {
       // Error states
-      emailError, cedulaError, nombreError, telefonoError, salarioError,
-      tipoContratoError, departamentoError, puestoError,
-      jornadaError, fechaIngresoError, numeroAseguradoError, numeroInsError,
-      numeroHaciendaError, monedaPagoError, tipoPlanillaError,
+      emailError,
+      cedulaError,
+      nombreError,
+      telefonoError,
+      salarioError,
+      tipoContratoError,
+      departamentoError,
+      puestoError,
+      jornadaError,
+      fechaIngresoError,
+      numeroAseguradoError,
+      numeroInsError,
+      numeroHaciendaError,
+      monedaPagoError,
+      tipoPlanillaError,
       // Error setters
-      setEmailError, setCedulaError, setNombreError, setTelefonoError, setSalarioError,
-      setTipoContratoError, setDepartamentoError, setPuestoError,
-      setJornadaError, setFechaIngresoError, setNumeroAseguradoError, setNumeroInsError,
-      setNumeroHaciendaError, setMonedaPagoError, setTipoPlanillaError,
+      setEmailError,
+      setCedulaError,
+      setNombreError,
+      setTelefonoError,
+      setSalarioError,
+      setTipoContratoError,
+      setDepartamentoError,
+      setPuestoError,
+      setJornadaError,
+      setFechaIngresoError,
+      setNumeroAseguradoError,
+      setNumeroInsError,
+      setNumeroHaciendaError,
+      setMonedaPagoError,
+      setTipoPlanillaError,
       // Utility functions
-      clearAllErrors, hasErrors,
+      clearAllErrors,
+      hasErrors,
    };
 };
 
@@ -118,9 +152,9 @@ const useEmployeeEditForm = () => {
    const loadEmployeeData = async () => {
       try {
          setIsLoadingData(true);
-         
+
          const selectedEmployeeData = localStorage.getItem("selectedEmpleado");
-         
+
          if (!selectedEmployeeData) {
             setError(true);
             setMessage("No se encontraron datos del Socio para editar");
@@ -128,9 +162,7 @@ const useEmployeeEditForm = () => {
          }
 
          const employeeData = JSON.parse(selectedEmployeeData);
-         
-         console.log(employeeData);
-         
+
          // Transform the data to match our form structure
          const transformedData = {
             nombre_completo: employeeData.nombre_completo_empleado_gestor || "",
@@ -165,7 +197,6 @@ const useEmployeeEditForm = () => {
          validation.clearAllErrors();
          setError(false);
          setMessage("");
-
       } catch (error) {
          console.error("Error loading employee data:", error);
          setError(true);
@@ -233,7 +264,7 @@ const useEmployeeEditForm = () => {
 
          setIsLoading(true);
 
-         swal.fire({
+         const result = await swal.fire({
             title: "Actualizando Socio",
             text: "Espere un momento mientras se actualiza el Socio",
             icon: "info",
@@ -245,50 +276,53 @@ const useEmployeeEditForm = () => {
             allowClosePropagation: false,
          });
 
-         // Get employee ID from localStorage
-         const selectedEmployeeData = localStorage.getItem("selectedEmpleado");
-         const employeeData = JSON.parse(selectedEmployeeData);
-         const employeeId = employeeData.id_empleado_gestor;
+         if (result.isConfirmed) {
+            // Get employee ID from localStorage
+            const selectedEmployeeData = localStorage.getItem("selectedEmpleado");
+            const employeeData = JSON.parse(selectedEmployeeData);
+            const employeeId = employeeData.id_empleado_gestor;
 
-         // Add employee ID to form data for update and convert boolean to number
-         const updateData = {
-            ...formData,
-            id_empleado_gestor: employeeId,
-            estado_empleado_gestor: formData.estado_empleado_gestor ? 1 : 0,
-         };
+            // Add employee ID to form data for update and convert boolean to number
+            const updateData = {
+               ...formData,
+               id_empleado_gestor: employeeId,
+               estado_empleado_gestor: formData.estado_empleado_gestor ? 1 : 0,
+            };
 
-         const response = await dispatch(fetchData_api(updateData, "gestor/empleados/editar"));
+            const response = await dispatch(fetchData_api(updateData, "gestor/empleados/editar"));
 
-         if (response.success) {
-            setError(false);
+            if (response.success) {
+               setError(false);
 
-            swal.fire({
-               title: "Socio actualizado exitosamente",
-               text: "El Socio ha sido actualizado exitosamente",
-               icon: "success",
-               confirmButtonText: "Aceptar",
-            }).then(() => {
-               localStorage.removeItem("selectedEmpleado");
-               navigate("/empleados/lista");
-            });
-           
-         } else {
-            const errorMessage = improveErrorMessage(response.message);
-            
-            swal.fire({
-               title: "Error al actualizar el Socio",
-               text: errorMessage,
-               icon: "error",
-               confirmButtonText: "Aceptar",
-            });
-            setError(true);
-            setMessage(errorMessage);
+               swal
+                  .fire({
+                     title: "Socio actualizado exitosamente",
+                     text: "El Socio ha sido actualizado exitosamente",
+                     icon: "success",
+                     confirmButtonText: "Aceptar",
+                  })
+                  .then(() => {
+                     localStorage.removeItem("selectedEmpleado");
+                     navigate("/empleados/lista");
+                  });
+            } else {
+               const errorMessage = improveErrorMessage(response.message);
+
+               swal.fire({
+                  title: "Error al actualizar el Socio",
+                  text: errorMessage,
+                  icon: "error",
+                  confirmButtonText: "Aceptar",
+               });
+               setError(true);
+               setMessage(errorMessage);
+            }
          }
       } catch (error) {
          setError(true);
          setMessage("Error inesperado al actualizar el Socio");
          console.error("Error updating employee:", error);
-         
+
          swal.fire({
             title: "Error inesperado",
             text: "Ha ocurrido un error inesperado al actualizar el Socio. Por favor, intente nuevamente.",
@@ -364,7 +398,10 @@ const FormField = ({
    children,
 }) => (
    <div className="mb-3">
-      <label className="form-label" htmlFor={id}>
+      <label
+         className="form-label"
+         htmlFor={id}
+      >
          {label} {required && "*"} {isUnique && <span className="text-info">(Único)</span>}
       </label>
       {type === "select" ? (
@@ -418,16 +455,16 @@ const FormSection = ({ title, children }) => (
  * Main component for editing an existing employee
  */
 export const EditarEmpleado = () => {
-   const { 
-      formData, 
-      error, 
-      message, 
-      isLoading, 
+   const {
+      formData,
+      error,
+      message,
+      isLoading,
       isLoadingData,
-      validation, 
-      handleFormInputChange, 
+      validation,
+      handleFormInputChange,
       handleFormSwitchChange,
-      handleSubmit 
+      handleSubmit,
    } = useEmployeeEditForm();
 
    if (isLoadingData) {
@@ -437,7 +474,10 @@ export const EditarEmpleado = () => {
             subtitulo="Cargando datos del Socio..."
          >
             <div className="text-center p-4">
-               <div className="spinner-border" role="status">
+               <div
+                  className="spinner-border"
+                  role="status"
+               >
                   <span className="visually-hidden">Cargando...</span>
                </div>
                <p className="mt-2">Cargando datos del Socio...</p>
@@ -451,7 +491,12 @@ export const EditarEmpleado = () => {
          texto="Editar Socio"
          subtitulo="Modifique la información del Socio"
       >
-         {error && <ErrorMessage error={error} message={message} />}
+         {error && (
+            <ErrorMessage
+               error={error}
+               message={message}
+            />
+         )}
 
          <div className="card-body">
             {/* Information about unique fields */}
@@ -461,11 +506,13 @@ export const EditarEmpleado = () => {
                   Información importante
                </h6>
                <p className="mb-2">
-                  Los campos marcados con <span className="text-info">(Único)</span> deben ser diferentes para cada Socio. 
-                  Si intenta actualizar un Socio con datos que ya existen, recibirá un mensaje de error específico.
+                  Los campos marcados con <span className="text-info">(Único)</span> deben ser
+                  diferentes para cada Socio. Si intenta actualizar un Socio con datos que ya
+                  existen, recibirá un mensaje de error específico.
                </p>
                <p className="mb-0">
-                  <strong>Campos únicos:</strong> Correo electrónico, Cédula, Número de asegurado, Número de INS, Número de hacienda.
+                  <strong>Campos únicos:</strong> Correo electrónico, Cédula, Número de asegurado,
+                  Número de INS, Número de hacienda.
                </p>
             </div>
 
@@ -478,18 +525,24 @@ export const EditarEmpleado = () => {
                         Editando Socio
                      </h6>
                      <p className="mb-0">
-                        <strong>Socio:</strong> {formData.nombre_completo} | <strong>Cédula:</strong> {formData.cedula} | <strong>Correo:</strong> {formData.correo}
+                        <strong>Socio:</strong> {formData.nombre_completo} |{" "}
+                        <strong>Cédula:</strong> {formData.cedula} | <strong>Correo:</strong>{" "}
+                        {formData.correo}
                      </p>
                   </div>
                   <div className="col-md-4 text-end">
                      <div className="d-flex align-items-center justify-content-end">
                         <Switch
                            checked={formData.estado_empleado_gestor}
-                           onChange={(e) => handleFormSwitchChange("estado_empleado_gestor", e.target.checked)}
+                           onChange={(e) =>
+                              handleFormSwitchChange("estado_empleado_gestor", e.target.checked)
+                           }
                            color="primary"
                         />
                         <label className="ms-2 mb-0">
-                           <strong>{formData.estado_empleado_gestor ? "Activo" : "Inactivo"}</strong>
+                           <strong>
+                              {formData.estado_empleado_gestor ? "Activo" : "Inactivo"}
+                           </strong>
                         </label>
                      </div>
                   </div>
@@ -582,8 +635,11 @@ export const EditarEmpleado = () => {
                         error={validation.tipoContratoError}
                      >
                         <option value="">Seleccione una opción</option>
-                        {formOptions.tipoContrato.map(option => (
-                           <option key={option.value} value={option.value}>
+                        {formOptions.tipoContrato.map((option) => (
+                           <option
+                              key={option.value}
+                              value={option.value}
+                           >
                               {option.label}
                            </option>
                         ))}
@@ -603,8 +659,11 @@ export const EditarEmpleado = () => {
                         error={validation.departamentoError}
                      >
                         <option value="">Seleccione una opción</option>
-                        {formOptions.departamentos.map(option => (
-                           <option key={option.value} value={option.value}>
+                        {formOptions.departamentos.map((option) => (
+                           <option
+                              key={option.value}
+                              value={option.value}
+                           >
                               {option.label}
                            </option>
                         ))}
@@ -622,8 +681,11 @@ export const EditarEmpleado = () => {
                         error={validation.puestoError}
                      >
                         <option value="">Seleccione una opción</option>
-                        {formOptions.puestos.map(option => (
-                           <option key={option.value} value={option.value}>
+                        {formOptions.puestos.map((option) => (
+                           <option
+                              key={option.value}
+                              value={option.value}
+                           >
                               {option.label}
                            </option>
                         ))}
@@ -643,8 +705,11 @@ export const EditarEmpleado = () => {
                         error={validation.jornadaError}
                      >
                         <option value="">Seleccione una opción</option>
-                        {formOptions.jornadaLaboral.map(option => (
-                           <option key={option.value} value={option.value}>
+                        {formOptions.jornadaLaboral.map((option) => (
+                           <option
+                              key={option.value}
+                              value={option.value}
+                           >
                               {option.label}
                            </option>
                         ))}
@@ -803,8 +868,11 @@ export const EditarEmpleado = () => {
                         error={validation.monedaPagoError}
                      >
                         <option value="">Seleccione una opción</option>
-                        {formOptions.monedaPago.map(option => (
-                           <option key={option.value} value={option.value}>
+                        {formOptions.monedaPago.map((option) => (
+                           <option
+                              key={option.value}
+                              value={option.value}
+                           >
                               {option.label}
                            </option>
                         ))}
@@ -822,8 +890,11 @@ export const EditarEmpleado = () => {
                         error={validation.tipoPlanillaError}
                      >
                         <option value="">Seleccione una opción</option>
-                        {formOptions.tipoPlanilla.map(option => (
-                           <option key={option.value} value={option.value}>
+                        {formOptions.tipoPlanilla.map((option) => (
+                           <option
+                              key={option.value}
+                              value={option.value}
+                           >
                               {option.label}
                            </option>
                         ))}
@@ -839,7 +910,9 @@ export const EditarEmpleado = () => {
                      <div className="mb-3">
                         <Switch
                            checked={formData.ministerio_hacienda}
-                           onChange={(e) => handleFormSwitchChange("ministerio_hacienda", e.target.checked)}
+                           onChange={(e) =>
+                              handleFormSwitchChange("ministerio_hacienda", e.target.checked)
+                           }
                         />
                         <label className="ms-2">Ministerio de Hacienda</label>
                      </div>
@@ -876,4 +949,4 @@ export const EditarEmpleado = () => {
          </div>
       </TarjetaRow>
    );
-}; 
+};
