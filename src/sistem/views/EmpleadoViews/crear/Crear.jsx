@@ -206,7 +206,7 @@ const useEmployeeForm = () => {
 
          setIsLoading(true);
 
-         swal.fire({
+         const result = await swal.fire({
             title: "Creando Socio",
             text: "Espere un momento mientras se crea el Socio",
             icon: "info",
@@ -216,7 +216,8 @@ const useEmployeeForm = () => {
             allowEscapeKey: false,
             allowEnterKey: false,
             allowClosePropagation: false,
-         }).then(async () => {   
+         })
+         if (result.isConfirmed) {
 
             const response = await dispatch(fetchData_api(formData, "gestor/empleados/crear"));
 
@@ -246,7 +247,7 @@ const useEmployeeForm = () => {
                setError(true);
                setMessage(errorMessage);
             }
-         });
+         }
       } catch (error) {
          setError(true);
          setMessage("Error inesperado al crear el Socio");
