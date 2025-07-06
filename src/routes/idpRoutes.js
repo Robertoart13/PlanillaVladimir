@@ -141,6 +141,15 @@ import Gestor_Bono_Crear from "../modules/GestorPlanilla/03-Gestor_Bono/Gestor_B
 import Gestor_Bono_Listar from "../modules/GestorPlanilla/03-Gestor_Bono/Gesto_Bono_Lista.js";
 import Gestor_Bono_Editar from "../modules/GestorPlanilla/03-Gestor_Bono/Gestor_Bono_Editar.js";
 
+/**
+ * ====================================================================================================================================
+ * Importación de módulos que tengan solo que ver con el gestor de planilla no de Natual 
+
+ * ====================================================================================================================================
+ */
+import Gestor_Extra_Crear from "../modules/GestorPlanilla/03-Gestor_Extra/Gestor_Extra_Crear.js";
+import Gestor_Extra_Listar from "../modules/GestorPlanilla/03-Gestor_Extra/Gesto_Extra_Lista.js";
+
 
 
 
@@ -711,6 +720,25 @@ function getModulesConfig() {
                method: "editarTransaccion", // Método que se ejecutará
                isAuthRequired: true, // Requiere autenticación
             }, 
+         ],
+      },
+      {
+         category: "Gestor", // Nombre del módulo
+         model: {
+            ...Gestor_Extra_Crear,
+            ...Gestor_Extra_Listar,
+            }, // Combinamos ambos modelos
+         routes: [
+            {
+               path: "gestor/planilla/compensaciones/crear", // Ruta para la lista de planilla
+               method: "crearTransaccion", // Método que se ejecutará
+               isAuthRequired: true, // Requiere autenticación
+            },
+            {
+               path: "gestor/planilla/compensaciones/lista", // Ruta para la lista de planilla
+               method: "obtenerListaCompleta", // Método que se ejecutará
+               isAuthRequired: true, // Requiere autenticación
+            },
          ],
       },
    ];
