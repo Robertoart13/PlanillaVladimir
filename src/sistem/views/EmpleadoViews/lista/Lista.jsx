@@ -155,6 +155,11 @@ export const EmpleadoLista = () => {
    // Estado para el filtro de estado de Socios (1 = Activos, 2 = Inactivos, 3 = Todos)
    const [estadoFiltro, setEstadoFiltro] = useState(1);
 
+   // Limpiar localStorage al cargar el componente
+   useEffect(() => {
+      localStorage.removeItem("selectedEmpleado");
+   }, []);
+
    /**
     * Maneja el cambio en el filtro de estado.
     * @param {number} nuevoEstado - Nuevo valor del filtro de estado.

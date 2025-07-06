@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { useDataTable } from "../../../../hooks/getDataTableConfig";
 import { ErrorMessage } from "../../../components/ErrorMessage/ErrorMessage";
@@ -11,8 +11,8 @@ import { useNavigate } from 'react-router-dom';
 
 // Constantes para los textos
 const TEXTOS = {
-   titulo: "Listado de Planillas de todas las empresas",
-   subtitulo: "Tabla que muestra todas las planillas de todas las empresas",  
+   titulo: "Listado de Planillas",
+   subtitulo: "Tabla que muestra todas las planillas",  
    crearEmpresa: "Crear Planilla",
    sinPermiso: "No tienes permiso para ver la lista de planillas",
    filtrarPorEstado: "Filtrar por estado",
@@ -133,19 +133,10 @@ const crearConfiguracionTabla = (usuario) => ({
 });
 
 /**
- * Maneja el clic en una fila de la tabla.
- * @param {Object} datosFila - Datos de la fila seleccionada.
- */
-const manejarClicFila = (datosFila, navigate) => {
-   localStorage.setItem("selectedPlanilla", JSON.stringify(datosFila));
-   navigate("/planilla/editar");
-};
-
-/**
- * Navega a la página de creación de una nueva empresa.
+ * Navega a la página de creación de una nueva planilla.
  * @param {Function} navigate - Función de navegación de React Router.
  */
-const navegarCrearEmpresa = (navigate) => {
+const navegarCrearPlanilla = (navigate) => {
    navigate("/planilla/crear");
 };
 
@@ -178,6 +169,38 @@ export const PlanillaLista = () => {
 
   // Estado para manejar la selección del estado
   const [estadoSeleccionado, setEstadoSeleccionado] = useState("1");
+
+  // Limpiar localStorage al cargar el componente
+  useEffect(() => {
+     localStorage.removeItem("selectedPlanilla");
+  }, []);
+
+  // Manejar la selección de planilla para editar
+  useEffect(() => {
+     if (selected) {
+        manejarClicFila(selected);
+        // Limpiar la selección después de navegar
+        setSelected(null);
+     }
+  }, [selected]);
+
+  /**
+   * Maneja el clic en una fila de la tabla.
+   * @param {Object} datosFila - Datos de la fila seleccionada.
+   */
+  const manejarClicFila = (datosFila) => {
+     // Formatear todos los datos de la planilla usando la función formatearDatosFila
+     const datosFormateados = formatearDatosFila(datosFila);
+
+     // Almacena todos los datos formateados en el almacenamiento local
+     localStorage.setItem("selectedPlanilla", JSON.stringify(datosFormateados));
+     
+     // Verificar que se guardó correctamente
+     const datosGuardados = localStorage.getItem("selectedPlanilla");
+
+     // Navega a la página de edición de planilla
+     navigate("/planilla/editar");
+  };
 
   // Configuración de la tabla usando useMemo para optimizar el rendimiento.
   const configuracionTabla = useMemo(
