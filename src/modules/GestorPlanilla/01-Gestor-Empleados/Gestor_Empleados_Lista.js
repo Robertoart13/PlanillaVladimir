@@ -35,7 +35,7 @@ const QUERIES = {
          empresas_tbl em ON e.id_empresa = em.id_empresa  -- Unión externa izquierda para obtener los datos de la empresa (aunque no existan, el empleado igual aparecerá)
    WHERE 
          e.id_empresa = ?  -- Filtro para empleados que pertenecen a la empresa con ID 17
-         AND e.estado_empleado_gestor = ?  -- Filtro adicional para traer únicamente empleados activos
+         AND e.estado_empleado_gestor in (?)  -- Filtro adicional para traer únicamente empleados activos
    GROUP BY 
          e.id_empleado_gestor;  -- Agrupación por ID único del empleado para evitar registros duplicados en caso de unión 1:N o N:1 (aunque no siempre es necesario en LEFT JOIN 1:1)
 
@@ -54,10 +54,14 @@ const QUERIES = {
  * @throws {Error} Si ocurre un error durante la consulta a la base de datos.
  * ====================================================================================================================================
  */
-const obtenerTodosDatos = async (database) => {
+const obtenerTodosDatos = async (estado, id_empresa, database) => {
+   // Mapear estado a filtros: 1=activos, 2=inactivos, 3=ambos
+   const estadoFiltro = estado === "1" ? [1] : 
+                       estado === "2" ? [0] : 
+                       estado === "3" ? [1, 0] : [estado];
+
    try {
-      // Ejecuta la consulta SQL para obtener los datos de la tabla
-      return await realizarConsulta(QUERIES.QUERIES_SELECT, [17, 1], database);
+      return await realizarConsulta(QUERIES.QUERIES_SELECT, [id_empresa, estadoFiltro], database);
    } catch (error) {
       return manejarError(
          error,
@@ -115,7 +119,10 @@ const obtenerListaCompleta = async (req, res) => {
       if (errorValidacion) return errorValidacion; // Si hay un error en la validación, lo retorna inmediatamente.
 
       // 3. Obtener los datos de la base de datos una vez validados los permisos.
-      const resultado = await obtenerTodosDatos(res?.database);
+      const resultado = await obtenerTodosDatos(
+         res.transaccion.estado,
+         res.transaccion.user.id_empresa,
+         res?.database);
 
       // 4. Verificar si la edición fue exitosa.
       if (!esConsultarExitosa(resultado)) {
