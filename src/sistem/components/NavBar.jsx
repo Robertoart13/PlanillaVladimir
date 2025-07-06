@@ -110,7 +110,7 @@ export const NavBar = ({ isSidebarOpen, isMobile }) => {
                            className="pc-mtext"
                            data-i18n="Empleados"
                         >
-                           Empleados
+                           Socios
                         </span>
                      </NavLink>
                   </li>
