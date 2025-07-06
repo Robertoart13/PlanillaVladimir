@@ -111,6 +111,25 @@ import Gestor_Empleados_Listar from "../modules/GestorPlanilla/01-Gestor-Emplead
 import Gestor_Empleado_Crear from "../modules/GestorPlanilla/01-Gestor-Empleados/Gestor_Empleado_Crear.js";
 import Gestor_Empleado_Editar from "../modules/GestorPlanilla/01-Gestor-Empleados/Gestor_Empleado_Editar.js";
 
+/**
+ * ====================================================================================================================================
+ * Importación de módulos que tengan solo que ver con el gestor de planilla no de Natual 
+
+ * ====================================================================================================================================
+ */
+import Gestor_Planilla_Listar from "../modules/GestorPlanilla/02-Gestor_Planilla/Planilla_ListaCompletaOptions.js";
+import Gestor_Planilla_Empleados_Options from "../modules/GestorPlanilla/02-Gestor_Planilla/Planilla_empleadosOptions.js";
+
+/**
+ * ====================================================================================================================================
+ * Importación de módulos que tengan solo que ver con el gestor de planilla no de Natual 
+
+ * ====================================================================================================================================
+ */
+import Gestor_Aumento_Crear from "../modules/GestorPlanilla/03-Gestor_Aumento/Gestor_Aumento_Crear.js";
+import Gestor_Aumento_Listar from "../modules/GestorPlanilla/03-Gestor_Aumento/Gestor_Aumento_Lista.js";
+import Gestor_Aumento_Editar from "../modules/GestorPlanilla/03-Gestor_Aumento/Gestor_Aumento_Editar.js";
+
 
 
 
@@ -613,6 +632,50 @@ function getModulesConfig() {
                isAuthRequired: true, // Requiere autenticación
             },
          ],
+      },
+      {
+         category: "Gestor", // Nombre del módulo
+         model: {
+            ...Gestor_Planilla_Listar,
+            ...Gestor_Planilla_Empleados_Options,
+         }, // Combinamos ambos modelos
+         routes: [
+            {
+               path: "gestor/planillas/listas", // Ruta para la lista de planilla
+               method: "obtenerListaCompleta", // Método que se ejecutará
+               isAuthRequired: true, // Requiere autenticación
+            },
+            {
+               path: "gestor/planillas/empleados/options", // Ruta para la lista de planilla
+               method: "empleadosPlanillaOptions", // Método que se ejecutará
+               isAuthRequired: true, // Requiere autenticación
+            },
+         ],
+      },
+      {
+         category: "Gestor", // Nombre del módulo
+         model: {
+            ...Gestor_Aumento_Crear,
+            ...Gestor_Aumento_Listar,
+            ...Gestor_Aumento_Editar,
+         }, // Combinamos ambos modelos
+         routes: [
+            {
+               path: "gestor/planilla/aumentos/crear", // Ruta para la lista de planilla
+               method: "crearTransaccion", // Método que se ejecutará
+               isAuthRequired: true, // Requiere autenticación
+            },
+            {
+               path: "gestor/planilla/aumentos/lista", // Ruta para la lista de planilla
+               method: "obtenerListaCompleta", // Método que se ejecutará
+               isAuthRequired: true, // Requiere autenticación
+            },
+            {
+               path: "gestor/planilla/aumentos/editar", // Ruta para la lista de planilla
+               method: "editarTransaccion", // Método que se ejecutará
+               isAuthRequired: true, // Requiere autenticación
+            }, 
+         ], 
       },
    ];
 }
