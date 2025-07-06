@@ -95,6 +95,25 @@ import Planilla_Aplicado from "../modules/naturalEmpresa/08-planilla/Planilla_Ap
 import Planilla_Incritos from "../modules/naturalEmpresa/08-planilla/Planilla_Incritos.js";
 import planilla_estado from "../modules/naturalEmpresa/08-planilla/Planilla_CmabioEstado.js";
 
+
+
+
+
+
+
+/**
+ * ====================================================================================================================================
+ * Importación de módulos que tengan solo que ver con el gestor de planilla no de Natual 
+
+ * ====================================================================================================================================
+ */
+import Gestor_Empleados_Listar from "../modules/GestorPlanilla/01-Gestor-Empleados/Gestor_Empleados_Lista.js";
+
+
+
+
+
+
 /** ====================================================================================================================================
  * @fileoverview Módulo de configuración de rutas para la aplicación.
  * Este archivo maneja la configuración de rutas, autenticación y gestión de solicitudes HTTP.
@@ -565,6 +584,19 @@ function getModulesConfig() {
             {
                path: "planilla/habilitar", // Ruta para la lista de planilla
                method: "Planilla_Habilitar", // Método que se ejecutará
+               isAuthRequired: true, // Requiere autenticación
+            },
+         ],
+      },
+      {
+         category: "Gestor", // Nombre del módulo
+         model: {
+            ...Gestor_Empleados_Listar,
+         }, // Combinamos ambos modelos
+         routes: [
+            {
+               path: "gestor/empleados", // Ruta para la lista de empleados
+               method: "obtenerListaCompleta", // Método que se ejecutará
                isAuthRequired: true, // Requiere autenticación
             },
          ],
