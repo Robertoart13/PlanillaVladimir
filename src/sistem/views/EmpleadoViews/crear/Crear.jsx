@@ -690,13 +690,52 @@ const useEmployeeForm = () => {
       // Check for existing validation errors
       const hasValidationErrors = validation.hasErrors();
 
-      if (!requiredFieldsValid || hasValidationErrors) {
+      // Validación adicional para campos únicos
+      const uniqueFieldsValid = validateUniqueFields();
+
+      if (!requiredFieldsValid || hasValidationErrors || !uniqueFieldsValid) {
          setError(true);
          setMessage("Por favor corrija todos los errores en el formulario");
          return false;
       }
 
       return true;
+   };
+
+   /**
+    * Validates unique fields to ensure they are properly filled
+    * @returns {boolean} - True if all unique fields are valid, false otherwise
+    */
+   const validateUniqueFields = () => {
+      let isValid = true;
+
+      // Validar que los números de identificación no estén vacíos
+      if (!formData.numero_asegurado || formData.numero_asegurado.trim() === "") {
+         validation.setNumeroAseguradoError("El número de asegurado es obligatorio y debe ser único");
+         isValid = false;
+      }
+
+      if (!formData.numero_ins || formData.numero_ins.trim() === "") {
+         validation.setNumeroInsError("El número de INS es obligatorio y debe ser único");
+         isValid = false;
+      }
+
+      if (!formData.numero_hacienda || formData.numero_hacienda.trim() === "") {
+         validation.setNumeroHaciendaError("El número de hacienda es obligatorio y debe ser único");
+         isValid = false;
+      }
+
+      if (!formData.correo || formData.correo.trim() === "") {
+         validation.setEmailError("El correo electrónico es obligatorio y debe ser único");
+         isValid = false;
+      }
+
+      if (!formData.cedula || formData.cedula.trim() === "") {
+         validation.setCedulaError("La cédula es obligatoria y debe ser única");
+         isValid = false;
+      }
+
+      return isValid;
    };
 
    /**
@@ -723,7 +762,6 @@ const useEmployeeForm = () => {
             allowEscapeKey: false,
             allowEnterKey: false,
             allowClosePropagation: false,
-            allowEscapeKey: false,
          });
 
          const response = await dispatch(fetchData_api(formData, "gestor/empleados/crear"));
@@ -771,19 +809,44 @@ const useEmployeeForm = () => {
             });
            
          } else {
+            // Mejorar el manejo de errores para mostrar mensajes más específicos
+            let errorMessage = response.message || "Error al crear el Socio";
+            
+            // Si el mensaje contiene información sobre duplicados, mostrarlo de forma más clara
+            if (errorMessage.includes("número de asegurado")) {
+               errorMessage = "El número de asegurado ya está registrado en el sistema. Por favor, verifique el número e intente nuevamente.";
+            } else if (errorMessage.includes("número de INS")) {
+               errorMessage = "El número de INS ya está registrado en el sistema. Por favor, verifique el número e intente nuevamente.";
+            } else if (errorMessage.includes("número de hacienda")) {
+               errorMessage = "El número de hacienda ya está registrado en el sistema. Por favor, verifique el número e intente nuevamente.";
+            } else if (errorMessage.includes("correo electrónico")) {
+               errorMessage = "El correo electrónico ya está registrado en el sistema. Por favor, use un correo diferente.";
+            } else if (errorMessage.includes("cédula")) {
+               errorMessage = "La cédula ya está registrada en el sistema. Por favor, verifique el número e intente nuevamente.";
+            } else if (errorMessage.includes("mismos datos de identificación")) {
+               errorMessage = "Ya existe un Socio con los mismos datos de identificación. Por favor, verifique la información e intente nuevamente.";
+            }
+
             swal.fire({
                title: "Error al crear el Socio",
-               text: response.message || "Error al crear el Socio",
+               text: errorMessage,
                icon: "error",
                confirmButtonText: "Aceptar",
             });
             setError(true);
-            setMessage(response.message || "Error al crear el Socio");
+            setMessage(errorMessage);
          }
       } catch (error) {
          setError(true);
          setMessage("Error inesperado al crear el Socio");
          console.error("Error creating employee:", error);
+         
+         swal.fire({
+            title: "Error inesperado",
+            text: "Ha ocurrido un error inesperado al crear el Socio. Por favor, intente nuevamente.",
+            icon: "error",
+            confirmButtonText: "Aceptar",
+         });
       } finally {
          setIsLoading(false);
       }
@@ -814,6 +877,7 @@ const useEmployeeForm = () => {
  * @param {string} props.placeholder - Placeholder text
  * @param {boolean} props.required - Whether field is required
  * @param {string} props.error - Error message
+ * @param {boolean} props.isUnique - Whether field must be unique
  * @param {React.ReactNode} props.children - Select options
  * @returns {JSX.Element} - Form field component
  */
@@ -827,6 +891,7 @@ const FormField = ({
    placeholder,
    required = false,
    error,
+   isUnique = false,
    children,
 }) => (
    <div className="mb-3">
@@ -834,7 +899,7 @@ const FormField = ({
          className="form-label"
          htmlFor={id}
       >
-         {label} {required && "*"}
+         {label} {required && "*"} {isUnique && <span className="text-info">(Único)</span>}
       </label>
       {type === "select" ? (
          <select
@@ -860,6 +925,12 @@ const FormField = ({
          />
       )}
       {error && <div className="invalid-feedback">{error}</div>}
+      {isUnique && !error && (
+         <small className="form-text text-muted">
+            <i className="fas fa-info-circle me-1"></i>
+            Este campo debe ser único en el sistema
+         </small>
+      )}
    </div>
 );
 
@@ -893,6 +964,21 @@ export const CrearEmpleado = () => {
          )}
 
          <div className="card-body">
+            {/* Información sobre campos únicos */}
+            <div className="alert alert-info mb-4">
+               <h6 className="alert-heading">
+                  <i className="fas fa-info-circle me-2"></i>
+                  Información importante
+               </h6>
+               <p className="mb-2">
+                  Los campos marcados con <span className="text-info">(Único)</span> deben ser diferentes para cada Socio. 
+                  Si intenta crear un Socio con datos que ya existen, recibirá un mensaje de error específico.
+               </p>
+               <p className="mb-0">
+                  <strong>Campos únicos:</strong> Correo electrónico, Cédula, Número de asegurado, Número de INS, Número de hacienda.
+               </p>
+            </div>
+
             {/* Botón para cargar datos de ejemplo */}
             <div className="mb-4">
                <button
@@ -934,6 +1020,7 @@ export const CrearEmpleado = () => {
                      onChange={handleInputChange}
                      placeholder="Socio@empresa.com"
                      required
+                     isUnique
                      error={validation.emailError}
                   />
                </div>
@@ -960,6 +1047,7 @@ export const CrearEmpleado = () => {
                      onChange={handleInputChange}
                      placeholder="CT57623562"
                      required
+                     isUnique
                      error={validation.cedulaError}
                   />
                </div>
@@ -1141,6 +1229,7 @@ export const CrearEmpleado = () => {
                      onChange={handleInputChange}
                      placeholder="123456789"
                      required
+                     isUnique
                      error={validation.numeroAseguradoError}
                   />
                </div>
@@ -1153,6 +1242,7 @@ export const CrearEmpleado = () => {
                      onChange={handleInputChange}
                      placeholder="123456789"
                      required
+                     isUnique
                      error={validation.numeroInsError}
                   />
                </div>
@@ -1165,6 +1255,7 @@ export const CrearEmpleado = () => {
                      onChange={handleInputChange}
                      placeholder="123456789"
                      required
+                     isUnique
                      error={validation.numeroHaciendaError}
                   />
                </div>
