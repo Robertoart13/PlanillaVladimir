@@ -1,8 +1,8 @@
 import { useMemo } from "react";
 import { TarjetaRow } from "../../../components/TarjetaRow/TarjetaRow";
-import { Button, Stack } from "@mui/material";
+import { Button, Stack, FormControl, InputLabel, Select, MenuItem } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import { useRef, useState } from "react";
+import { useRef, useState, useCallback } from "react";
 
 // campos importantes
 import { useSelector } from "react-redux";
@@ -127,6 +127,7 @@ export const EmpleadoLista = () => {
    // Obtener el usuario autenticado desde Redux.
    const { user } = useSelector((state) => state.auth);
 
+
    const navigate = useNavigate();
 
    const tableRef = useRef(null);
@@ -145,6 +146,17 @@ export const EmpleadoLista = () => {
    // Estado para controlar la apertura del diálogo de edición
    const [openEdit, setOpenEdit] = useState(false);
 
+   // Estado para el filtro de estado de empleados (1 = Activos, 2 = Inactivos, 3 = Todos)
+   const [estadoFiltro, setEstadoFiltro] = useState(1);
+
+   /**
+    * Maneja el cambio en el filtro de estado.
+    * @param {number} nuevoEstado - Nuevo valor del filtro de estado.
+    */
+   const handleEstadoChange = useCallback((nuevoEstado) => {
+      setEstadoFiltro(nuevoEstado);
+   }, []);
+
    /**
     * Configuración para la tabla de catálogo de cuentas.
     * Define el endpoint, el tipo de solicitud y los permisos necesarios.
@@ -157,7 +169,9 @@ export const EmpleadoLista = () => {
             user: {
                id: parseInt(user?.id_usuario) || 0,
                rol: parseInt(user?.id_rol) || 0,
+               id_empresa: parseInt(user?.id_empresa) || 0,
             },
+            estado: estadoFiltro, // Valor del filtro de estado
             acceso: {
                type: 0,
                permiso: 0,
@@ -167,7 +181,7 @@ export const EmpleadoLista = () => {
          columnsLayout: "columns-2", // Diseño de columnas en la tabla.
          columns: obtenerColumnasTabla(), // Definición de columnas.
       }),
-      [user?.id_usuario], // Se actualiza si cambia el usuario autenticado.
+      [user?.id_usuario, estadoFiltro], // Se actualiza si cambia el usuario autenticado o el filtro de estado.
    );
 
    // Inicializa la tabla con los parámetros configurados.
@@ -219,19 +233,23 @@ export const EmpleadoLista = () => {
                   message={message}
                />
             )}
-            {/* Botones para crear */}
+            
+            {/* Contenedor de botones y filtros */}
             <Stack
                direction="row"
                spacing={2}
                sx={{
                   mb: 2,
-                  width: "15%",
+                  alignItems: "center",
+                  justifyContent: "space-between",
                }}
             >
+               {/* Botón para crear empleado */}
                <Button
                   variant="contained"
                   onClick={abrirCrearEmpleado}
                   className="user-detail-dialog-buttonSecondary"
+                  sx={{ minWidth: "200px" }}
                >
                   <i
                      className="ph-duotone ph-certificate"
@@ -239,6 +257,22 @@ export const EmpleadoLista = () => {
                   ></i>
                   Crear Empleado
                </Button>
+
+               {/* Filtro de estado de empleados */}
+               <FormControl sx={{ minWidth: "250px" }}>
+                  <InputLabel id="estado-filtro-label">Filtrar por Estado</InputLabel>
+                  <Select
+                     labelId="estado-filtro-label"
+                     id="estado-filtro"
+                     value={estadoFiltro}
+                     label="Filtrar por Estado"
+                     onChange={(e) => handleEstadoChange(e.target.value)}
+                  >
+                     <MenuItem value={1}>Empleados Activos</MenuItem>
+                     <MenuItem value={2}>Empleados Inactivos</MenuItem>
+                     <MenuItem value={3}>Todos los Empleados</MenuItem>
+                  </Select>
+               </FormControl>
             </Stack>
 
             {/* Contenedor de la tabla */}

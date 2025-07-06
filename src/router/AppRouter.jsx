@@ -116,6 +116,7 @@ export const AppRouter = () => {
                      email: jwt.email_usuario,
                      id_usuario: jwt.id_usuario,
                      id_rol: jwt.rol_usuario,
+                     id_empresa: jwt.id_empresa_usuario,
                   },
                };
 
