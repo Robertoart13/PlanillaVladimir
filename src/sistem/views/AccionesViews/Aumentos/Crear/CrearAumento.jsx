@@ -117,8 +117,8 @@ export const CrearAumento = () => {
 
             {/* Empleado */}
             <div className="col-md-6 mb-3">
-              <label className="form-label" htmlFor="empleado">
-                Empleado <span className="text-danger">*</span>
+              <label className="form-label" htmlFor="socio">
+                Socio <span className="text-danger">*</span>
               </label>
               <select
                 className="form-select"
@@ -128,7 +128,7 @@ export const CrearAumento = () => {
                 onChange={handleChange}
                 required
               >
-                <option value="">Seleccione empleado</option>
+                <option value="">Seleccione el Socio</option>
                 {empleados.map((empleado) => (
                   <option key={empleado} value={empleado}>
                     {empleado}

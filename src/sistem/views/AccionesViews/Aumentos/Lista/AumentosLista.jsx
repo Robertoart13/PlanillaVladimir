@@ -19,7 +19,7 @@ const obtenerColumnasTabla = () => [
   
    {
       data: "nombre_empleado",
-      title: "Nombre del Empleado",
+      title: "Nombre del Socio",
       searchPanes: { show: true },
    },
    {

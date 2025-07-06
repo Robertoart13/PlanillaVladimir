@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback } from "react";
-import * as XLSX from 'xlsx';
+
 
 /**
  * =========================
@@ -9,21 +9,23 @@ import * as XLSX from 'xlsx';
 
 /** Payroll table column definitions */
 const PAYROLL_COLUMNS = [
-   { key: "nombre", label: "Nombre", style: { minWidth: 180 } },
+   { key: "nombre", label: "Nombre Socio", style: { minWidth: 180 } },
    { key: "cedula", label: "Cédula", style: { minWidth: 100 } },
-   { key: "asegurado", label: "# De Asegurado" },
-   { key: "semana", label: "Semana", type: "number" },
-   { key: "bruta", label: "Remuneración Bruta", type: "number" },
-   { key: "fcl", label: "FCL 1,5% ROB 3,25%", type: "number" },
-   { key: "rebajosCliente", label: "Rebajos de Cliente", type: "number" },
-   { key: "reintegroCliente", label: "Reintegro de Cliente", type: "number" },
-   { key: "deposito", label: "Deposito X Tecurso", type: "number" },
-   { key: "cuota", label: "Cuota CC.SS", type: "number" },
-   { key: "rebajosOPU", label: "Rebajos OPU", type: "number" },
-   { key: "reintegrosOPU", label: "Reintegros OPU", type: "number" },
-   { key: "totalDeducciones", label: "Total de Deducciones", type: "number" },
-   { key: "totalReintegros", label: "Total de Reintegros", type: "number" },
-   { key: "neta", label: "Remuneración Neta", type: "number" },
+   { key: "compensacion_base", label: "Compensacion Base", type: "number" },
+   { key: "devengado", label: "Devengado", type: "number" },
+   { key: "cargas_sociales", label: "Cargas Sociales", type: "number" },
+   { key: "monto_neto", label: "Monto Neto", type: "number", style: { minWidth: 180 } },
+   { key: "accion", label: "Acciones" },
+   { key: "estado", label: "Estado" },
+];
+
+/** Subtable column definitions */
+const SUBTABLE_COLUMNS = [
+   { key: "categoria", label: "Categoria", style: { minWidth: 150 } },
+   { key: "tipoAccion", label: "Tipo de Accion", style: { minWidth: 100 } },
+   { key: "monto", label: "Monto", type: "number", style: { minWidth: 120 } },
+   { key: "tipo", label: "Tipo (+/-)", style: { minWidth: 120 } },
+   { key: "estado", label: "Estado", style: { minWidth: 200 } },
 ];
 
 const PAGE_SIZES = [5, 10, 30, 60, 80, 100];
@@ -38,58 +40,56 @@ const MOCK_ROWS = [
    {
       nombre: "Juan Pérez",
       cedula: "123456789",
-      asegurado: "12345",
-      semana: "1",
-      bruta: "50000.00",
-      fcl: "750.00",
-      rebajosCliente: "0.00",
-      reintegroCliente: "0.00",
-      deposito: "50750.00",
-      cuota: "2500.00",
-      rebajosOPU: "0.00",
-      reintegrosOPU: "0.00",
-      totalDeducciones: "2500.00",
-      totalReintegros: "0.00",
-      neta: "48250.00",
-      marca_epd: 0,
+      compensacion_base: "12345",
+      devengado: "1",
+      cargas_sociales: "50000.00",
+      monto_neto: "750.00",
+      accion: "",
+      estado: "Verificado",
    },
    {
       nombre: "María García",
       cedula: "987654321",
-      asegurado: "67890",
-      semana: "1",
-      bruta: "45000.00",
-      fcl: "675.00",
-      rebajosCliente: "1000.00",
-      reintegroCliente: "500.00",
-      deposito: "45175.00",
-      cuota: "2250.00",
-      rebajosOPU: "0.00",
-      reintegrosOPU: "0.00",
-      totalDeducciones: "3250.00",
-      totalReintegros: "500.00",
-      neta: "42925.00",
-      marca_epd: 1,
+      compensacion_base: "67890",
+      devengado: "1",
+      cargas_sociales: "45000.00",
+      monto_neto: "675.00",
+      accion: "",
+      estado: "Verificado",
    },
    {
       nombre: "Carlos López",
       cedula: "456789123",
-      asegurado: "11111",
-      semana: "1",
-      bruta: "60000.00",
-      fcl: "900.00",
-      rebajosCliente: "0.00",
-      reintegroCliente: "0.00",
-      deposito: "60900.00",
-      cuota: "3000.00",
-      rebajosOPU: "0.00",
-      reintegrosOPU: "0.00",
-      totalDeducciones: "3000.00",
-      totalReintegros: "0.00",
-      neta: "57900.00",
-      marca_epd: 0,
+      compensacion_base: "11111",
+      devengado: "1",
+      cargas_sociales: "60000.00",
+      monto_neto: "900.00",
+      accion: "",
+      estado: "Pendiente",
    },
 ];
+
+// Mock data for subtables
+const MOCK_SUBTABLE_DATA = {
+   "123456789": [
+      { categoria: "Salario Base", tipoAccion: "Ingreso", monto: "50000.00", tipo: "+", estado: "Pendiente" },
+      { categoria: "Horas Extra", tipoAccion: "Ingreso", monto: "15000.00", tipo: "+", estado: "Pendiente" },
+      { categoria: "ISR", tipoAccion: "Deducción", monto: "-8000.00", tipo: "-", estado: "Pendiente" },
+      { categoria: "Seguro Social", tipoAccion: "Deducción", monto: "-3000.00", tipo: "-", estado: "Pendiente" },
+   ],
+   "987654321": [
+      { categoria: "Salario Base", tipoAccion: "Ingreso", monto: "45000.00", tipo: "+", estado: "Pendiente" },
+      { categoria: "Bonificación", tipoAccion: "Ingreso", monto: "5000.00", tipo: "+", estado: "Pendiente" },
+      { categoria: "ISR", tipoAccion: "Deducción", monto: "-7000.00", tipo: "-", estado: "Pendiente" },
+      { categoria: "Seguro Social", tipoAccion: "Deducción", monto: "-2700.00", tipo: "-", estado: "Pendiente" },
+   ],
+   "456789123": [
+      { categoria: "Salario Base", tipoAccion: "Ingreso", monto: "60000.00", tipo: "+", estado: "Pendiente" },
+      { categoria: "Vacaciones", tipoAccion: "Ingreso", monto: "5000.00", tipo: "+", estado: "Pendiente" },
+      { categoria: "ISR", tipoAccion: "Deducción", monto: "-10000.00", tipo: "-", estado: "Pendiente" },
+      { categoria: "Seguro Social", tipoAccion: "Deducción", monto: "-3600.00", tipo: "-", estado: "Pendiente" },
+   ],
+};
 
 /**
  * ================
@@ -128,23 +128,7 @@ function getTableHeaderStyle(col) {
    };
 }
 
-/**
- * Devuelve el estilo para las celdas de la tabla de resumen.
- * @param {string} type - Tipo de celda (header, total, etc).
- * @returns {object} Objeto de estilo CSS.
- */
-function getSummaryCellStyle(type) {
-   switch (type) {
-      case "header":
-         return { background: "#a3bde3" };
-      case "total":
-         return { fontSize: "1.2rem", color: "#fff", background: "#4a74b5" };
-      case "totalLabel":
-         return { background: "#a3bde3", fontSize: "1.1rem" };
-      default:
-         return {};
-   }
-}
+
 
 /**
  * =========================
@@ -152,29 +136,9 @@ function getSummaryCellStyle(type) {
  * =========================
  */
 
-/**
- * Formatea un valor numérico como moneda en formato costarricense.
- * @param {number} value - El valor numérico a formatear
- * @param {number} [decimals=2] - Número de decimales a mostrar
- * @returns {string} - Valor formateado como moneda
- */
-function formatCurrency(value, decimals = 2) {
-   if (value === null || value === undefined || isNaN(value)) return "₡0.00";
-   return `₡${Number(value).toLocaleString("es-CR", { 
-      minimumFractionDigits: decimals,
-      maximumFractionDigits: decimals 
-   })}`;
-}
 
-/**
- * Suma un campo numérico para todas las filas.
- * @param {Array<Object>} rows - Arreglo de filas con datos
- * @param {string} field - Nombre del campo a sumar
- * @returns {number} - Suma total del campo especificado
- */
-function sumColumn(rows, field) {
-   return rows.reduce((acc, row) => acc + (parseFloat(row[field]) || 0), 0);
-}
+
+
 
 /**
  * =========================
@@ -183,19 +147,120 @@ function sumColumn(rows, field) {
  */
 
 /**
+ * SubTable
+ * Tabla secundaria que muestra los detalles de cada empleado.
+ */
+function SubTable({ columns, data, employeeName }) {
+   if (!data || data.length === 0) {
+      return (
+         <div className="text-center py-3 text-muted">
+            No hay datos disponibles para {employeeName}
+         </div>
+      );
+   }
+
+   return (
+      <div className="subtable-container" style={{ marginLeft: 20, marginRight: 20 }}>
+         <div className="card border-0" style={{borderRadius: "0px"}}>
+           
+               <h6 className="mb-3 mt-3 p-2">
+                 
+                  Detalles de Acciones de personal: {employeeName}
+               </h6>
+          
+            <div className="card-body p-0">
+               <div className="table-responsive">
+                  <table className="table table-sm table-bordered mb-0">
+                     <thead className="table-secondary">
+                        <tr>
+                           {columns.map((col) => (
+                              <th
+                                 key={col.key}
+                                 style={{
+                                    ...col.style,
+                                    fontSize: "0.85rem",
+                                    padding: "8px 12px",
+                                    textAlign: "center",
+                                    background: "#e9ecef",
+                                    borderBottom: "2px solid #adb5bd",
+                                 }}
+                              >
+                                 {col.label}
+                              </th>
+                           ))}
+                        </tr>
+                     </thead>
+                     <tbody>
+                        {data.map((row, idx) => (
+                           <tr key={idx} style={{ fontSize: "0.85rem" }}>
+                              {columns.map((col) => (
+                                 <td
+                                    key={col.key}
+                                    style={{
+                                       padding: "8px 12px",
+                                       borderRight: "1px solid #dee2e6",
+                                       borderLeft: "1px solid #dee2e6",
+                                       background: idx % 2 !== 0 ? "#f8f9fa" : undefined,
+                                       textAlign: col.key === "estado" || col.key === "tipo" ? "center" : col.type === "number" ? "right" : "left",
+                                    }}
+                                 >
+                                    {col.key === "tipo" ? (
+                                       <span
+                                          className={`badge bg-light-${
+                                             row[col.key] === "+" 
+                                                ? "success" 
+                                                : "danger"
+                                          }`}
+                                          style={{ fontSize: "0.75rem" }}
+                                       >
+                                          {row[col.key]}
+                                       </span>
+                                                                         ) : col.key === "estado" ? (
+                                        <span
+                                           className={`badge bg-light-${
+                                              row[col.key] === "Pendiente" 
+                                                 ? "warning" 
+                                                 : "success"
+                                           }`}
+                                           style={{ fontSize: "0.75rem" }}
+                                        >
+                                           {row[col.key]}
+                                        </span>
+                                     )  : col.key === "monto" ? (
+                                        <span>
+                                           ${row[col.key]}
+                                        </span>
+                                     ) : (
+                                       row[col.key]
+                                    )}
+                                 </td>
+                              ))}
+                           </tr>
+                        ))}
+                     </tbody>
+                  </table>
+               </div>
+            </div>
+         </div>
+      </div>
+   );
+}
+
+/**
  * PayrollTable
- * Tabla principal editable con selección de filas.
+ * Tabla principal editable con selección de filas y funcionalidad de expansión.
  */
 function PayrollTable({
    columns,
-   rows,
    pageRows,
    selectedRows,
    onCheckboxChange,
-   onInputChange,
    startIdx,
    disabled,
    planillaEstado,
+   expandedRows,
+   onRowToggle,
+   subtableData,
 }) {
    return (
       <table
@@ -227,83 +292,89 @@ function PayrollTable({
             {pageRows.map((row, idx) => {
                const globalIdx = startIdx + idx;
                const isSelected = selectedRows.includes(globalIdx);
-               const rowDisabled = disabled || (planillaEstado === "Procesada") || 
-                                 (planillaEstado === "Activa" && row.marca_epd === 1);
+               const isExpanded = expandedRows.includes(globalIdx);
+               const rowDisabled = disabled || (planillaEstado === "Procesada");
+               const employeeData = subtableData[row.cedula] || [];
+               
                return (
-                  <tr
-                     key={globalIdx}
-                     className={isSelected ? "fila-seleccionada" : ""}
-                     style={
-                        rowDisabled
-                           ? { pointerEvents: "none", opacity: 0.7, background: "#f5f5f5" }
-                           : {}
-                     }
-                  >
-                     <td style={{ textAlign: "center" }}>
-                        <input
-                           type="checkbox"
-                           checked={isSelected}
-                           onChange={() => onCheckboxChange(idx)}
-                           aria-label={`Seleccionar fila ${globalIdx + 1}`}
-                           disabled={rowDisabled}
-                        />
-                     </td>
-                     {columns.map((col) => (
-                        <td
-                           key={col.key}
-                           style={getTableCellStyle(col, isSelected, idx)}
-                        >
-                           {col.type === "number" && !["neta", "totalReintegros"].includes(col.key) ? (
-                              <input
-                                 type="number"
-                                 name={col.key}
-                                 value={row[col.key]}
-                                 onChange={(e) => onInputChange(e, idx)}
-                                 onBlur={(e) => {
-                                    if (col.key === 'semana') {
-                                       const intVal = parseInt(e.target.value, 10) || 0;
-                                       e.target.value = intVal;
-                                    } else {
-                                       const num = parseFloat(e.target.value) || 0;
-                                       e.target.value = num.toFixed(2);
-                                    }
-                                    onInputChange(e, idx);
-                                 }}
-                                 className="form-control form-control-sm"
-                                 step={col.key === 'semana' ? '1' : '0.01'}
-                                 style={{
-                                    minWidth: col.style?.minWidth || 80,
-                                    background: "#fdfdfd",
-                                 }}
-                                 aria-label={col.label}
-                                 disabled={rowDisabled}
-                              />
-                           ) : (
-                              row[col.key]
-                           )}
+                  <React.Fragment key={globalIdx}>
+                     <tr
+                        className={`${isSelected ? "fila-seleccionada" : ""} ${isExpanded ? "table-active" : ""}`}
+                        style={
+                           rowDisabled
+                              ? { pointerEvents: "none", opacity: 0.7, background: "#f5f5f5" }
+                              : { cursor: "pointer" }
+                        }
+                        onClick={() => !rowDisabled && onRowToggle(globalIdx)}
+                     >
+                        <td style={{ textAlign: "center" }} onClick={(e) => e.stopPropagation()}>
+                           <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={() => onCheckboxChange(idx)}
+                              aria-label={`Seleccionar fila ${globalIdx + 1}`}
+                              disabled={rowDisabled}
+                           />
                         </td>
-                     ))}
-                  </tr>
+                        {columns.map((col) => {
+                           return (
+                              <td
+                                 key={col.key}
+                                 style={getTableCellStyle(col, isSelected, idx)}
+                                 onClick={(e) => {
+                                    if (col.key === "accion") {
+                                       e.stopPropagation();
+                                    }
+                                 }}
+                              >
+                                 {col.key === "accion" ? (
+                                    <button
+                                       className="btn btn-primary btn-sm"
+                                       onClick={() => {
+                                          console.log("Ver detalle para:", row.nombre);
+                                          alert(`Ver detalle de ${row.nombre}`);
+                                       }}
+                                       disabled={rowDisabled}
+                                    >
+                                       <i className="fas fa-eye"> Ver detalle</i>
+                                    </button>
+                                 ) : col.key === "estado" ? (
+                                    (() => {
+                                       console.log(`Estado para ${row.nombre}:`, row[col.key], typeof row[col.key]);
+                                       return (
+                                          <span
+                                             className={`badge bg-light-${
+                                                row[col.key] === "Verificado" 
+                                                   ? "success" 
+                                                   : "danger"
+                                             }`}
+                                          >
+                                             {row[col.key]}
+                                          </span>
+                                       );
+                                    })()
+                                 ) : (
+                                    row[col.key]
+                                 )}
+                              </td>
+                           );
+                        })}
+                     </tr>
+                     {isExpanded && (
+                        <tr>
+                           <td colSpan={columns.length + 1} style={{ padding: 0, border: "none" }}>
+                              <SubTable
+                                 columns={SUBTABLE_COLUMNS}
+                                 data={employeeData}
+                                 employeeName={row.nombre}
+                              />
+                           </td>
+                        </tr>
+                     )}
+                  </React.Fragment>
                );
             })}
          </tbody>
-         <tfoot>
-            <tr style={{ background: "#f8f9fa", fontWeight: "bold" }}>
-               <td></td>
-               {columns.map((col) =>
-                  col.type === "number" ? (
-                     <td
-                        key={col.key}
-                        style={col.key === "neta" ? { color: "#198754", fontWeight: "bold" } : {}}
-                     >
-                        {formatCurrency(sumColumn(rows, col.key))}
-                     </td>
-                  ) : (
-                     <td key={col.key}></td>
-                  ),
-               )}
-            </tr>
-         </tfoot>
       </table>
    );
 }
@@ -426,191 +497,6 @@ function TablePagination({
 }
 
 /**
- * SummaryTable
- * Tabla resumen reutilizable para operarios o datos financieros.
- */
-function SummaryTable({ rows, selectedRows, montoPorOperario, setMontoPorOperario, totalTarifa, financialData }) {
-   if (financialData) {
-      const { montoTarifa, montoRemuneraciones, subtotal, iva, montoTotal } = financialData;
-      return (
-         <div style={{ maxWidth: 350 }}>
-            <table
-               className="table table-bordered"
-               style={{ background: "#bcd2f7" }}
-            >
-               <tbody>
-                  <tr>
-                     <td
-                        className="fw-bold"
-                        style={getSummaryCellStyle("header")}
-                     >
-                        Monto de tarifa
-                     </td>
-                     <td className="text-end">
-                        {formatCurrency(montoTarifa)}
-                     </td>
-                  </tr>
-                  <tr>
-                     <td
-                        className="fw-bold"
-                        style={getSummaryCellStyle("header")}
-                     >
-                        Monto de Remuneraciones
-                     </td>
-                     <td className="text-end">
-                        {montoRemuneraciones ? formatCurrency(montoRemuneraciones) : "-"}
-                     </td>
-                  </tr>
-                  <tr>
-                     <td
-                        className="fw-bold"
-                        style={getSummaryCellStyle("header")}
-                     >
-                        Subtotal
-                     </td>
-                     <td className="text-end">
-                        {formatCurrency(subtotal)}
-                     </td>
-                  </tr>
-                  <tr>
-                     <td
-                        className="fw-bold"
-                        style={getSummaryCellStyle("header")}
-                     >
-                        I V A
-                     </td>
-                     <td className="text-end">
-                        {formatCurrency(iva)}
-                     </td>
-                  </tr>
-                  <tr>
-                     <td
-                        className="fw-bold text-center"
-                        colSpan={2}
-                        style={getSummaryCellStyle("totalLabel")}
-                     >
-                        Monto Total
-                     </td>
-                  </tr>
-                  <tr>
-                     <td
-                        className="fw-bold text-end"
-                        colSpan={2}
-                        style={getSummaryCellStyle("total")}
-                     >
-                        {formatCurrency(montoTotal)}
-                     </td>
-                  </tr>
-               </tbody>
-            </table>
-         </div>
-      );
-   }
-
-   // Tabla de resumen de operarios
-   const totalOperarios = rows.length;
-   const totalSeleccionados = selectedRows ? selectedRows.length : 0;
-   return (
-      <div style={{ maxWidth: 300 }}>
-         <table
-            className="table table-bordered"
-            style={{ background: "#bcd2f7" }}
-         >
-            <tbody>
-               <tr>
-                  <td
-                     colSpan={2}
-                     className="text-center fw-bold"
-                     style={getSummaryCellStyle("header")}
-                  >
-                     Cantidad de Operarios
-                  </td>
-               </tr>
-               <tr>
-                  <td
-                     colSpan={2}
-                     className="text-center"
-                  >
-                     {totalOperarios}
-                  </td>
-               </tr>
-               <tr>
-                  <td
-                     colSpan={2}
-                     className="text-center fw-bold"
-                     style={getSummaryCellStyle("header")}
-                  >
-                     Por administración
-                  </td>
-                  <td
-                     colSpan={2}
-                     className="text-center"
-                  >
-                     0
-                  </td>
-               </tr>
-               <tr>
-                  <td
-                     colSpan={2}
-                     className="text-center fw-bold"
-                     style={getSummaryCellStyle("header")}
-                  >
-                     Total de Operarios
-                  </td>
-               </tr>
-               <tr>
-                  <td
-                     colSpan={2}
-                     className="text-center"
-                  >
-                     {totalSeleccionados}
-                  </td>
-               </tr>
-               <tr>
-                  <td
-                     className="fw-bold"
-                     style={getSummaryCellStyle("header")}
-                  >
-                     Monto X Operario
-                  </td>
-                  <td className="text-end fw-bold">
-                     <input
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        value={montoPorOperario}
-                        onChange={(e) => setMontoPorOperario(Number(e.target.value))}
-                        className="form-control form-control-sm text-end"
-                        style={{ background: "#eaf1fb", fontWeight: "bold" }}
-                        aria-label="Monto por operario"
-                     />
-                  </td>
-               </tr>
-               <tr>
-                  <td
-                     className="fw-bold text-center"
-                     colSpan={2}
-                     style={getSummaryCellStyle("totalLabel")}
-                  >
-                     Total de Tarifa
-                  </td>
-               </tr>
-               <tr>
-                  <td
-                     className="fw-bold text-end"
-                     colSpan={2}
-                     style={getSummaryCellStyle("total")}
-                  >
-                     {formatCurrency(totalTarifa)}
-                  </td>
-               </tr>
-            </tbody>
-         </table>
-      </div>
-   );
-}
-
-/**
  * =========================
  * HANDLERS
  * =========================
@@ -638,77 +524,22 @@ function useHandleCheckbox({ rows, selectedRows, startIdx, setSelectedRows }) {
 }
 
 /**
- * Maneja el cambio de input en una fila.
+ * Maneja la expansión/contracción de una fila.
  */
-function useHandleInputChange({ startIdx, setRows, setSelectedRows }) {
+function useHandleRowToggle({ expandedRows, setExpandedRows }) {
    return useCallback(
-      (e, idx) => {
-         const { name, value } = e.target;
-         const globalIdx = startIdx + idx;
-
-         // Actualiza el valor en la fila correspondiente
-         setRows((prevRows) => {
-            const updatedRows = prevRows.map((row, i) => {
-               if (i !== globalIdx) return row;
-               
-               const updatedRow = { ...row, [name]: value };
-               
-               // Si cambiaron valores que afectan el cálculo de Deposito X Tecurso, actualizar ese valor
-               if (["bruta", "fcl", "rebajosCliente", "reintegroCliente"].includes(name)) {
-                  const bruta = parseFloat(updatedRow.bruta) || 0;
-                  const fcl = parseFloat(updatedRow.fcl) || 0;
-                  const rebajosCliente = parseFloat(updatedRow.rebajosCliente) || 0;
-                  const reintegroCliente = parseFloat(updatedRow.reintegroCliente) || 0;
-                  
-                  // Aplicar la fórmula: Bruta + FCL - Rebajos + Reintegro
-                  const deposito = Math.abs(bruta) + Math.abs(fcl) - Math.abs(rebajosCliente) + Math.abs(reintegroCliente);
-                  updatedRow.deposito = deposito.toFixed(2);
-               }
-               
-               // Si cambiaron valores que afectan el cálculo de Total de Deducciones, actualizar ese valor
-               if (["rebajosCliente", "cuota"].includes(name)) {
-                  const rebajosCliente = parseFloat(updatedRow.rebajosCliente) || 0;
-                  const cuota = parseFloat(updatedRow.cuota) || 0;
-                  
-                  // Aplicar la fórmula: Rebajos de Cliente + Cuota CC.SS
-                  const totalDeducciones = rebajosCliente + cuota;
-                  updatedRow.totalDeducciones = totalDeducciones.toFixed(2);
-               }
-               
-               // Si cambió el valor de Reintegro de Cliente, actualizar Total de Reintegros
-               if (name === "reintegroCliente") {
-                  const reintegroCliente = parseFloat(updatedRow.reintegroCliente) || 0;
-                  updatedRow.totalReintegros = reintegroCliente.toFixed(2);
-               }
-               
-               // Si cambiaron valores que afectan la Remuneración Neta, actualizar ese valor
-               if (["bruta", "fcl", "rebajosCliente", "reintegroCliente", "cuota"].includes(name)) {
-                  const bruta = parseFloat(updatedRow.bruta) || 0;
-                  const fcl = parseFloat(updatedRow.fcl) || 0;
-                  const rebajosCliente = parseFloat(updatedRow.rebajosCliente) || 0;
-                  const reintegroCliente = parseFloat(updatedRow.reintegroCliente) || 0;
-                  const cuota = parseFloat(updatedRow.cuota) || 0;
-                  
-                  // Aplicar la fórmula: Bruta + FCL - RebajosCliente + ReintegroCliente - Cuota
-                  const neta = bruta + fcl - rebajosCliente + reintegroCliente - cuota;
-                  updatedRow.neta = neta.toFixed(2);
-               }
-               
-               return updatedRow;
-            });
-            return updatedRows;
-         });
-
-         // Si la fila estaba seleccionada, la deselecciona al editarla
-         setSelectedRows((prevSelected) =>
-            prevSelected.includes(globalIdx)
-               ? prevSelected.filter((i) => i !== globalIdx)
-               : prevSelected,
+      (globalIdx) => {
+         setExpandedRows((prev) =>
+            prev.includes(globalIdx)
+               ? prev.filter((i) => i !== globalIdx)
+               : [...prev, globalIdx]
          );
       },
-      [startIdx, setRows, setSelectedRows],
+      [expandedRows, setExpandedRows],
    );
 }
+
+
 
 /**
  * PayrollGenerator
@@ -716,12 +547,16 @@ function useHandleInputChange({ startIdx, setRows, setSelectedRows }) {
  */
 export const PayrollGenerator = () => {
    // Estados principales
-   const [rows, setRows] = useState(MOCK_ROWS);
-   const [selectedRows, setSelectedRows] = useState([1]); // Empleado 2 seleccionado por defecto
+   const [rows] = useState(MOCK_ROWS);
+   
+   // Debug: Verificar los datos
+   console.log("MOCK_ROWS:", MOCK_ROWS);
+   const [selectedRows, setSelectedRows] = useState([]); // Sin selección por defecto
+   const [expandedRows, setExpandedRows] = useState([]); // Filas expandidas
    const [pageSize, setPageSize] = useState(PAGE_SIZES[0]);
    const [currentPage, setCurrentPage] = useState(1);
-   const [montoPorOperario, setMontoPorOperario] = useState(5669.23);
-   const [empresaSeleccionada, setEmpresaSeleccionada] = useState("1");
+
+   const [empresaSeleccionada] = useState("1");
    const [planillaSeleccionada, setPlanillaSeleccionada] = useState("1");
 
    // Obtener el estado de la planilla seleccionada
@@ -730,10 +565,7 @@ export const PayrollGenerator = () => {
    );
    const planillaEstado = selectedPlanilla?.planilla_estado;
 
-   // Handler para aplicar planilla (solo visual)
-   const handleAplicarPlanilla = () => {
-      alert("Función de aplicar planilla (solo visual)");
-   };
+
 
    // Calculamos el índice inicial para la paginación
    const startIdx = (currentPage - 1) * pageSize;
@@ -741,15 +573,7 @@ export const PayrollGenerator = () => {
    // Derivados de los datos
    const totalPages = Math.ceil(rows.length / pageSize);
    const pageRows = rows.slice(startIdx, startIdx + pageSize);
-   const totalTarifa = useMemo(
-      () => montoPorOperario * selectedRows.length,
-      [montoPorOperario, selectedRows.length],
-   );
-   const montoTarifa = totalTarifa;
-   const montoRemuneraciones = useMemo(() => sumColumn(rows, "deposito"), [rows]);
-   const subtotal = montoTarifa + montoRemuneraciones;
-   const iva = subtotal * 0.13;
-   const montoTotal = subtotal + iva;
+
 
    // Handler para gestionar los checkboxes
    const handleCheckbox = useHandleCheckbox({
@@ -759,11 +583,10 @@ export const PayrollGenerator = () => {
       setSelectedRows,
    });
 
-   // Handler para gestionar los cambios en inputs
-   const handleInputChange = useHandleInputChange({
-      startIdx,
-      setRows,
-      setSelectedRows,
+   // Handler para gestionar la expansión de filas
+   const handleRowToggle = useHandleRowToggle({
+      expandedRows,
+      setExpandedRows,
    });
 
    // Handler para cambiar el tamaño de página
@@ -787,15 +610,7 @@ export const PayrollGenerator = () => {
       setPlanillaSeleccionada(e.target.value);
    }, []);
 
-   // Handler para cargar y procesar Excel de planilla (solo visual)
-   const handleFileUpload = (e) => {
-      const input = e.target;
-      const file = input.files[0];
-      if (!file) return;
-      
-      alert("Archivo cargado (solo visual): " + file.name);
-      input.value = '';
-   };
+
 
    // IDs únicos para accesibilidad
    const planillaSelectId = "planillaSelect";
@@ -817,6 +632,21 @@ export const PayrollGenerator = () => {
                 /* Estilo para filas seleccionadas */
                 .fila-seleccionada {
                     background-color: #b6fcb6 !important;
+                }
+                /* Estilo para filas expandidas */
+                .table-active {
+                    background-color: #e3f2fd !important;
+                    border-left: 4px solid #2196f3 !important;
+                }
+                /* Transición suave para la expansión */
+                .subtable-container {
+                    transition: all 0.3s ease-in-out;
+                }
+                /* Estilo para el botón de expansión */
+                .btn-outline-secondary:hover {
+                    background-color: #6c757d;
+                    border-color: #6c757d;
+                    color: white;
                 }
                 `}
          </style>
@@ -866,7 +696,6 @@ export const PayrollGenerator = () => {
                                  <div className="datatable-container">
                                     <PayrollTable
                                        columns={PAYROLL_COLUMNS}
-                                       rows={rows}
                                        pageRows={pageRows}
                                        selectedRows={selectedRows}
                                        onCheckboxChange={
@@ -875,15 +704,12 @@ export const PayrollGenerator = () => {
                                              ? handleCheckbox
                                              : () => {}
                                        }
-                                       onInputChange={
-                                          planillaEstado === "En Proceso" ||
-                                          planillaEstado === "Activa"
-                                             ? handleInputChange
-                                             : () => {}
-                                       }
                                        startIdx={startIdx}
                                        disabled={false}
                                        planillaEstado={planillaEstado}
+                                       expandedRows={expandedRows}
+                                       onRowToggle={handleRowToggle}
+                                       subtableData={MOCK_SUBTABLE_DATA}
                                     />
                                  </div>
                               </div>
