@@ -35,7 +35,7 @@ const obtenerColumnasTabla = () => [
       searchPanes: { show: true },
    },
    {
-      data: "supervisor_empleado_gestor",
+      data: "nombre_supervisor",
       title: "Supervisor",
       searchPanes: { show: true },
    },
@@ -222,18 +222,18 @@ export const EmpleadoLista = () => {
     * @param {Object} datosFila - Datos de la fila seleccionada.
     */
    const manejarClicFila = (datosFila) => {
-      console.log("Datos de fila seleccionada:", datosFila);
+
       
       // Formatear todos los datos del empleado usando la función formatearDatosEmpleado
       const datosFormateados = formatearDatosEmpleado(datosFila);
-      console.log("Datos formateados:", datosFormateados);
-      
+
+   
       // Almacena todos los datos formateados en el almacenamiento local
       localStorage.setItem("selectedEmpleado", JSON.stringify(datosFormateados));
       
       // Verificar que se guardó correctamente
       const datosGuardados = localStorage.getItem("selectedEmpleado");
-      console.log("Datos guardados en localStorage:", JSON.parse(datosGuardados));
+
       
       // Navega a la página de edición
       navigate("/empleados/editar");

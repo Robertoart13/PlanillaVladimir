@@ -26,9 +26,12 @@ import {
    formOptions,
 } from "../shared/employeeFormUtils";
 
+// ============================================================================
+// CUSTOM HOOKS
+// ============================================================================
+
 /**
  * Custom hook for managing form validation state
- * @returns {Object} - Object containing all validation error states and setters
  */
 const useFormValidation = () => {
    const [emailError, setEmailError] = useState("");
@@ -39,7 +42,6 @@ const useFormValidation = () => {
    const [tipoContratoError, setTipoContratoError] = useState("");
    const [departamentoError, setDepartamentoError] = useState("");
    const [puestoError, setPuestoError] = useState("");
-   const [supervisorError, setSupervisorError] = useState("");
    const [jornadaError, setJornadaError] = useState("");
    const [fechaIngresoError, setFechaIngresoError] = useState("");
    const [numeroAseguradoError, setNumeroAseguradoError] = useState("");
@@ -48,9 +50,6 @@ const useFormValidation = () => {
    const [monedaPagoError, setMonedaPagoError] = useState("");
    const [tipoPlanillaError, setTipoPlanillaError] = useState("");
 
-   /**
-    * Clears all validation errors
-    */
    const clearAllErrors = () => {
       setEmailError("");
       setCedulaError("");
@@ -60,7 +59,6 @@ const useFormValidation = () => {
       setTipoContratoError("");
       setDepartamentoError("");
       setPuestoError("");
-      setSupervisorError("");
       setJornadaError("");
       setFechaIngresoError("");
       setNumeroAseguradoError("");
@@ -70,75 +68,33 @@ const useFormValidation = () => {
       setTipoPlanillaError("");
    };
 
-   /**
-    * Checks if any validation errors exist
-    * @returns {boolean} - True if any errors exist, false otherwise
-    */
    const hasErrors = () => {
       return !!(
-         emailError ||
-         cedulaError ||
-         nombreError ||
-         telefonoError ||
-         salarioError ||
-         tipoContratoError ||
-         departamentoError ||
-         puestoError ||
-         supervisorError ||
-         jornadaError ||
-         fechaIngresoError ||
-         numeroAseguradoError ||
-         numeroInsError ||
-         numeroHaciendaError ||
-         monedaPagoError ||
-         tipoPlanillaError
+         emailError || cedulaError || nombreError || telefonoError ||
+         salarioError || tipoContratoError || departamentoError || puestoError ||
+         jornadaError || fechaIngresoError || numeroAseguradoError ||
+         numeroInsError || numeroHaciendaError || monedaPagoError || tipoPlanillaError
       );
    };
 
    return {
       // Error states
-      emailError,
-      cedulaError,
-      nombreError,
-      telefonoError,
-      salarioError,
-      tipoContratoError,
-      departamentoError,
-      puestoError,
-      supervisorError,
-      jornadaError,
-      fechaIngresoError,
-      numeroAseguradoError,
-      numeroInsError,
-      numeroHaciendaError,
-      monedaPagoError,
-      tipoPlanillaError,
+      emailError, cedulaError, nombreError, telefonoError, salarioError,
+      tipoContratoError, departamentoError, puestoError,
+      jornadaError, fechaIngresoError, numeroAseguradoError, numeroInsError,
+      numeroHaciendaError, monedaPagoError, tipoPlanillaError,
       // Error setters
-      setEmailError,
-      setCedulaError,
-      setNombreError,
-      setTelefonoError,
-      setSalarioError,
-      setTipoContratoError,
-      setDepartamentoError,
-      setPuestoError,
-      setSupervisorError,
-      setJornadaError,
-      setFechaIngresoError,
-      setNumeroAseguradoError,
-      setNumeroInsError,
-      setNumeroHaciendaError,
-      setMonedaPagoError,
-      setTipoPlanillaError,
+      setEmailError, setCedulaError, setNombreError, setTelefonoError, setSalarioError,
+      setTipoContratoError, setDepartamentoError, setPuestoError,
+      setJornadaError, setFechaIngresoError, setNumeroAseguradoError, setNumeroInsError,
+      setNumeroHaciendaError, setMonedaPagoError, setTipoPlanillaError,
       // Utility functions
-      clearAllErrors,
-      hasErrors,
+      clearAllErrors, hasErrors,
    };
 };
 
 /**
- * Custom hook for managing form data and validation for editing
- * @returns {Object} - Object containing form data, handlers, and validation functions
+ * Custom hook for managing employee edit form data and operations
  */
 const useEmployeeEditForm = () => {
    const [error, setError] = useState(false);
@@ -157,13 +113,12 @@ const useEmployeeEditForm = () => {
    }, []);
 
    /**
-    * Loads employee data from localStorage and API
+    * Loads employee data from localStorage
     */
    const loadEmployeeData = async () => {
       try {
          setIsLoadingData(true);
          
-         // Get employee data from localStorage (set by the list component)
          const selectedEmployeeData = localStorage.getItem("selectedEmpleado");
          
          if (!selectedEmployeeData) {
@@ -174,8 +129,7 @@ const useEmployeeEditForm = () => {
 
          const employeeData = JSON.parse(selectedEmployeeData);
          
-         // Debug: Log the employee data to verify it's being loaded correctly
-         console.log("Employee data loaded from localStorage:", employeeData);
+         console.log(employeeData);
          
          // Transform the data to match our form structure
          const transformedData = {
@@ -187,7 +141,6 @@ const useEmployeeEditForm = () => {
             tipo_contrato: employeeData.tipo_contrato_empleado_gestor || "",
             departamento: employeeData.departamento_empleado_gestor || "",
             puesto: employeeData.puesto_empleado_gestor || "",
-            supervisor: employeeData.supervisor_empleado_gestor || "",
             id_empresa: employeeData.id_empresa || "",
             fecha_ingreso: employeeData.fecha_ingreso_empleado_gestor || "",
             fecha_salida: employeeData.fecha_salida_empleado_gestor || "",
@@ -205,14 +158,10 @@ const useEmployeeEditForm = () => {
             ccss: Boolean(employeeData.ccss_empleado_gestor),
             moneda_pago: employeeData.moneda_pago_empleado_gestor || "",
             tipo_planilla: employeeData.tipo_planilla_empleado_gestor || "",
+            estado_empleado_gestor: employeeData.estado_empleado_gestor === 1,
          };
-         
-         // Debug: Log the transformed data
-         console.log("Transformed form data:", transformedData);
 
          setFormData(transformedData);
-         
-         // Clear any existing validation errors
          validation.clearAllErrors();
          setError(false);
          setMessage("");
@@ -227,16 +176,13 @@ const useEmployeeEditForm = () => {
    };
 
    /**
-    * Validates all required fields in the form
-    * @returns {boolean} - True if all validations pass, false otherwise
+    * Validates the complete form
     */
    const validateForm = () => {
-      // Clear all previous errors
       setError(false);
       setMessage("");
       validation.clearAllErrors();
 
-      // Validate required fields
       const requiredFieldsValid = validateRequiredFields(formData, {
          setNombreError: validation.setNombreError,
          setEmailError: validation.setEmailError,
@@ -246,7 +192,6 @@ const useEmployeeEditForm = () => {
          setTipoContratoError: validation.setTipoContratoError,
          setDepartamentoError: validation.setDepartamentoError,
          setPuestoError: validation.setPuestoError,
-         setSupervisorError: validation.setSupervisorError,
          setJornadaError: validation.setJornadaError,
          setFechaIngresoError: validation.setFechaIngresoError,
          setNumeroAseguradoError: validation.setNumeroAseguradoError,
@@ -256,10 +201,7 @@ const useEmployeeEditForm = () => {
          setTipoPlanillaError: validation.setTipoPlanillaError,
       });
 
-      // Check for existing validation errors
       const hasValidationErrors = validation.hasErrors();
-
-      // Validación adicional para campos únicos
       const uniqueFieldsValid = validateUniqueFields(formData, {
          setNumeroAseguradoError: validation.setNumeroAseguradoError,
          setNumeroInsError: validation.setNumeroInsError,
@@ -308,10 +250,11 @@ const useEmployeeEditForm = () => {
          const employeeData = JSON.parse(selectedEmployeeData);
          const employeeId = employeeData.id_empleado_gestor;
 
-         // Add employee ID to form data for update
+         // Add employee ID to form data for update and convert boolean to number
          const updateData = {
             ...formData,
             id_empleado_gestor: employeeId,
+            estado_empleado_gestor: formData.estado_empleado_gestor ? 1 : 0,
          };
 
          const response = await dispatch(fetchData_api(updateData, "gestor/empleados/editar"));
@@ -325,7 +268,6 @@ const useEmployeeEditForm = () => {
                icon: "success",
                confirmButtonText: "Aceptar",
             }).then(() => {
-               // Clear localStorage and navigate back to list
                localStorage.removeItem("selectedEmpleado");
                navigate("/empleados/lista");
             });
@@ -359,7 +301,7 @@ const useEmployeeEditForm = () => {
    };
 
    /**
-    * Handles form field changes with validation using shared utilities
+    * Handles form field changes with validation
     */
    const handleFormInputChange = (e) => {
       handleInputChange(e, formData, setFormData, {
@@ -371,11 +313,18 @@ const useEmployeeEditForm = () => {
          setNumeroAseguradoError: validation.setNumeroAseguradoError,
          setNumeroInsError: validation.setNumeroInsError,
          setNumeroHaciendaError: validation.setNumeroHaciendaError,
+         setTipoContratoError: validation.setTipoContratoError,
+         setDepartamentoError: validation.setDepartamentoError,
+         setPuestoError: validation.setPuestoError,
+         setJornadaError: validation.setJornadaError,
+         setFechaIngresoError: validation.setFechaIngresoError,
+         setMonedaPagoError: validation.setMonedaPagoError,
+         setTipoPlanillaError: validation.setTipoPlanillaError,
       });
    };
 
    /**
-    * Handles switch changes for institution fields using shared utilities
+    * Handles switch changes for institution fields and employee status
     */
    const handleFormSwitchChange = (fieldName, checked) => {
       handleSwitchChange(fieldName, checked, formData, setFormData);
@@ -394,21 +343,12 @@ const useEmployeeEditForm = () => {
    };
 };
 
+// ============================================================================
+// FORM COMPONENTS
+// ============================================================================
+
 /**
  * Form field component with validation styling
- * @param {Object} props - Component props
- * @param {string} props.label - Field label
- * @param {string} props.id - Field ID
- * @param {string} props.name - Field name
- * @param {string} props.type - Input type
- * @param {string} props.value - Field value
- * @param {Function} props.onChange - Change handler
- * @param {string} props.placeholder - Placeholder text
- * @param {boolean} props.required - Whether field is required
- * @param {string} props.error - Error message
- * @param {boolean} props.isUnique - Whether field must be unique
- * @param {React.ReactNode} props.children - Select options
- * @returns {JSX.Element} - Form field component
  */
 const FormField = ({
    label,
@@ -424,10 +364,7 @@ const FormField = ({
    children,
 }) => (
    <div className="mb-3">
-      <label
-         className="form-label"
-         htmlFor={id}
-      >
+      <label className="form-label" htmlFor={id}>
          {label} {required && "*"} {isUnique && <span className="text-info">(Único)</span>}
       </label>
       {type === "select" ? (
@@ -464,8 +401,21 @@ const FormField = ({
 );
 
 /**
+ * Form section component for better organization
+ */
+const FormSection = ({ title, children }) => (
+   <>
+      <h5 className="mb-3 mt-4">{title}</h5>
+      {children}
+   </>
+);
+
+// ============================================================================
+// MAIN COMPONENT
+// ============================================================================
+
+/**
  * Main component for editing an existing employee
- * @returns {JSX.Element} - EditarEmpleado component
  */
 export const EditarEmpleado = () => {
    const { 
@@ -501,15 +451,10 @@ export const EditarEmpleado = () => {
          texto="Editar Socio"
          subtitulo="Modifique la información del Socio"
       >
-         {error && (
-            <ErrorMessage
-               error={error}
-               message={message}
-            />
-         )}
+         {error && <ErrorMessage error={error} message={message} />}
 
          <div className="card-body">
-            {/* Información sobre campos únicos */}
+            {/* Information about unique fields */}
             <div className="alert alert-info mb-4">
                <h6 className="alert-heading">
                   <i className="fas fa-info-circle me-2"></i>
@@ -524,397 +469,403 @@ export const EditarEmpleado = () => {
                </p>
             </div>
 
-            {/* Información sobre el socio que se está editando */}
+            {/* Information about the employee being edited */}
             <div className="alert alert-success mb-4">
-               <h6 className="alert-heading">
-                  <i className="fas fa-user-edit me-2"></i>
-                  Editando Socio
-               </h6>
-               <p className="mb-0">
-                  <strong>Socio:</strong> {formData.nombre_completo} | <strong>Cédula:</strong> {formData.cedula} | <strong>Correo:</strong> {formData.correo}
-               </p>
-            </div>
-
-            {/* Información Personal */}
-            <h5 className="mb-3">Información Personal</h5>
-            <div className="row">
-               <div className="col-md-6">
-                  <FormField
-                     label="Nombre completo"
-                     id="nombre_completo"
-                     name="nombre_completo"
-                     value={formData.nombre_completo}
-                     onChange={handleFormInputChange}
-                     placeholder="Ingrese el nombre completo"
-                     required
-                     error={validation.nombreError}
-                  />
-               </div>
-               <div className="col-md-6">
-                  <FormField
-                     label="Correo electrónico"
-                     id="correo"
-                     name="correo"
-                     type="email"
-                     value={formData.correo}
-                     onChange={handleFormInputChange}
-                     placeholder="Socio@empresa.com"
-                     required
-                     isUnique
-                     error={validation.emailError}
-                  />
-               </div>
-            </div>
-            <div className="row">
-               <div className="col-md-6">
-                  <FormField
-                     label="Teléfono"
-                     id="telefono"
-                     name="telefono"
-                     value={formData.telefono}
-                     onChange={handleFormInputChange}
-                     placeholder="88888888"
-                     required
-                     error={validation.telefonoError}
-                  />
-               </div>
-               <div className="col-md-6">
-                  <FormField
-                     label="Cédula"
-                     id="cedula"
-                     name="cedula"
-                     value={formData.cedula}
-                     onChange={handleFormInputChange}
-                     placeholder="CT57623562"
-                     required
-                     isUnique
-                     error={validation.cedulaError}
-                  />
-               </div>
-            </div>
-
-            {/* Información Laboral */}
-            <h5 className="mb-3 mt-4">Información Laboral</h5>
-            <div className="row">
-               <div className="col-md-6">
-                  <FormField
-                     label="Salario base"
-                     id="salario_base"
-                     name="salario_base"
-                     value={formData.salario_base}
-                     onChange={handleFormInputChange}
-                     placeholder="500000"
-                     required
-                     error={validation.salarioError}
-                  />
-               </div>
-               <div className="col-md-6">
-                  <FormField
-                     label="Tipo de contrato"
-                     id="tipo_contrato"
-                     name="tipo_contrato"
-                     type="select"
-                     value={formData.tipo_contrato}
-                     onChange={handleFormInputChange}
-                     required
-                     error={validation.tipoContratoError}
-                  >
-                     <option value="">Seleccione una opción</option>
-                     {formOptions.tipoContrato.map(option => (
-                        <option key={option.value} value={option.value}>
-                           {option.label}
-                        </option>
-                     ))}
-                  </FormField>
-               </div>
-            </div>
-            <div className="row">
-               <div className="col-md-6">
-                  <FormField
-                     label="Departamento"
-                     id="departamento"
-                     name="departamento"
-                     type="select"
-                     value={formData.departamento}
-                     onChange={handleFormInputChange}
-                     required
-                     error={validation.departamentoError}
-                  >
-                     <option value="">Seleccione una opción</option>
-                     {formOptions.departamentos.map(option => (
-                        <option key={option.value} value={option.value}>
-                           {option.label}
-                        </option>
-                     ))}
-                  </FormField>
-               </div>
-               <div className="col-md-6">
-                  <FormField
-                     label="Puesto"
-                     id="puesto"
-                     name="puesto"
-                     type="select"
-                     value={formData.puesto}
-                     onChange={handleFormInputChange}
-                     required
-                     error={validation.puestoError}
-                  >
-                     <option value="">Seleccione una opción</option>
-                     {formOptions.puestos.map(option => (
-                        <option key={option.value} value={option.value}>
-                           {option.label}
-                        </option>
-                     ))}
-                  </FormField>
-               </div>
-            </div>
-            <div className="row">
-               <div className="col-md-6">
-                  <FormField
-                     label="Supervisor"
-                     id="supervisor"
-                     name="supervisor"
-                     type="select"
-                     value={formData.supervisor}
-                     onChange={handleFormInputChange}
-                     required
-                     error={validation.supervisorError}
-                  >
-                     <option value="">Seleccione una opción</option>
-                     {formOptions.supervisores.map(option => (
-                        <option key={option.value} value={option.value}>
-                           {option.label}
-                        </option>
-                     ))}
-                  </FormField>
-               </div>
-               <div className="col-md-6">
-                  <FormField
-                     label="Jornada laboral"
-                     id="jornada_laboral"
-                     name="jornada_laboral"
-                     type="select"
-                     value={formData.jornada_laboral}
-                     onChange={handleFormInputChange}
-                     required
-                     error={validation.jornadaError}
-                  >
-                     <option value="">Seleccione una opción</option>
-                     {formOptions.jornadaLaboral.map(option => (
-                        <option key={option.value} value={option.value}>
-                           {option.label}
-                        </option>
-                     ))}
-                  </FormField>
-               </div>
-            </div>
-
-            {/* Fechas */}
-            <h5 className="mb-3 mt-4">Fechas</h5>
-            <div className="row">
-               <div className="col-md-6">
-                  <FormField
-                     label="Fecha de ingreso"
-                     id="fecha_ingreso"
-                     name="fecha_ingreso"
-                     type="date"
-                     value={formData.fecha_ingreso}
-                     onChange={handleFormInputChange}
-                     required
-                     error={validation.fechaIngresoError}
-                  />
-               </div>
-               <div className="col-md-6">
-                  <FormField
-                     label="Fecha de salida"
-                     id="fecha_salida"
-                     name="fecha_salida"
-                     type="date"
-                     value={formData.fecha_salida}
-                     onChange={handleFormInputChange}
-                  />
-               </div>
-            </div>
-
-            {/* Números de identificación */}
-            <h5 className="mb-3 mt-4">Números de Identificación</h5>
-            <div className="row">
-               <div className="col-md-4">
-                  <FormField
-                     label="Número de asegurado"
-                     id="numero_asegurado"
-                     name="numero_asegurado"
-                     value={formData.numero_asegurado}
-                     onChange={handleFormInputChange}
-                     placeholder="123456789"
-                     required
-                     isUnique
-                     error={validation.numeroAseguradoError}
-                  />
-               </div>
-               <div className="col-md-4">
-                  <FormField
-                     label="Número de INS"
-                     id="numero_ins"
-                     name="numero_ins"
-                     value={formData.numero_ins}
-                     onChange={handleFormInputChange}
-                     placeholder="123456789"
-                     required
-                     isUnique
-                     error={validation.numeroInsError}
-                  />
-               </div>
-               <div className="col-md-4">
-                  <FormField
-                     label="Número de hacienda"
-                     id="numero_hacienda"
-                     name="numero_hacienda"
-                     value={formData.numero_hacienda}
-                     onChange={handleFormInputChange}
-                     placeholder="123456789"
-                     required
-                     isUnique
-                     error={validation.numeroHaciendaError}
-                  />
-               </div>
-            </div>
-
-            {/* Cuentas bancarias */}
-            <h5 className="mb-3 mt-4">Cuentas Bancarias</h5>
-            <div className="row">
-               <div className="col-md-6">
-                  <FormField
-                     label="Cuenta bancaria 1"
-                     id="cuenta_bancaria_1"
-                     name="cuenta_bancaria_1"
-                     value={formData.cuenta_bancaria_1}
-                     onChange={handleFormInputChange}
-                     placeholder="CR12345678901234567890"
-                  />
-               </div>
-               <div className="col-md-6">
-                  <FormField
-                     label="Cuenta bancaria 2"
-                     id="cuenta_bancaria_2"
-                     name="cuenta_bancaria_2"
-                     value={formData.cuenta_bancaria_2}
-                     onChange={handleFormInputChange}
-                     placeholder="CR12345678901234567890"
-                  />
-               </div>
-            </div>
-
-            {/* Acumulados */}
-            <h5 className="mb-3 mt-4">Acumulados a la fecha de ingreso</h5>
-            <div className="row">
-               <div className="col-md-4">
-                  <FormField
-                     label="Vacaciones acumuladas"
-                     id="vacaciones_acumuladas"
-                     name="vacaciones_acumuladas"
-                     value={formData.vacaciones_acumuladas}
-                     onChange={handleFormInputChange}
-                     placeholder="0"
-                  />
-               </div>
-               <div className="col-md-4">
-                  <FormField
-                     label="Aguinaldo acumulado"
-                     id="aguinaldo_acumulado"
-                     name="aguinaldo_acumulado"
-                     value={formData.aguinaldo_acumulado}
-                     onChange={handleFormInputChange}
-                     placeholder="0"
-                  />
-               </div>
-               <div className="col-md-4">
-                  <FormField
-                     label="Cesantía acumulada"
-                     id="cesantia_acumulada"
-                     name="cesantia_acumulada"
-                     value={formData.cesantia_acumulada}
-                     onChange={handleFormInputChange}
-                     placeholder="0"
-                  />
-               </div>
-            </div>
-
-            {/* Configuración de pago */}
-            <h5 className="mb-3 mt-4">Configuración de Pago</h5>
-            <div className="row">
-               <div className="col-md-6">
-                  <FormField
-                     label="Moneda de pago"
-                     id="moneda_pago"
-                     name="moneda_pago"
-                     type="select"
-                     value={formData.moneda_pago}
-                     onChange={handleFormInputChange}
-                     required
-                     error={validation.monedaPagoError}
-                  >
-                     <option value="">Seleccione una opción</option>
-                     {formOptions.monedaPago.map(option => (
-                        <option key={option.value} value={option.value}>
-                           {option.label}
-                        </option>
-                     ))}
-                  </FormField>
-               </div>
-               <div className="col-md-6">
-                  <FormField
-                     label="Tipo de planilla"
-                     id="tipo_planilla"
-                     name="tipo_planilla"
-                     type="select"
-                     value={formData.tipo_planilla}
-                     onChange={handleFormInputChange}
-                     required
-                     error={validation.tipoPlanillaError}
-                  >
-                     <option value="">Seleccione una opción</option>
-                     {formOptions.tipoPlanilla.map(option => (
-                        <option key={option.value} value={option.value}>
-                           {option.label}
-                        </option>
-                     ))}
-                  </FormField>
-               </div>
-            </div>
-
-            {/* Checks de instituciones */}
-            <h5 className="mb-3 mt-4">Instituciones</h5>
-            <div className="row">
-               <div className="col-md-4">
-                  <div className="mb-3">
-                     <Switch
-                        checked={formData.ministerio_hacienda}
-                        onChange={(e) => handleFormSwitchChange("ministerio_hacienda", e.target.checked)}
-                     />
-                     <label className="ms-2">Ministerio de Hacienda</label>
+               <div className="row align-items-center">
+                  <div className="col-md-8">
+                     <h6 className="alert-heading mb-2">
+                        <i className="fas fa-user-edit me-2"></i>
+                        Editando Socio
+                     </h6>
+                     <p className="mb-0">
+                        <strong>Socio:</strong> {formData.nombre_completo} | <strong>Cédula:</strong> {formData.cedula} | <strong>Correo:</strong> {formData.correo}
+                     </p>
                   </div>
-               </div>
-               <div className="col-md-4">
-                  <div className="mb-3">
-                     <Switch
-                        checked={formData.rt_ins}
-                        onChange={(e) => handleFormSwitchChange("rt_ins", e.target.checked)}
-                     />
-                     <label className="ms-2">RT INS</label>
-                  </div>
-               </div>
-               <div className="col-md-4">
-                  <div className="mb-3">
-                     <Switch
-                        checked={formData.ccss}
-                        onChange={(e) => handleFormSwitchChange("ccss", e.target.checked)}
-                     />
-                     <label className="ms-2">CCSS</label>
+                  <div className="col-md-4 text-end">
+                     <div className="d-flex align-items-center justify-content-end">
+                        <Switch
+                           checked={formData.estado_empleado_gestor}
+                           onChange={(e) => handleFormSwitchChange("estado_empleado_gestor", e.target.checked)}
+                           color="primary"
+                        />
+                        <label className="ms-2 mb-0">
+                           <strong>{formData.estado_empleado_gestor ? "Activo" : "Inactivo"}</strong>
+                        </label>
+                     </div>
                   </div>
                </div>
             </div>
 
+            {/* Personal Information */}
+            <FormSection title="Información Personal">
+               <div className="row">
+                  <div className="col-md-6">
+                     <FormField
+                        label="Nombre completo"
+                        id="nombre_completo"
+                        name="nombre_completo"
+                        value={formData.nombre_completo}
+                        onChange={handleFormInputChange}
+                        placeholder="Ingrese el nombre completo"
+                        required
+                        error={validation.nombreError}
+                     />
+                  </div>
+                  <div className="col-md-6">
+                     <FormField
+                        label="Correo electrónico"
+                        id="correo"
+                        name="correo"
+                        type="email"
+                        value={formData.correo}
+                        onChange={handleFormInputChange}
+                        placeholder="Socio@empresa.com"
+                        required
+                        isUnique
+                        error={validation.emailError}
+                     />
+                  </div>
+               </div>
+               <div className="row">
+                  <div className="col-md-6">
+                     <FormField
+                        label="Teléfono"
+                        id="telefono"
+                        name="telefono"
+                        value={formData.telefono}
+                        onChange={handleFormInputChange}
+                        placeholder="88888888"
+                        required
+                        error={validation.telefonoError}
+                     />
+                  </div>
+                  <div className="col-md-6">
+                     <FormField
+                        label="Cédula"
+                        id="cedula"
+                        name="cedula"
+                        value={formData.cedula}
+                        onChange={handleFormInputChange}
+                        placeholder="CT57623562"
+                        required
+                        isUnique
+                        error={validation.cedulaError}
+                     />
+                  </div>
+               </div>
+            </FormSection>
+
+            {/* Work Information */}
+            <FormSection title="Información Laboral">
+               <div className="row">
+                  <div className="col-md-6">
+                     <FormField
+                        label="Salario base"
+                        id="salario_base"
+                        name="salario_base"
+                        value={formData.salario_base}
+                        onChange={handleFormInputChange}
+                        placeholder="500000"
+                        required
+                        error={validation.salarioError}
+                     />
+                  </div>
+                  <div className="col-md-6">
+                     <FormField
+                        label="Tipo de contrato"
+                        id="tipo_contrato"
+                        name="tipo_contrato"
+                        type="select"
+                        value={formData.tipo_contrato}
+                        onChange={handleFormInputChange}
+                        required
+                        error={validation.tipoContratoError}
+                     >
+                        <option value="">Seleccione una opción</option>
+                        {formOptions.tipoContrato.map(option => (
+                           <option key={option.value} value={option.value}>
+                              {option.label}
+                           </option>
+                        ))}
+                     </FormField>
+                  </div>
+               </div>
+               <div className="row">
+                  <div className="col-md-6">
+                     <FormField
+                        label="Departamento"
+                        id="departamento"
+                        name="departamento"
+                        type="select"
+                        value={formData.departamento}
+                        onChange={handleFormInputChange}
+                        required
+                        error={validation.departamentoError}
+                     >
+                        <option value="">Seleccione una opción</option>
+                        {formOptions.departamentos.map(option => (
+                           <option key={option.value} value={option.value}>
+                              {option.label}
+                           </option>
+                        ))}
+                     </FormField>
+                  </div>
+                  <div className="col-md-6">
+                     <FormField
+                        label="Puesto"
+                        id="puesto"
+                        name="puesto"
+                        type="select"
+                        value={formData.puesto}
+                        onChange={handleFormInputChange}
+                        required
+                        error={validation.puestoError}
+                     >
+                        <option value="">Seleccione una opción</option>
+                        {formOptions.puestos.map(option => (
+                           <option key={option.value} value={option.value}>
+                              {option.label}
+                           </option>
+                        ))}
+                     </FormField>
+                  </div>
+               </div>
+               <div className="row">
+                  <div className="col-md-6">
+                     <FormField
+                        label="Jornada laboral"
+                        id="jornada_laboral"
+                        name="jornada_laboral"
+                        type="select"
+                        value={formData.jornada_laboral}
+                        onChange={handleFormInputChange}
+                        required
+                        error={validation.jornadaError}
+                     >
+                        <option value="">Seleccione una opción</option>
+                        {formOptions.jornadaLaboral.map(option => (
+                           <option key={option.value} value={option.value}>
+                              {option.label}
+                           </option>
+                        ))}
+                     </FormField>
+                  </div>
+               </div>
+            </FormSection>
+
+            {/* Dates */}
+            <FormSection title="Fechas">
+               <div className="row">
+                  <div className="col-md-6">
+                     <FormField
+                        label="Fecha de ingreso"
+                        id="fecha_ingreso"
+                        name="fecha_ingreso"
+                        type="date"
+                        value={formData.fecha_ingreso}
+                        onChange={handleFormInputChange}
+                        required
+                        error={validation.fechaIngresoError}
+                     />
+                  </div>
+                  <div className="col-md-6">
+                     <FormField
+                        label="Fecha de salida"
+                        id="fecha_salida"
+                        name="fecha_salida"
+                        type="date"
+                        value={formData.fecha_salida}
+                        onChange={handleFormInputChange}
+                     />
+                  </div>
+               </div>
+            </FormSection>
+
+            {/* Identification Numbers */}
+            <FormSection title="Números de Identificación">
+               <div className="row">
+                  <div className="col-md-4">
+                     <FormField
+                        label="Número de asegurado"
+                        id="numero_asegurado"
+                        name="numero_asegurado"
+                        value={formData.numero_asegurado}
+                        onChange={handleFormInputChange}
+                        placeholder="123456789"
+                        required
+                        isUnique
+                        error={validation.numeroAseguradoError}
+                     />
+                  </div>
+                  <div className="col-md-4">
+                     <FormField
+                        label="Número de INS"
+                        id="numero_ins"
+                        name="numero_ins"
+                        value={formData.numero_ins}
+                        onChange={handleFormInputChange}
+                        placeholder="123456789"
+                        required
+                        isUnique
+                        error={validation.numeroInsError}
+                     />
+                  </div>
+                  <div className="col-md-4">
+                     <FormField
+                        label="Número de hacienda"
+                        id="numero_hacienda"
+                        name="numero_hacienda"
+                        value={formData.numero_hacienda}
+                        onChange={handleFormInputChange}
+                        placeholder="123456789"
+                        required
+                        isUnique
+                        error={validation.numeroHaciendaError}
+                     />
+                  </div>
+               </div>
+            </FormSection>
+
+            {/* Bank Accounts */}
+            <FormSection title="Cuentas Bancarias">
+               <div className="row">
+                  <div className="col-md-6">
+                     <FormField
+                        label="Cuenta bancaria 1"
+                        id="cuenta_bancaria_1"
+                        name="cuenta_bancaria_1"
+                        value={formData.cuenta_bancaria_1}
+                        onChange={handleFormInputChange}
+                        placeholder="CR12345678901234567890"
+                     />
+                  </div>
+                  <div className="col-md-6">
+                     <FormField
+                        label="Cuenta bancaria 2"
+                        id="cuenta_bancaria_2"
+                        name="cuenta_bancaria_2"
+                        value={formData.cuenta_bancaria_2}
+                        onChange={handleFormInputChange}
+                        placeholder="CR12345678901234567890"
+                     />
+                  </div>
+               </div>
+            </FormSection>
+
+            {/* Accumulated Benefits */}
+            <FormSection title="Acumulados a la fecha de ingreso">
+               <div className="row">
+                  <div className="col-md-4">
+                     <FormField
+                        label="Vacaciones acumuladas"
+                        id="vacaciones_acumuladas"
+                        name="vacaciones_acumuladas"
+                        value={formData.vacaciones_acumuladas}
+                        onChange={handleFormInputChange}
+                        placeholder="0"
+                     />
+                  </div>
+                  <div className="col-md-4">
+                     <FormField
+                        label="Aguinaldo acumulado"
+                        id="aguinaldo_acumulado"
+                        name="aguinaldo_acumulado"
+                        value={formData.aguinaldo_acumulado}
+                        onChange={handleFormInputChange}
+                        placeholder="0"
+                     />
+                  </div>
+                  <div className="col-md-4">
+                     <FormField
+                        label="Cesantía acumulada"
+                        id="cesantia_acumulada"
+                        name="cesantia_acumulada"
+                        value={formData.cesantia_acumulada}
+                        onChange={handleFormInputChange}
+                        placeholder="0"
+                     />
+                  </div>
+               </div>
+            </FormSection>
+
+            {/* Payment Configuration */}
+            <FormSection title="Configuración de Pago">
+               <div className="row">
+                  <div className="col-md-6">
+                     <FormField
+                        label="Moneda de pago"
+                        id="moneda_pago"
+                        name="moneda_pago"
+                        type="select"
+                        value={formData.moneda_pago}
+                        onChange={handleFormInputChange}
+                        required
+                        error={validation.monedaPagoError}
+                     >
+                        <option value="">Seleccione una opción</option>
+                        {formOptions.monedaPago.map(option => (
+                           <option key={option.value} value={option.value}>
+                              {option.label}
+                           </option>
+                        ))}
+                     </FormField>
+                  </div>
+                  <div className="col-md-6">
+                     <FormField
+                        label="Tipo de planilla"
+                        id="tipo_planilla"
+                        name="tipo_planilla"
+                        type="select"
+                        value={formData.tipo_planilla}
+                        onChange={handleFormInputChange}
+                        required
+                        error={validation.tipoPlanillaError}
+                     >
+                        <option value="">Seleccione una opción</option>
+                        {formOptions.tipoPlanilla.map(option => (
+                           <option key={option.value} value={option.value}>
+                              {option.label}
+                           </option>
+                        ))}
+                     </FormField>
+                  </div>
+               </div>
+            </FormSection>
+
+            {/* Institution Switches */}
+            <FormSection title="Instituciones">
+               <div className="row">
+                  <div className="col-md-4">
+                     <div className="mb-3">
+                        <Switch
+                           checked={formData.ministerio_hacienda}
+                           onChange={(e) => handleFormSwitchChange("ministerio_hacienda", e.target.checked)}
+                        />
+                        <label className="ms-2">Ministerio de Hacienda</label>
+                     </div>
+                  </div>
+                  <div className="col-md-4">
+                     <div className="mb-3">
+                        <Switch
+                           checked={formData.rt_ins}
+                           onChange={(e) => handleFormSwitchChange("rt_ins", e.target.checked)}
+                        />
+                        <label className="ms-2">RT INS</label>
+                     </div>
+                  </div>
+                  <div className="col-md-4">
+                     <div className="mb-3">
+                        <Switch
+                           checked={formData.ccss}
+                           onChange={(e) => handleFormSwitchChange("ccss", e.target.checked)}
+                        />
+                        <label className="ms-2">CCSS</label>
+                     </div>
+                  </div>
+               </div>
+            </FormSection>
+
+            {/* Submit Button */}
             <button
                onClick={handleSubmit}
                className="btn btn-dark mb-4"
