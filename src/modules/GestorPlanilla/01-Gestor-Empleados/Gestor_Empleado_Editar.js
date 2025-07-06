@@ -74,10 +74,6 @@ const ERROR_MESSAGES = {
  */
 const actualizarRegistroBd = async (datos, id_empleado_gestor, id_empresa, id_usuario, database) => {
 
-
-
-   
-   console.log(datos, id_empleado_gestor, id_empresa);
    const params = [
       datos.nombre_completo, datos.correo, datos.telefono, datos.cedula,
       datos.salario_base, datos.tipo_contrato, datos.departamento, datos.puesto,

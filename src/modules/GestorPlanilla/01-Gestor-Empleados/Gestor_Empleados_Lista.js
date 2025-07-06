@@ -58,7 +58,7 @@ GROUP BY
  * ====================================================================================================================================
  */
 const obtenerTodosDatos = async (estado, id_empresa, database) => {
-   console.log(estado, id_empresa);
+
    // Mapear estado a filtros: 1=activos, 2=inactivos, 3=ambos
    const estadoFiltro = estado === "1" ? [1] : 
                        estado === "2" ? [0] : 

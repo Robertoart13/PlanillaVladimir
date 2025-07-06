@@ -60,7 +60,6 @@ const ERROR_MESSAGES = {
  * @returns {Promise<Object>} Resultado de la operación
  */
 const crearNuevoRegistroBd = async (datos,id_empresa, id_usuario, database) => {
-   console.log(datos,id_empresa, id_usuario);
    const params = [
       datos.nombre_completo, datos.correo, datos.telefono, datos.cedula,
       datos.salario_base, datos.tipo_contrato, datos.departamento, datos.puesto,

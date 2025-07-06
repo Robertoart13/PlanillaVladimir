@@ -53,8 +53,8 @@ const QUERIES = {
  * @throws {Error} Si ocurre un error durante la consulta a la base de datos.
  * ====================================================================================================================================
  */
-const obtenerTodosDatos = async (estados, usuario, database) => {
-   console.log("obtenerTodosDatos", estados);
+const obtenerTodosDatos = async (estados, empresaAplica, id_empresa, database) => {
+
    // Prepare list of estados for SQL IN clause
    const estadosArray =
       estados === "1"
@@ -64,9 +64,20 @@ const obtenerTodosDatos = async (estados, usuario, database) => {
          : estados === "3"
          ? ["Procesada"]
          : [];
+   
    try {
+      // Construir la consulta SQL dinámicamente según empresaAplica
+      let query = QUERIES.QUERIES_SELECT;
+      let params = [estadosArray];
+      
+      // Si empresaAplica está definido y es verdadero, agregar la condición de empresa_id
+      if (empresaAplica && id_empresa) {
+         query += " AND empresa_id = ?";
+         params.push(id_empresa);
+      }
+      
       // Ejecuta la consulta SQL para obtener los datos de la tabla
-      return await realizarConsulta(QUERIES.QUERIES_SELECT, estadosArray, database);
+      return await realizarConsulta(query, params, database);
    } catch (error) {
       return manejarError(
          error,
@@ -126,7 +137,8 @@ const obtenerListaCompleta = async (req, res) => {
       // 3. Obtener los datos de la base de datos una vez validados los permisos.
       const resultado = await obtenerTodosDatos(
          res?.transaccion?.data?.estados,
-         res?.transaccion?.user?.id,
+         res?.transaccion?.data?.empresaAplica,
+         res?.transaccion?.user?.id_empresa,
          res?.database,
       );
 
