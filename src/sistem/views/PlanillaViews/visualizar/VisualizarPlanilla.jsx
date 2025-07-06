@@ -16,6 +16,7 @@ import html2canvas from "html2canvas";
 import { Planilla_Aplicado } from "../../../../store/Planilla/Planilla_Aplicado_Thunks";
 import { Planilla_Incritos_Thunks } from "../../../../store/Planilla/Planilla_Incritos_Thunks";
 import { Planilla_CmabioEstado_Thunks } from "../../../../store/Planilla/Planilla_CmabioEstado_Thunks";
+import { Planilla_Habilitar } from "../../../../store/Planilla/Planilla_Habilitar";
 
 // Add MUI Dialog imports
 import Dialog from "@mui/material/Dialog";
@@ -23,7 +24,24 @@ import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 
 // Configuración global para el número de tarjetas por fila por defecto
-const TARJETAS_POR_FILA_DEFAULT = 3;
+const TARJETAS_POR_FILA_DEFAULT = 5;
+
+/**
+ * Función para formatear valores monetarios con separadores de miles
+ * @param {number|string} value - Valor a formatear
+ * @returns {string} Valor formateado con separadores de miles
+ */
+const formatCurrency = (value) => {
+   if (value === null || value === undefined || isNaN(value)) return "₡0.00";
+   return (
+      "₡" +
+      Number(value)
+         .toLocaleString("en-US", {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+         })
+   );
+};
 
 /**
  * Función para exportar a PDF un elemento del DOM
@@ -263,7 +281,6 @@ const RemuneracionCard = ({ empleado, onApplied }) => {
    const dispatch = useDispatch();
    const aplicarEmpleado = async () => {
       setAplicado(true);
-      console.log("Empleado aplicado:", empleado);
 
       // Mostrar alerta de proceso iniciado
       Swal.fire({
@@ -490,6 +507,7 @@ const InfoPersonalTable = ({ empleado }) => {
  * @returns {JSX.Element} Tabla de desglose de remuneración
  */
 const DesgloceRemuneracionTable = ({ empleado }) => (
+   console.log(empleado),
    <table className="remuneracion-table">
       <tbody>
          <tr>
@@ -502,61 +520,56 @@ const DesgloceRemuneracionTable = ({ empleado }) => (
          </tr>
          <tr>
             <td>Remuneración Bruta:</td>
-            <td className="amount">₡{empleado.remuneracion_bruta_epd || "0.00"}</td>
+            <td className="amount">{formatCurrency(empleado.remuneracion_bruta_epd)}</td>
          </tr>
          <tr>
-            <td>FCL 1,5%:</td>
-            <td className="amount">₡{empleado.fcl_1_5_epd || "0.00"}</td>
+            <td>FCL 1,5% ROB 3,25%::</td>
+            <td className="amount">{formatCurrency(empleado.fcl_1_5_epd)}</td>
          </tr>
-         <tr>
-            <td>ROB 3,25%:</td>
-            <td className="amount">₡{empleado.rob_3_25_epd || "0.00"}</td>
-         </tr>
+         
          <tr>
             <td>Rebajos de Cliente:</td>
-            <td className="amount">₡{empleado.rebajos_cliente_epd || "0.00"}</td>
+            <td className="amount">{formatCurrency(empleado.rebajos_cliente_epd)}</td>
          </tr>
          <tr>
             <td>Reintegro de Cliente:</td>
-            <td className="amount">₡{empleado.reintegro_cliente_epd || "0.00"}</td>
+            <td className="amount">{formatCurrency(empleado.reintegro_cliente_epd)}</td>
          </tr>
          <tr>
             <td>Depósito X Recurso:</td>
-            <td className="amount">₡{empleado.deposito_x_tecurso_epd || "0.00"}</td>
+            <td className="amount">{formatCurrency(empleado.deposito_x_tecurso_epd)}</td>
          </tr>
          <tr>
             <td>Cuota CC.SS:</td>
-            <td className="amount">₡{empleado.cuota_ccss_epd || "0.00"}</td>
+            <td className="amount">{formatCurrency(empleado.cuota_ccss_epd)}</td>
          </tr>
          <tr>
             <td>Rebajos OPU:</td>
-            <td className="amount">₡{empleado.rebajos_opu_epd || "0.00"}</td>
+            <td className="amount">{formatCurrency(empleado.rebajos_opu_epd)}</td>
          </tr>
          <tr>
             <td>Reintegros OPU:</td>
-            <td className="amount">₡{empleado.reintegro_opu_epd || "0.00"}</td>
+            <td className="amount">{formatCurrency(empleado.reintegro_opu_epd)}</td>
          </tr>
          <tr>
             <td>Total de Deducciones:</td>
-            <td className="amount">₡{empleado.total_deducciones_epd || "0.00"}</td>
+            <td className="amount">{formatCurrency(empleado.total_deducciones_epd)}</td>
          </tr>
          <tr>
             <td>Total de Reintegros:</td>
-            <td className="amount">₡{empleado.total_reintegros_epd || "0.00"}</td>
+            <td className="amount">{formatCurrency(empleado.total_reintegros_epd)}</td>
          </tr>
          <tr>
             <td>
                <strong>Remuneración Neta:</strong>
             </td>
             <td className="amount">
-               <strong>₡{empleado.remuneracion_neta_epd || "0.00"}</strong>
+               <strong>{formatCurrency(empleado.remuneracion_neta_epd)}</strong>
             </td>
          </tr>
       </tbody>
    </table>
 );
-
-
 
 /**
  * Componente para mostrar el estado de inscripción del empleado
@@ -777,6 +790,7 @@ const obtenerDatosPlanilla = (empleadosData) => {
          fechaInicio: "No disponible",
          fechaFin: "No disponible",
          estado: "No disponible",
+         descripcion: "No disponible",
       };
    }
 
@@ -797,6 +811,7 @@ const obtenerDatosPlanilla = (empleadosData) => {
             primerEmpleado.planilla_fecha_fin.substring(0, 10)) ||
          "No disponible",
       estado: primerEmpleado.planilla_estado || "No disponible",
+      descripcion: primerEmpleado.planilla_descripcion || "No disponible",
    };
 };
 
@@ -829,10 +844,6 @@ const InfoPlanilla = ({ planilla }) => {
       // Obtener el ID de la planilla usando la función auxiliar
       const planilla_id = obtenerPlanillaId(planilla);
       
-      // Registrar en consola la intención de cambio de estado
-      console.log(`Intento de cambiar estado de planilla_id: ${planilla_id}`);
-      console.log(`Estado actual: ${planilla.estado}`);
-      console.log(`Nuevo estado: ${newState}`);
         // Mostrar confirmación antes de cambiar el estado
       Swal.fire({
          title: '¿Cambiar estado de la planilla?',
@@ -846,9 +857,6 @@ const InfoPlanilla = ({ planilla }) => {
       }).then(async (result) => {
          if (result.isConfirmed) {// Registrar en consola que el cambio ha sido confirmado
             const planilla_id = obtenerPlanillaId(planilla);
-            console.log(`Cambio de estado confirmado para planilla_id: ${planilla_id}`);
-            console.log(`Estado anterior: ${planilla.estado}`);
-            console.log(`Nuevo estado: ${newState}`);
             
             // Mostrar indicador de carga
             Swal.fire({
@@ -862,7 +870,7 @@ const InfoPlanilla = ({ planilla }) => {
             
             // Llamar al endpoint para cambiar el estado
             try {               // Ejecutar el dispatch y esperar su finalización
-               console.log(`Enviando Planilla_CambioEstado_Thunks con planilla_id: ${planilla_id}, newState: ${newState}`);
+             
                await dispatch(Planilla_CmabioEstado_Thunks(planilla_id, newState));
                
                // Mostrar alerta de éxito
@@ -890,7 +898,6 @@ const InfoPlanilla = ({ planilla }) => {
                });
             }} else {
             // Registrar en consola que el cambio ha sido cancelado
-            console.log(`Cambio de estado cancelado para planilla_id: ${planilla_id}`);
          }
       });
    };
@@ -932,7 +939,7 @@ const InfoPlanilla = ({ planilla }) => {
             </div>
             <div className="info-planilla-item">
                <span className="info-label">Descripción:</span>
-               <span className="info-value">{planilla.planilla_descripcion}</span>
+               <span className="info-value">{planilla.descripcion}</span>
             </div>
          </div>
       </div>
@@ -1169,7 +1176,7 @@ const MiniRemuneracionCard = ({ empleado, onClick, onApplied }) => {
             <tbody>
                <tr><td>Nombre:</td><td>{nombre}</td></tr>
                <tr><td>Cédula:</td><td>{empleado.cedula_empleado}</td></tr>
-               <tr><td>Rem. Neta:</td><td className="amount">₡{empleado.remuneracion_neta_epd || "0.00"}</td></tr>
+               <tr><td>Rem. Neta:</td><td className="amount">{formatCurrency(empleado.remuneracion_neta_epd)}</td></tr>
             </tbody>
          </table>
          {/* Estado de Inscripción */}
@@ -1200,6 +1207,7 @@ export const VisualizarPlanilla = () => {
       fechaInicio: "No disponible",
       fechaFin: "No disponible",
       estado: "No disponible",
+      descripcion: "No disponible",
    });
 
    // Estado para la funcionalidad de búsqueda
@@ -1215,14 +1223,91 @@ export const VisualizarPlanilla = () => {
    // Add modal state and handlers inside the VisualizarPlanilla component
    const [modalOpen, setModalOpen] = useState(false);
    const [selectedEmpleado, setSelectedEmpleado] = useState(null);
+   const [habilitarEdicion, setHabilitarEdicion] = useState(false);
 
    const handleOpenModal = (empleado) => {
       setSelectedEmpleado(empleado);
       setModalOpen(true);
+      setHabilitarEdicion(false); // Reset checkbox state when opening modal
    };
-   const handleCloseModal = () => {
+   
+   /**
+    * Función para cerrar todos los modales y dialogs abiertos
+    */
+   const closeAllModals = () => {
+      // Cerrar cualquier modal de SweetAlert2 que esté abierto
+      if (Swal.isVisible()) {
+         Swal.close();
+      }
+      
+      // Cerrar el modal principal
       setModalOpen(false);
       setSelectedEmpleado(null);
+      setHabilitarEdicion(false);
+   };
+
+   const handleCloseModal = async () => {
+      
+      // Cerrar cualquier modal de SweetAlert2 que esté abierto
+      if (Swal.isVisible()) {
+         Swal.close();
+      }
+      
+      // Cerrar el modal principal y limpiar estados
+      setModalOpen(false);
+      setSelectedEmpleado(null);
+      setHabilitarEdicion(false);
+      
+      // Asegurar que no haya modales de SweetAlert2 abiertos al final
+      setTimeout(() => {
+         if (Swal.isVisible()) {
+            Swal.close();
+         }
+      }, 100);
+   };
+
+   /**
+    * Función para manejar la habilitación de edición del empleado
+    */
+   const handleHabilitarEdicion = async () => {
+
+      if (!selectedEmpleado) {
+         alert('No hay empleado seleccionado');
+         return;
+      }
+
+      const confirmar = confirm(`¿Está seguro que desea habilitar a ${selectedEmpleado.nombre_empleado || 'este empleado'} para edición?`);
+      
+      if (confirmar) {
+         try {
+            // Preparar los datos para el dispatch
+            const formData = {
+               empleado: selectedEmpleado,
+               habilitado: true
+            };
+            
+            
+            // Ejecutar el dispatch
+            const resultado = await dispatch(Planilla_Habilitar(formData));
+            
+
+            // Mostrar mensaje de éxito o error según el resultado
+            if (resultado.success) {
+               alert('Empleado habilitado para edición correctamente');
+               setHabilitarEdicion(true); // Marcar el checkbox como activado
+            } else {
+               alert(resultado.message || 'Error al habilitar el empleado');
+               setHabilitarEdicion(false); // Desmarcar el checkbox en caso de error
+            }
+         } catch (error) {
+            console.error('Error al ejecutar Planilla_Habilitar:', error);
+            alert('Error al procesar la solicitud');
+            setHabilitarEdicion(false); // Desmarcar el checkbox en caso de error
+         }
+      } else {
+         console.log('Usuario canceló la confirmación');
+         setHabilitarEdicion(false); // Desmarcar el checkbox si cancela
+      }
    };
 
    /**
@@ -1239,7 +1324,6 @@ export const VisualizarPlanilla = () => {
                planilla_id: planillaId,
             }),
          );
-         console.log(empleadosPlanillas);
 
          const empleadosDataArr = empleadosPlanillas.data.array || [];
          const empleadosArr = procesarDatosEmpleados(empleadosDataArr);
@@ -1474,9 +1558,31 @@ export const VisualizarPlanilla = () => {
          </div>
 
          {selectedEmpleado && (
-            console.log(selectedEmpleado),
-            <Dialog open={modalOpen} onClose={handleCloseModal} maxWidth="md" fullWidth>
-               <DialogTitle>Detalle Remuneración</DialogTitle>
+            <Dialog open={modalOpen} onClose={closeAllModals} maxWidth="md" fullWidth>
+               <DialogTitle>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                     <span>Detalle Remuneración</span>
+                     <button 
+                        onClick={handleCloseModal}
+                        style={{
+                           background: 'none',
+                           border: 'none',
+                           fontSize: '20px',
+                           cursor: 'pointer',
+                           color: '#666',
+                           padding: '0',
+                           width: '30px',
+                           height: '30px',
+                           display: 'flex',
+                           alignItems: 'center',
+                           justifyContent: 'center'
+                        }}
+                        title="Cerrar"
+                     >
+                        ×
+                     </button>
+                  </div>
+               </DialogTitle>
                {selectedEmpleado.marca_aplicado_epd === 1 && (
                   <div style={{ margin: '8px 0', display: 'flex', justifyContent: 'flex-end' }}>
                      <label>
@@ -1488,6 +1594,45 @@ export const VisualizarPlanilla = () => {
 
                <DialogContent>
                   <RemuneracionCard empleado={selectedEmpleado} onApplied={handleEmpleadoApplied} />
+                  
+                  {/* Checkbox adicional para habilitar edición */}
+                  <div style={{ marginTop: '15px', padding: '10px', borderTop: '1px solid #e0e0e0' }}>
+                     <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px' }}>
+                        <input 
+                           type="checkbox" 
+                           checked={habilitarEdicion}
+                           style={{ transform: 'scale(1.2)' }}
+                           onChange={(e) => {
+                              if (e.target.checked) {
+                                 handleHabilitarEdicion();
+                              } else {
+                                 setHabilitarEdicion(false);
+                              }
+                           }}
+                        />
+                        Habilitar para editar
+                     </label>
+                  </div>
+                  
+                  {/* Botón de cerrar en el contenido */}
+                  <div style={{ marginTop: '20px', textAlign: 'center' }}>
+                     <button 
+                        onClick={handleCloseModal}
+                        style={{
+                           backgroundColor: '#007bff',
+                           color: 'white',
+                           border: 'none',
+                           padding: '10px 20px',
+                           borderRadius: '5px',
+                           cursor: 'pointer',
+                           fontSize: '14px'
+                        }}
+                        onMouseOver={(e) => e.target.style.backgroundColor = '#0056b3'}
+                        onMouseOut={(e) => e.target.style.backgroundColor = '#007bff'}
+                     >
+                        Cerrar
+                     </button>
+                  </div>
                </DialogContent>
             </Dialog>
          )}
