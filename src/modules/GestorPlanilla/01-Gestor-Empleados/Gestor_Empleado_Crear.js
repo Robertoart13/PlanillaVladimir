@@ -180,7 +180,27 @@ const crearTransaccion = async (req, res) => {
 
       // 4. Verificar si la creación fue exitosa.
       if (!esCreacionExitosa(resultado)) {
-         return crearRespuestaErrorCrear(`Error al crear el registro: ${resultado.error}`);
+         // Manejar errores específicos de duplicado
+         if (resultado.error && resultado.error.includes('Duplicate entry')) {
+            // Extraer información del error de duplicado
+            let mensajeError = "Ya existe un Socio con los mismos datos de identificación.";
+            
+            if (resultado.error.includes('numero_asegurado_empleado_gestor')) {
+               mensajeError = "Ya existe un Socio registrado con este número de asegurado. Por favor, verifique el número e intente nuevamente.";
+            } else if (resultado.error.includes('numero_ins_empleado_gestor')) {
+               mensajeError = "Ya existe un Socio registrado con este número de INS. Por favor, verifique el número e intente nuevamente.";
+            } else if (resultado.error.includes('numero_hacienda_empleado_gestor')) {
+               mensajeError = "Ya existe un Socio registrado con este número de hacienda. Por favor, verifique el número e intente nuevamente.";
+            } else if (resultado.error.includes('correo_empleado_gestor')) {
+               mensajeError = "Ya existe un Socio registrado con este correo electrónico. Por favor, use un correo diferente.";
+            } else if (resultado.error.includes('cedula_empleado_gestor')) {
+               mensajeError = "Ya existe un Socio registrado con esta cédula. Por favor, verifique el número e intente nuevamente.";
+            }
+            
+            return crearRespuestaErrorCrear(mensajeError);
+         }
+         
+         return crearRespuestaErrorCrear(`Error al crear el Socio: ${resultado.error}`);
       }
 
       if (resultado.datos.insertId > 0) {
@@ -189,7 +209,26 @@ const crearTransaccion = async (req, res) => {
       // 5. Si la creación fue exitosa, retorna una respuesta exitosa.
       return crearRespuestaExitosa(resultado.datos);
    } catch (error) {
-      return manejarError(error, 500, "Error al crear el registro: ", error.message);
+      // Manejar errores específicos de duplicado en el catch
+      if (error.message && error.message.includes('Duplicate entry')) {
+         let mensajeError = "Ya existe un Socio con los mismos datos de identificación.";
+         
+         if (error.message.includes('numero_asegurado_empleado_gestor')) {
+            mensajeError = "Ya existe un Socio registrado con este número de asegurado. Por favor, verifique el número e intente nuevamente.";
+         } else if (error.message.includes('numero_ins_empleado_gestor')) {
+            mensajeError = "Ya existe un Socio registrado con este número de INS. Por favor, verifique el número e intente nuevamente.";
+         } else if (error.message.includes('numero_hacienda_empleado_gestor')) {
+            mensajeError = "Ya existe un Socio registrado con este número de hacienda. Por favor, verifique el número e intente nuevamente.";
+         } else if (error.message.includes('correo_empleado_gestor')) {
+            mensajeError = "Ya existe un Socio registrado con este correo electrónico. Por favor, use un correo diferente.";
+         } else if (error.message.includes('cedula_empleado_gestor')) {
+            mensajeError = "Ya existe un Socio registrado con esta cédula. Por favor, verifique el número e intente nuevamente.";
+         }
+         
+         return crearRespuestaErrorCrear(mensajeError);
+      }
+      
+      return manejarError(error, 500, "Error al crear el Socio: ", error.message);
    }
 };
 
