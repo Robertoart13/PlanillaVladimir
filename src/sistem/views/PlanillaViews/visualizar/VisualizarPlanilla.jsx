@@ -306,13 +306,6 @@ const RemuneracionCard = ({ empleado, onApplied }) => {
       }
    };
 
-   const verPerfilEmpleado = () => {
-      // Aquí iría la lógica para ver el perfil del empleado
-      const nombreCompleto = `${empleado.nombre_empleado || ""} ${
-         empleado.apellidos_empleado || ""
-      }`;
-      alert(`Ver perfil de ${nombreCompleto}`);
-   }; // Función para descargar la tarjeta como PDF
    const descargarPDF = () => {
       if (cardRef.current) {
          // Crear un clon del elemento para manipularlo sin afectar la UI
@@ -328,10 +321,10 @@ const RemuneracionCard = ({ empleado, onApplied }) => {
          const botonesVerPerfil = cardClone.querySelectorAll(".boton-ver-perfil");
          botonesVerPerfil.forEach((btn) => btn.style.display = "none");
          
-         // Compact tables: show only first three tables (Info, Desgloce, Deducciones)
+         // Compact tables: show only first two tables (Info, Desgloce)
          const tablas = cardClone.querySelectorAll(".remuneracion-table");
          tablas.forEach((tabla, idx) => {
-            if (idx < 3) {
+            if (idx < 2) {
                tabla.style.marginBottom = "5px";
             } else {
                tabla.style.display = "none";
@@ -360,13 +353,6 @@ const RemuneracionCard = ({ empleado, onApplied }) => {
          <div style={{ display: "flex", justifyContent: "space-between", padding: "4px" }}>
             <button
                className="boton-ver-perfil"
-               onClick={verPerfilEmpleado}
-               style={{ width: "48%", fontSize: "0.75rem", margin: 0 }}
-            >
-               Ver perfil
-            </button>
-            <button
-               className="boton-ver-perfil"
                onClick={descargarPDF}
                style={{ width: "48%", fontSize: "0.75rem", margin: 0 }}
             >
@@ -375,7 +361,6 @@ const RemuneracionCard = ({ empleado, onApplied }) => {
          </div>
          <InfoPersonalTable empleado={empleado} />
          <DesgloceRemuneracionTable empleado={empleado} />
-         <DeduccionesTable empleado={empleado} />
          <EstadoInscripcionTable empleado={empleado} />
          <div
             className="boton-container"
@@ -458,6 +443,17 @@ const InfoPersonalTable = ({ empleado }) => {
                <td>{empleado.nombre_puesto || "No disponible"}</td>
             </tr>
             <tr>
+               <td>Numero de asegurado:</td>
+               <td><div className="cuenta-bancaria-container">
+                     <span>{empleado.asegurado_empleado || "No disponible"}</span>
+                     <CopyButton
+                        textToCopy={empleado.asegurado_empleado}
+                        message="La cédula ha sido copiada al portapapeles"
+                        title="Copiar numero de asegurado"
+                     />
+                  </div></td>
+            </tr>
+            <tr>
                <td>Cuenta Bancaria:</td>
                <td>
                   {cuentasIban.length > 0 ? (
@@ -509,61 +505,48 @@ const DesgloceRemuneracionTable = ({ empleado }) => (
             <td className="amount">₡{empleado.remuneracion_bruta_epd || "0.00"}</td>
          </tr>
          <tr>
-            <td>Bonificaciones</td>
-            <td className="amount">₡0.00</td>
+            <td>FCL 1,5%:</td>
+            <td className="amount">₡{empleado.fcl_1_5_epd || "0.00"}</td>
          </tr>
          <tr>
-            <td>Remuneración Neta:</td>
-            <td className="amount">₡{empleado.remuneracion_neta_epd || "0.00"}</td>
-         </tr>
-      </tbody>
-   </table>
-);
-
-/**
- * Componente para mostrar las deducciones del empleado
- * @param {Object} props - Propiedades del componente
- * @param {Object} props.empleado - Datos del empleado
- * @returns {JSX.Element} Tabla de deducciones
- */
-const DeduccionesTable = ({ empleado }) => (
-   <table className="remuneracion-table">
-      <tbody>
-         <tr>
-            <td
-               colSpan="2"
-               className="section-header"
-            >
-               Deducciones
-            </td>
+            <td>ROB 3,25%:</td>
+            <td className="amount">₡{empleado.rob_3_25_epd || "0.00"}</td>
          </tr>
          <tr>
-            <td>Cuota Seguro Independiente:</td>
-            <td className="amount">₡{empleado.cuota_ccss_epd || "0.00"}</td>
-         </tr>
-         <tr>
-            <td>Rebajos de cliente</td>
+            <td>Rebajos de Cliente:</td>
             <td className="amount">₡{empleado.rebajos_cliente_epd || "0.00"}</td>
          </tr>
          <tr>
-            <td>Rebajos de OPU</td>
-            <td className="amount">₡{empleado.rebajos_opu_epd || "0.00"}</td>
-         </tr>
-         <tr>
-            <td>Total Deducciones</td>
-            <td className="amount">₡{empleado.total_deducciones_epd || "0.00"}</td>
-         </tr>
-         <tr>
-            <td>Reintegros decliente</td>
+            <td>Reintegro de Cliente:</td>
             <td className="amount">₡{empleado.reintegro_cliente_epd || "0.00"}</td>
          </tr>
          <tr>
-            <td>Reintegros de OPU</td>
+            <td>Depósito X Recurso:</td>
+            <td className="amount">₡{empleado.deposito_x_tecurso_epd || "0.00"}</td>
+         </tr>
+         <tr>
+            <td>Cuota CC.SS:</td>
+            <td className="amount">₡{empleado.cuota_ccss_epd || "0.00"}</td>
+         </tr>
+         <tr>
+            <td>Rebajos OPU:</td>
+            <td className="amount">₡{empleado.rebajos_opu_epd || "0.00"}</td>
+         </tr>
+         <tr>
+            <td>Reintegros OPU:</td>
             <td className="amount">₡{empleado.reintegro_opu_epd || "0.00"}</td>
          </tr>
          <tr>
+            <td>Total de Deducciones:</td>
+            <td className="amount">₡{empleado.total_deducciones_epd || "0.00"}</td>
+         </tr>
+         <tr>
+            <td>Total de Reintegros:</td>
+            <td className="amount">₡{empleado.total_reintegros_epd || "0.00"}</td>
+         </tr>
+         <tr>
             <td>
-               <strong>Remuneración neta</strong>
+               <strong>Remuneración Neta:</strong>
             </td>
             <td className="amount">
                <strong>₡{empleado.remuneracion_neta_epd || "0.00"}</strong>
@@ -572,6 +555,8 @@ const DeduccionesTable = ({ empleado }) => (
       </tbody>
    </table>
 );
+
+
 
 /**
  * Componente para mostrar el estado de inscripción del empleado
@@ -594,6 +579,9 @@ const EstadoInscripcionTable = ({ empleado }) => {
 
    // Manejar el cambio de estado para Ministerio de Hacienda
    const handleMinisterioChange = async (event) => {
+      // Detener la propagación del evento para evitar que se abra el modal
+      event.stopPropagation();
+      
       const newValue = event.target.checked ? 1 : 0;
       setMinisterio(newValue);
 
@@ -606,32 +594,22 @@ const EstadoInscripcionTable = ({ empleado }) => {
          ccss: ccss,
       };
 
-      console.log("Estado de Inscripción actualizado:", updatedValues);
 
       try {
          // Enviar los datos actualizados a través del thunk
          await dispatch(Planilla_Incritos_Thunks(updatedValues));
-
-         // Mostrar alerta de éxito
-         Swal.fire({
-            title: "Estado de Inscripción",
-            text: `Ministerio de Hacienda: ${newValue === 1 ? "Inscrito" : "No inscrito"}`,
-            icon: "success",
-            confirmButtonText: "Aceptar",
-         });
+         // Alerta removida - cambio silencioso
       } catch (error) {
          console.error("Error al actualizar estado de inscripción:", error);
-         Swal.fire({
-            title: "Error",
-            text: "No se pudo actualizar el estado de inscripción",
-            icon: "error",
-            confirmButtonText: "Aceptar",
-         });
+         // Alerta de error removida - cambio silencioso
       }
    };
 
    // Manejar el cambio de estado para RT-INS
    const handleRtinsChange = async (event) => {
+      // Detener la propagación del evento para evitar que se abra el modal
+      event.stopPropagation();
+      
       const newValue = event.target.checked ? 1 : 0;
       setRtins(newValue);
 
@@ -647,27 +625,18 @@ const EstadoInscripcionTable = ({ empleado }) => {
       try {
          // Enviar los datos actualizados a través del thunk
          await dispatch(Planilla_Incritos_Thunks(updatedValues));
-
-         // Mostrar alerta de éxito
-         Swal.fire({
-            title: "Estado de Inscripción",
-            text: `RT-INS: ${newValue === 1 ? "Inscrito" : "No inscrito"}`,
-            icon: "success",
-            confirmButtonText: "Aceptar",
-         });
+         // Alerta removida - cambio silencioso
       } catch (error) {
          console.error("Error al actualizar estado de inscripción:", error);
-         Swal.fire({
-            title: "Error",
-            text: "No se pudo actualizar el estado de inscripción",
-            icon: "error",
-            confirmButtonText: "Aceptar",
-         });
+         // Alerta de error removida - cambio silencioso
       }
    };
 
    // Manejar el cambio de estado para CCSS
    const handleCcssChange = async (event) => {
+      // Detener la propagación del evento para evitar que se abra el modal
+      event.stopPropagation();
+      
       const newValue = event.target.checked ? 1 : 0;
       setCcss(newValue);
 
@@ -683,22 +652,10 @@ const EstadoInscripcionTable = ({ empleado }) => {
       try {
          // Enviar los datos actualizados a través del thunk
          await dispatch(Planilla_Incritos_Thunks(updatedValues));
-
-         // Mostrar alerta de éxito
-         Swal.fire({
-            title: "Estado de Inscripción",
-            text: `CCSS: ${newValue === 1 ? "Inscrito" : "No inscrito"}`,
-            icon: "success",
-            confirmButtonText: "Aceptar",
-         });
+         // Alerta removida - cambio silencioso
       } catch (error) {
          console.error("Error al actualizar estado de inscripción:", error);
-         Swal.fire({
-            title: "Error",
-            text: "No se pudo actualizar el estado de inscripción",
-            icon: "error",
-            confirmButtonText: "Aceptar",
-         });
+         // Alerta de error removida - cambio silencioso
       }
    };
 
@@ -715,7 +672,7 @@ const EstadoInscripcionTable = ({ empleado }) => {
             </tr>
             <tr>
                <td>Ministerio de Hacienda:</td>
-               <td className={ministerio === 1 ? "inscrito" : "no-inscrito"}>
+               <td className={ministerio === 1 ? "inscrito" : "no-inscrito"} onClick={(e) => e.stopPropagation()}>
                   <FormControlLabel
                      control={
                         <Switch
@@ -734,7 +691,7 @@ const EstadoInscripcionTable = ({ empleado }) => {
             </tr>
             <tr>
                <td>RT-INS:</td>
-               <td className={rtins === 1 ? "inscrito" : "no-inscrito"}>
+               <td className={rtins === 1 ? "inscrito" : "no-inscrito"} onClick={(e) => e.stopPropagation()}>
                   <FormControlLabel
                      control={
                         <Switch
@@ -753,7 +710,7 @@ const EstadoInscripcionTable = ({ empleado }) => {
             </tr>
             <tr>
                <td>CCSS:</td>
-               <td className={ccss === 1 ? "inscrito" : "no-inscrito"}>
+               <td className={ccss === 1 ? "inscrito" : "no-inscrito"} onClick={(e) => e.stopPropagation()}>
                   <FormControlLabel
                      control={
                         <Switch
@@ -972,6 +929,10 @@ const InfoPlanilla = ({ planilla }) => {
                   {planilla.estado}
                </span>
                <StateSelector currentState={planilla.estado} onStateChange={handleStateChange} />
+            </div>
+            <div className="info-planilla-item">
+               <span className="info-label">Descripción:</span>
+               <span className="info-value">{planilla.planilla_descripcion}</span>
             </div>
          </div>
       </div>
@@ -1278,6 +1239,7 @@ export const VisualizarPlanilla = () => {
                planilla_id: planillaId,
             }),
          );
+         console.log(empleadosPlanillas);
 
          const empleadosDataArr = empleadosPlanillas.data.array || [];
          const empleadosArr = procesarDatosEmpleados(empleadosDataArr);
