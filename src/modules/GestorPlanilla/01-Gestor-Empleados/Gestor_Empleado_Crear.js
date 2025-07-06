@@ -59,11 +59,12 @@ const ERROR_MESSAGES = {
  * @param {Object} database - Conexión a la base de datos
  * @returns {Promise<Object>} Resultado de la operación
  */
-const crearNuevoRegistroBd = async (datos, database) => {
+const crearNuevoRegistroBd = async (datos,id_empresa, database) => {
+   console.log(datos,id_empresa);
    const params = [
       datos.nombre_completo, datos.correo, datos.telefono, datos.cedula,
       datos.salario_base, datos.tipo_contrato, datos.departamento, datos.puesto,
-      datos.supervisor, datos.id_empresa || null, datos.fecha_ingreso,
+      datos.supervisor, id_empresa || null, datos.fecha_ingreso,
       datos.fecha_salida || null, datos.jornada_laboral, datos.numero_asegurado,
       datos.numero_ins, datos.numero_hacienda, datos.cuenta_bancaria_1,
       datos.cuenta_bancaria_2 || null, datos.vacaciones_acumuladas,
@@ -136,7 +137,11 @@ const crearTransaccion = async (req, res) => {
       if (errorValidacion) return errorValidacion;
 
       // Crear empleado en la base de datos
-      const resultado = await crearNuevoRegistroBd(res?.transaccion?.data, res?.database);
+      const resultado = await crearNuevoRegistroBd(
+         res?.transaccion?.data,
+         res?.transaccion?.user?.id_empresa,
+         res?.database
+      );
 
       // Verificar si la creación fue exitosa
       if (!esCreacionExitosa(resultado)) {
