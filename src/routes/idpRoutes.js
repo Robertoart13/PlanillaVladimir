@@ -131,6 +131,16 @@ import Gestor_Aumento_Listar from "../modules/GestorPlanilla/03-Gestor_Aumento/G
 import Gestor_Aumento_Editar from "../modules/GestorPlanilla/03-Gestor_Aumento/Gestor_Aumento_Editar.js";
 
 
+/**
+ * ====================================================================================================================================
+ * Importación de módulos que tengan solo que ver con el gestor de planilla no de Natual 
+
+ * ====================================================================================================================================
+ */
+import Gestor_Bono_Crear from "../modules/GestorPlanilla/03-Gestor_Bono/Gestor_Bono_Crear.js";
+import Gestor_Bono_Listar from "../modules/GestorPlanilla/03-Gestor_Bono/Gesto_Bono_Lista.js";
+import Gestor_Bono_Editar from "../modules/GestorPlanilla/03-Gestor_Bono/Gestor_Bono_Editar.js";
+
 
 
 
@@ -676,6 +686,32 @@ function getModulesConfig() {
                isAuthRequired: true, // Requiere autenticación
             }, 
          ], 
+
+      },
+      {
+         category: "Gestor", // Nombre del módulo
+         model: {
+            ...Gestor_Bono_Crear,
+            ...Gestor_Bono_Listar,
+            ...Gestor_Bono_Editar,
+            }, // Combinamos ambos modelos
+         routes: [
+            {
+               path: "gestor/planilla/bonificaciones/crear", // Ruta para la lista de planilla
+               method: "crearTransaccion", // Método que se ejecutará
+               isAuthRequired: true, // Requiere autenticación
+            },
+            {
+               path: "gestor/planilla/bonificaciones/lista", // Ruta para la lista de planilla
+               method: "obtenerListaCompleta", // Método que se ejecutará
+               isAuthRequired: true, // Requiere autenticación
+            }, 
+            {
+               path: "gestor/planilla/bonificaciones/editar", // Ruta para la lista de planilla
+               method: "editarTransaccion", // Método que se ejecutará
+               isAuthRequired: true, // Requiere autenticación
+            }, 
+         ],
       },
    ];
 }

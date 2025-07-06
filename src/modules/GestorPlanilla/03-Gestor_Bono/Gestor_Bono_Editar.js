@@ -12,7 +12,7 @@
  * ====================================================================================================================================
  */
 
-import { realizarConsulta, manejarError } from "../../../mysql2-promise/mysql2-promise.js";  
+import { realizarConsulta, manejarError } from "../../../mysql2-promise/mysql2-promise.js";
 import { realizarValidacionesIniciales } from "../../../hooks/realizarValidacionesIniciales.js";
 import { crearRespuestaExitosa } from "../../../hooks/crearRespuestaExitosa.js";
 import { crearRespuestaErrorCrear } from "../../../hooks/crearRespuestaErrorCrear.js";
@@ -25,67 +25,20 @@ import { crearRespuestaErrorCrear } from "../../../hooks/crearRespuestaErrorCrea
  */
 const QUERIES = {
    QUERIES_UPDATE: `
-      UPDATE
-         planilla_tbl
+      UPDATE 
+         gestor_compe_tbl   
       SET
-         planilla_codigo = ?,
-         empresa_id = ?,
-         planilla_tipo = ?,
-         planilla_descripcion = ?,
-         planilla_estado = ?,
-         planilla_fecha_inicio = ?,
-         planilla_fecha_fin = ?,
-         planilla_creado_por = ?
-      WHERE planilla_id  = ?;
+      empresa_id_compe_gestor=?,
+      planilla_id_compe_gestor=?,
+      empleado_id_compe_gestor=?,
+      monto_compe_gestor=?,
+      motivo_compe_gestor=?,
+      aplica_aguinaldo_compe_gestor=?,
+      estado_compe_gestor=?,
+      estado_planilla_compe_gestor=?
+      WHERE id_compe_gestor   = ?;    
    `,
-   QUERIES_UPDATE_AUMENTOS_CANCELADO: `
-      UPDATE
-         gestor_aumento_tbl
-      SET
-         estado_planilla_aumento_gestor = "Cancelado",
-         estado_aumento_gestor=0
-      WHERE planilla_id_aumento_gestor = ?;
-   `,
-   QUERIES_UPDATE_AUMENTOS_APLICADO: `
-      UPDATE
-         gestor_aumento_tbl
-      SET
-         estado_planilla_aumento_gestor = "Aplicado",
-         estado_aumento_gestor=1
-      WHERE planilla_id_aumento_gestor = ?;
-   `,
-   QUERIES_UPDATE_AUMENTOS_PROCESADO: `
-      UPDATE
-         gestor_aumento_tbl
-      SET
-         estado_planilla_aumento_gestor = "Procesado",
-         estado_aumento_gestor=1
-      WHERE planilla_id_aumento_gestor = ?;
-   `,
-   QUERIES_UPDATE_COMPE_CANCELADO: `
-      UPDATE
-         gestor_compe_tbl
-      SET
-         estado_planilla_compe_gestor = "En proceso",
-         estado_compe_gestor=0
-      WHERE planilla_id_compe_gestor = ?;
-   `,
-   QUERIES_UPDATE_COMPE_APLICADO: `
-      UPDATE
-         gestor_compe_tbl
-      SET
-         estado_planilla_compe_gestor = "Aplicado",
-         estado_compe_gestor=1
-      WHERE planilla_id_compe_gestor = ?;
-   `,
-   QUERIES_UPDATE_COMPE_PROCESADO: `
-      UPDATE
-         gestor_compe_tbl
-      SET
-         estado_planilla_compe_gestor = "Procesado",
-         estado_compe_gestor=1
-      WHERE planilla_id_compe_gestor = ?;
-   `,
+   
 };
 
 /**
@@ -99,69 +52,24 @@ const QUERIES = {
  * @returns {Promise<Object>} - Resultado de la operación de actualización en la base de datos.
  * ====================================================================================================================================
  */
-const editarRegistroBd = async (datos, database) => {
+const editarRegistroBd =async (datos, empresa_id, database) => {
 
-    // Ejecutar la consulta para actualizar el registro en planilla_tbl
-    const resultado = await realizarConsulta(
-       QUERIES.QUERIES_UPDATE,
-       [
-          datos.planilla_codigo,
-          datos.empresa_id,
-          datos.planilla_tipo,
-          datos.planilla_descripcion,
-          datos.planilla_estado,
-          datos.planilla_fecha_inicio,
-          datos.planilla_fecha_fin,
-          datos.planilla_creado_por,
-          datos.planilla_id,
-       ],
-       database,
-    );
 
-    // Si la actualización de planilla fue exitosa, actualizar el estado del aumento y compensaciones según el estado de la planilla
-    if (resultado.datos?.affectedRows > 0) {
-       let queryAumentos = null;
-       let queryCompe = null;
-       
-       // Determinar qué consulta usar según el estado de la planilla
-       switch (datos.planilla_estado) {
-          case 'Cancelada':
-             queryAumentos = QUERIES.QUERIES_UPDATE_AUMENTOS_CANCELADO;
-             queryCompe = QUERIES.QUERIES_UPDATE_COMPE_CANCELADO;
-             break;
-          case 'Cerrada':
-             queryAumentos = QUERIES.QUERIES_UPDATE_AUMENTOS_APLICADO;
-             queryCompe = QUERIES.QUERIES_UPDATE_COMPE_APLICADO;
-             break;
-          case 'Procesada':
-             queryAumentos = QUERIES.QUERIES_UPDATE_AUMENTOS_PROCESADO;
-             queryCompe = QUERIES.QUERIES_UPDATE_COMPE_PROCESADO;
-             break;
-          default:
-             // Si no es ninguno de los estados especificados, no ejecutar consulta adicional
-             break;
-       }
-       
-       // Ejecutar la consulta para actualizar el estado del aumento si es necesario
-       if (queryAumentos) {
-          await realizarConsulta(
-             queryAumentos,
-             [datos.planilla_id],
-             database,
-          );
-       }
-       
-       // Ejecutar la consulta para actualizar el estado de las compensaciones si es necesario
-       if (queryCompe) {
-          await realizarConsulta(
-             queryCompe,
-             [datos.planilla_id],
-             database,
-          );
-       }
-    }
-
-    return resultado;
+   return await realizarConsulta(
+      QUERIES.QUERIES_UPDATE,
+      [
+         empresa_id,
+         datos.planilla_id_compe_gestor,
+         datos.empleado_id_compe_gestor,
+         datos.monto_compe_gestor,
+         datos.motivo_compe_gestor,
+         datos.aplica_aguinaldo_compe_gestor,
+         datos.estado_compe_gestor === 1 ? 1 : 0,
+         datos.estado_compe_gestor === 1 && datos.estado_procesado === "En proceso" ? datos.estado_procesado : "Cancelado",
+         datos.id_compe_gestor,
+      ],
+      database,
+   );
 };
 
 /**
@@ -206,18 +114,27 @@ const esEdicionExitosa = (resultado) => {
  * ====================================================================================================================================
  */
 const editarTransaccion = async (req, res) => {
+
    try {
       // 1. Validar los datos iniciales de la solicitud (por ejemplo, formato y autenticidad de los datos).
       const errorValidacion = await realizarValidacionesIniciales(res);
       if (errorValidacion) return errorValidacion; // Si hay un error en la validación, lo retorna inmediatamente.
 
-      // 3. Realizar la edición en la base de datos
-      const resultado = await editarRegistroBd(res?.transaccion.planilla, res?.database);
+     
 
+      // 3. Realizar la edición en la base de datos
+      const resultado = await editarRegistroBd( 
+         res?.transaccion?.data, 
+         res?.transaccion?.user?.id_empresa,
+         res?.database);
+
+
+     
       // 4. Verificar si la edición fue exitosa.
       if (!esEdicionExitosa(resultado)) {
          return crearRespuestaErrorCrear(`Error al editar el registro: ${resultado.error}`);
       }
+
 
       // 5. Si la edición fue exitosa, retornar una respuesta exitosa.
       return crearRespuestaExitosa(resultado.datos);
@@ -232,8 +149,8 @@ const editarTransaccion = async (req, res) => {
  * Este módulo expone la funcionalidad de edición de registros existentes.
  * ====================================================================================================================================
  */
-const Planilla_Editar = {
+const Gestor_Bono_Editar = {     
    editarTransaccion,
 };
 
-export default Planilla_Editar;
+export default Gestor_Bono_Editar;
