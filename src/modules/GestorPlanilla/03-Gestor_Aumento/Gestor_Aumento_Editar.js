@@ -39,6 +39,7 @@ const QUERIES = {
       estado_planilla_aumento_gestor=?
       WHERE id_aumento_gestor   = ?;    
    `,
+   
 };
 
 /**

@@ -38,6 +38,30 @@ const QUERIES = {
          planilla_creado_por = ?
       WHERE planilla_id  = ?;
    `,
+   QUERIES_UPDATE_AUMENTOS_CANCELADO: `
+      UPDATE
+         gestor_aumento_tbl
+      SET
+         estado_planilla_aumento_gestor = "Cancelado",
+         estado_aumento_gestor=0
+      WHERE planilla_id_aumento_gestor = ?;
+   `,
+   QUERIES_UPDATE_AUMENTOS_APLICADO: `
+      UPDATE
+         gestor_aumento_tbl
+      SET
+         estado_planilla_aumento_gestor = "Aplicado",
+         estado_aumento_gestor=1
+      WHERE planilla_id_aumento_gestor = ?;
+   `,
+   QUERIES_UPDATE_AUMENTOS_PROCESADO: `
+      UPDATE
+         gestor_aumento_tbl
+      SET
+         estado_planilla_aumento_gestor = "Procesado",
+         estado_aumento_gestor=1
+      WHERE planilla_id_aumento_gestor = ?;
+   `,
 };
 
 /**
@@ -52,22 +76,55 @@ const QUERIES = {
  * ====================================================================================================================================
  */
 const editarRegistroBd = async (datos, database) => {
-   console.log("Datos a insertar:", datos);
-   return await realizarConsulta(
-      QUERIES.QUERIES_UPDATE,
-      [
-         datos.planilla_codigo,
-         datos.empresa_id,
-         datos.planilla_tipo,
-         datos.planilla_descripcion,
-         datos.planilla_estado,
-         datos.planilla_fecha_inicio,
-         datos.planilla_fecha_fin,
-         datos.planilla_creado_por,
-         datos.planilla_id,
-      ],
-      database,
-   );
+
+    // Ejecutar la consulta para actualizar el registro en planilla_tbl
+    const resultado = await realizarConsulta(
+       QUERIES.QUERIES_UPDATE,
+       [
+          datos.planilla_codigo,
+          datos.empresa_id,
+          datos.planilla_tipo,
+          datos.planilla_descripcion,
+          datos.planilla_estado,
+          datos.planilla_fecha_inicio,
+          datos.planilla_fecha_fin,
+          datos.planilla_creado_por,
+          datos.planilla_id,
+       ],
+       database,
+    );
+
+    // Si la actualización de planilla fue exitosa, actualizar el estado del aumento según el estado de la planilla
+    if (resultado.datos?.affectedRows > 0) {
+       let queryAumentos = null;
+       
+       // Determinar qué consulta usar según el estado de la planilla
+       switch (datos.planilla_estado) {
+          case 'Cancelada':
+             queryAumentos = QUERIES.QUERIES_UPDATE_AUMENTOS_CANCELADO;
+             break;
+          case 'Cerrada':
+             queryAumentos = QUERIES.QUERIES_UPDATE_AUMENTOS_APLICADO;
+             break;
+          case 'Procesada':
+             queryAumentos = QUERIES.QUERIES_UPDATE_AUMENTOS_PROCESADO;
+             break;
+          default:
+             // Si no es ninguno de los estados especificados, no ejecutar consulta adicional
+             break;
+       }
+       
+       // Ejecutar la consulta para actualizar el estado del aumento si es necesario
+       if (queryAumentos) {
+          await realizarConsulta(
+             queryAumentos,
+             [datos.planilla_id],
+             database,
+          );
+       }
+    }
+
+    return resultado;
 };
 
 /**
