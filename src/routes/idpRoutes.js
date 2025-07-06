@@ -88,6 +88,7 @@ import Planilla_Listar_Empleados from "../modules/naturalEmpresa/08-planilla/Pla
 import Planilla_Insertar_Empleado from "../modules/naturalEmpresa/08-planilla/Planilla_Insertar_Empleado.js";
 import Planilla_AplicarPlanilla from "../modules/naturalEmpresa/08-planilla/Planilla_AplicarPlanilla.js";
 import Planilla_Listar_aplicadas from "../modules/naturalEmpresa/08-planilla/Planilla_ListaCompletaAplicadas.js";
+import Planilla_Habilitar from "../modules/naturalEmpresa/08-planilla/Planilla_HabilitarApi.js";
 
 import Planil_Empleado_Aplicadas_Empleado from "../modules/naturalEmpresa/08-planilla/Planil_Empleado_Aplicadas_Empleado.js";
 import Planilla_Aplicado from "../modules/naturalEmpresa/08-planilla/Planilla_Aplicado.js";
@@ -503,6 +504,7 @@ function getModulesConfig() {
             ...Planilla_Aplicado,
             ...Planilla_Incritos,
             ...planilla_estado,
+            ...Planilla_Habilitar,
          }, // Combinamos ambos modelos
          routes: [
             {
@@ -558,6 +560,11 @@ function getModulesConfig() {
             {
                path: "planilla/Planilla_CmabioEstado_Thunks", // Ruta para la lista de planilla
                method: "planilla_estado", // Método que se ejecutará
+               isAuthRequired: true, // Requiere autenticación
+            },
+            {
+               path: "planilla/habilitar", // Ruta para la lista de planilla
+               method: "Planilla_Habilitar", // Método que se ejecutará
                isAuthRequired: true, // Requiere autenticación
             },
          ],
