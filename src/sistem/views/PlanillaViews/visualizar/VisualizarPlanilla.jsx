@@ -848,6 +848,64 @@ const InfoPlanilla = ({ planilla, empleados = [] }) => {
          return total + remuneracionNeta;
       }, 0);
    };
+
+   /**
+    * Calcula el total de empleados (operarios)
+    * @returns {number} Total de empleados
+    */
+   const calcularTotalOperarios = () => {
+      return empleados.length;
+   };
+
+   /**
+    * Calcula el valor por operario (2 * 5669.23)
+    * @returns {number} Valor calculado
+    */
+   const calcularValorPorOperario = () => {
+      const valorBase = 5669.23;
+      const multiplicador = 2;
+      return valorBase * multiplicador;
+   };
+
+   /**
+    * Calcula el total de depósito por recurso de todos los empleados
+    * @returns {number} Total de depósito por recurso
+    */
+   const calcularTotalDepositoRecurso = () => {
+      return empleados.reduce((total, empleado) => {
+         const depositoRecurso = parseFloat(empleado.deposito_x_tecurso_epd) || 0;
+         return total + depositoRecurso;
+      }, 0);
+   };
+
+   /**
+    * Calcula el subtotal (Total de Tarifa + Monto de Remuneraciones)
+    * @returns {number} Subtotal calculado
+    */
+   const calcularSubtotal = () => {
+      const totalTarifa = calcularTotalOperarios() * 5669.23;
+      const montoRemuneraciones = calcularTotalDepositoRecurso();
+      return totalTarifa + montoRemuneraciones;
+   };
+
+   /**
+    * Calcula el IVA (13% del Subtotal)
+    * @returns {number} IVA calculado
+    */
+   const calcularIVA = () => {
+      const subtotal = calcularSubtotal();
+      return subtotal * 0.13;
+   };
+
+   /**
+    * Calcula el Monto Total (Subtotal + IVA)
+    * @returns {number} Monto Total calculado
+    */
+   const calcularMontoTotal = () => {
+      const subtotal = calcularSubtotal();
+      const iva = calcularIVA();
+      return subtotal + iva;
+   };
    
    /**
     * Maneja el cambio de estado de la planilla
@@ -954,10 +1012,76 @@ const InfoPlanilla = ({ planilla, empleados = [] }) => {
                <span className="info-value">{planilla.descripcion}</span>
             </div>
             <div className="info-planilla-item">
-               <span className="info-label">Total Rem. Neta:</span>
-               <span className="info-value total-remuneracion">
-                  {formatCurrency(calcularTotalRemuneracionNeta())}
-               </span>
+               <span className="info-label">Resumen:</span>
+               <div className="resumen-table-container">
+                  <table className="resumen-table">
+                     <tbody>
+                        <tr 
+                           className="resumen-row"
+                           title={`Suma de remuneración neta de ${calcularTotalOperarios()} empleados`}
+                        >
+                           <td className="resumen-label">Total Rem. Neta:</td>
+                           <td className="resumen-value total-remuneracion">
+                              {formatCurrency(calcularTotalRemuneracionNeta())}
+                           </td>
+                        </tr>
+                        <tr 
+                           className="resumen-row"
+                           title={`Total de empleados en la planilla: ${calcularTotalOperarios()}`}
+                        >
+                           <td className="resumen-label">Total de Operarios:</td>
+                           <td className="resumen-value total-operarios">
+                              {calcularTotalOperarios()}
+                           </td>
+                        </tr>
+                        <tr 
+                           className="resumen-row"
+                           title={`${calcularTotalOperarios()} operarios × ₡5,669.23 = ${formatCurrency(calcularTotalOperarios() * 5669.23)}`}
+                        >
+                           <td className="resumen-label">Total de Tarifa:</td>
+                           <td className="resumen-value valor-por-operario">
+                              {calcularTotalOperarios()} × {formatCurrency(5669.23)} = {formatCurrency(calcularTotalOperarios() * 5669.23)}
+                           </td>
+                        </tr>
+                        <tr 
+                           className="resumen-row"
+                           title={`Suma de 'Depósito X Recurso' de ${calcularTotalOperarios()} empleados`}
+                        >
+                           <td className="resumen-label">Monto de Remuneraciones:</td>
+                           <td className="resumen-value monto-remuneraciones">
+                              {formatCurrency(calcularTotalDepositoRecurso())}
+                           </td>
+                        </tr>
+                        <tr 
+                           className="resumen-row"
+                           title={`${formatCurrency(calcularTotalOperarios() * 5669.23)} (Total de Tarifa) + ${formatCurrency(calcularTotalDepositoRecurso())} (Monto de Remuneraciones) = ${formatCurrency(calcularSubtotal())}`}
+                        >
+                           <td className="resumen-label">Subtotal:</td>
+                           <td className="resumen-value subtotal">
+                              {formatCurrency(calcularSubtotal())}
+                           </td>
+                        </tr>
+                        <tr 
+                           className="resumen-row"
+                           title={`${formatCurrency(calcularSubtotal())} (Subtotal) × 13% = ${formatCurrency(calcularIVA())}`}
+                        >
+                           <td className="resumen-label">IVA:</td>
+                           <td className="resumen-value iva">
+                              {formatCurrency(calcularIVA())}
+                           </td>
+                        </tr>
+                        <tr 
+                           className="resumen-row"
+                           title={`${formatCurrency(calcularSubtotal())} (Subtotal) + ${formatCurrency(calcularIVA())} (IVA) = ${formatCurrency(calcularMontoTotal())}`}
+                        >
+                           <td className="resumen-label">Monto Total:</td>
+                           <td className="resumen-value monto-total">
+                              {formatCurrency(calcularMontoTotal())}
+                           </td>
+                        </tr>
+                     </tbody>
+                  </table>
+               </div>
             </div>
          </div>
       </div>
