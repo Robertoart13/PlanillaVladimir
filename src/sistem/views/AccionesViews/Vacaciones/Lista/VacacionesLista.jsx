@@ -6,9 +6,9 @@ import { TarjetaRow } from "../../../../components/TarjetaRow/TarjetaRow";
 
 // Constantes para los textos
 const TEXTOS = {
-   titulo: "Listado de Rebajo a Compensaciones",
-   subtitulo: "Tabla que muestra todos los Rebajo a Compensacion disponibles.",
-   crearEmpresa: "Crear Rebajo a Compensacion",
+   titulo: "Listado de Días de Uso Personal",
+   subtitulo: "Tabla que muestra todos los Días de Uso Personal disponibles.",
+   crearEmpresa: "Crear Día de Uso Personal",
 };
 
 /**
@@ -34,8 +34,8 @@ const obtenerColumnasTabla = () => [
    },
    
    {
-      data: "monto_deduccion",
-      title: "Monto de Rebajo",
+      data: "cantidad_dias",
+      title: "Cantidad de Días",
       searchPanes: { show: true },
       render: (data) => {
          if (!data) return "";
@@ -51,7 +51,7 @@ const obtenerColumnasTabla = () => [
    },
  
    {
-      data: "deduccion_estado",
+      data: "vacaciones_estado",
       title: "Estado",
       searchPanes: { show: true },
       render: (data) => {
@@ -83,8 +83,8 @@ const formatearDatosFila = (datosFila) => ({
    nombre_empleado: datosFila.nombre_empleado,
    planilla_afectada: datosFila.planilla_afectada,
    planilla_tipo: datosFila.planilla_tipo,
-   monto_deduccion: datosFila.monto_deduccion,
-   deduccion_estado: datosFila.deduccion_estado,
+   cantidad_dias: datosFila.cantidad_dias,
+   vacaciones_estado: datosFila.vacaciones_estado,
 });
 
 /**
@@ -99,18 +99,18 @@ const crearConfiguracionTabla = () => ({
 
 
 /**
- * Navega a la página de creación de una nueva Rebajo a Compensacion.
+ * Navega a la página de creación de una nueva Dia de uso Personal
  * @param {Function} navigate - Función de navegación de React Router.
  */
-const navegarCrearDeducciones = (navigate) => {
-   navigate('/acciones/rebajo-compensacion/crear');
+const navegarCrearVacaciones = (navigate) => {
+   navigate('/acciones/dias-uso-personal/crear');
 };
 
 /**
- * Componente principal que muestra la lista de Rebajo a Compensacion.
- * @returns {JSX.Element} Componente de lista de Rebajo a Compensacion.
+ * Componente principal que muestra la lista de Rebajo a  Compensacion.
+ * @returns {JSX.Element} Componente de lista de Dia de uso Personal 
  */
-export const DeduccionesLista = () => {
+export const VacacionesLista = () => {
    const navigate = useNavigate();
 
    const tableRef = useRef(null);
@@ -128,16 +128,16 @@ export const DeduccionesLista = () => {
          nombre_empleado: "Juan Perez",
          planilla_afectada: "Planilla 1",
          planilla_tipo: "Mensual",
-         monto_deduccion: 10000,
-         deduccion_estado: "Activa",
+         cantidad_dias: 10000,
+         vacaciones_estado: "Activa",
       },
       {
          deduccion_id: 2,
          nombre_empleado: "Maria Lopez",
          planilla_afectada: "Planilla 2",
          planilla_tipo: "Quincenal",
-         monto_deduccion: 15000,
-         deduccion_estado: "En Proceso",
+         cantidad_dias: 15000,
+         vacaciones_estado: "En Proceso",
       }
    ];
 
@@ -158,7 +158,7 @@ export const DeduccionesLista = () => {
           >
              <Button
                 variant="contained"
-                onClick={() => navegarCrearDeducciones(navigate)}
+                onClick={() => navegarCrearVacaciones(navigate)}
                 className="user-detail-dialog-buttonSecondary"
                 style={{
                    width: "350px",

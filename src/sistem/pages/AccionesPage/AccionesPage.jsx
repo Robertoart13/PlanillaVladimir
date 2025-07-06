@@ -10,6 +10,8 @@ import { CrearDeduccion } from "../../views/AccionesViews/Deducciones/Crear/Crea
 import { DeduccionesLista } from "../../views/AccionesViews/Deducciones/Lista/DeduccionesLista";
 import { CrearHoraExtra } from "../../views/AccionesViews/Horas-extra/Crear/CrearHoraExtra";
 import { HorasExtraLista } from "../../views/AccionesViews/Horas-extra/Lista/HorasExtraLista";
+import { CrearVacaciones } from "../../views/AccionesViews/Vacaciones/Crear/CrearVacaciones";
+import { VacacionesLista } from "../../views/AccionesViews/Vacaciones/Lista/VacacionesLista";
 
 /**
  * Página para gestionar empresas.
@@ -53,6 +55,12 @@ export const AccionesPage = () => {
                               <div className="row align-items-center">
                                  {accion2 === "lista" && <BonificacionesLista />}
                                  {accion2 === "crear" && <CrearBonificaciones />}
+                              </div>
+                           )}
+                           {accion === "dias-uso-personal" && (
+                              <div className="row align-items-center">
+                                 {accion2 === "lista" && <VacacionesLista />}
+                                 {accion2 === "crear" && <CrearVacaciones />}
                               </div>
                            )}
                            </div>

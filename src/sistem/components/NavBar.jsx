@@ -250,6 +250,24 @@ export const NavBar = ({ isSidebarOpen, isMobile }) => {
                                        </span>
                                     </NavLink>
                                 </li>
+
+                                <li className="pc-item">
+                                    <NavLink
+                                       to="/acciones/dias-uso-personal/lista"
+                                       className="pc-link"
+                                    >
+                                       <span className="pc-micon">
+                                          <i className="fas fa-calendar-plus"></i>
+                                       </span>
+                                       <span
+                                          className="pc-mtext"
+                                          data-i18n="Compensacion Metrica"
+                                          style={{ textAlign: "center" }}
+                                       >
+                                          Días de Uso Personal
+                                       </span>
+                                    </NavLink>
+                                </li>
                               
                              </ul>
                           )}

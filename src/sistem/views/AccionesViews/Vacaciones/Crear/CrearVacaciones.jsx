@@ -10,11 +10,11 @@ const empleados = [
   "Luis Rodriguez",
 ];
 
-export const CrearDeduccion = () => {
+export const CrearVacaciones = () => {
   const [formData, setFormData] = useState({
     planilla: "",
     empleado: "",
-    monto_rebajo: "",
+    cantidad_dias: "",
     aplica_Compensacion_Anual: false,
     estado: "Activo",
   });
@@ -37,9 +37,9 @@ export const CrearDeduccion = () => {
   return (
     <div className="card">
       <div className="card-header">
-        <h5>Crear Rebajo a Compensacion</h5>
+        <h5>Crear Día de Uso Personal</h5>
         <p className="text-muted">
-          Complete el formulario para crear un nuevo registro de Rebajo a Compensacion.
+          Complete el formulario para crear un nuevo registro de Dia de uso Personal
         </p>
       </div>
       
@@ -118,14 +118,14 @@ export const CrearDeduccion = () => {
             {/* Total de Horas Extras */}
             <div className="col-md-6 mb-3">
               <label className="form-label" htmlFor="monto_rebajo">
-                Monto de Rebajo <span className="text-danger">*</span>
+                Cantidad de Días <span className="text-danger">*</span>
               </label>
               <input
                 type="number"
                 className="form-control"
-                id="remuneracion_horas_extras"
-                name="remuneracion_horas_extras"
-                value={formData.remuneracion_horas_extras}
+                id="cantidad_dias"
+                name="cantidad_dias"
+                value={formData.cantidad_dias}
                 onChange={handleChange}
                 placeholder="0"
                 step="0.5"
@@ -149,7 +149,7 @@ export const CrearDeduccion = () => {
                   ¿Aplica a la Compensacion Anual?
                 </label>
                 <div className="form-text">
-                  Marque esta casilla si el rebajo a la compensacion debe aplicarse también al cálculo de la Compensacion Anual
+                  Marque esta casilla si el dia de uso personal debe aplicarse también al cálculo de la Compensacion Anual
                 </div>
               </div>
             </div>
@@ -162,7 +162,7 @@ export const CrearDeduccion = () => {
               className="btn btn-primary"
             >
               <i className="fas fa-save me-2"></i>
-              Crear Rebajo a Compensacion
+              Crear Día de Uso Personal
             </button>
           </div>
         </form>
