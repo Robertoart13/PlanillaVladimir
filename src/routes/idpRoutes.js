@@ -109,7 +109,7 @@ import planilla_estado from "../modules/naturalEmpresa/08-planilla/Planilla_Cmab
  */
 import Gestor_Empleados_Listar from "../modules/GestorPlanilla/01-Gestor-Empleados/Gestor_Empleados_Lista.js";
 import Gestor_Empleado_Crear from "../modules/GestorPlanilla/01-Gestor-Empleados/Gestor_Empleado_Crear.js";
-
+import Gestor_Empleado_Editar from "../modules/GestorPlanilla/01-Gestor-Empleados/Gestor_Empleado_Editar.js";
 
 
 
@@ -593,7 +593,8 @@ function getModulesConfig() {
          category: "Gestor", // Nombre del módulo
          model: {
             ...Gestor_Empleados_Listar,
-            ...Gestor_Empleado_Crear,  
+            ...Gestor_Empleado_Crear,
+            ...Gestor_Empleado_Editar,
          }, // Combinamos ambos modelos
          routes: [
             {
@@ -604,6 +605,11 @@ function getModulesConfig() {
             {
                path: "gestor/empleados/crear", // Ruta para la lista de empleados
                method: "crearTransaccion", // Método que se ejecutará
+               isAuthRequired: true, // Requiere autenticación
+            },
+            {
+               path: "gestor/empleados/editar", // Ruta para la lista de empleados
+               method: "editarTransaccion", // Método que se ejecutará
                isAuthRequired: true, // Requiere autenticación
             },
          ],

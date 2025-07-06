@@ -25,19 +25,22 @@ import { crearRespuestaErrorCrear } from "../../../hooks/crearRespuestaErrorCrea
 const QUERIES = {
    // Consulta SQL para obtener todos los registros de la tabla
    QUERIES_SELECT: `
-   -- Selecciona todos los campos del empleado y el nombre comercial de la empresa a la que pertenece
-   SELECT 
-         e.*,  -- Selecciona todos los campos del registro del empleado desde gestor_empleado_tbl
-         em.nombre_comercial_empresa AS nombre_empresa  -- Alias para mostrar el nombre de la empresa relacionada
-   FROM 
-         gestor_empleado_tbl e  -- Tabla principal: empleados gestionados
-   LEFT JOIN 
-         empresas_tbl em ON e.id_empresa = em.id_empresa  -- Unión externa izquierda para obtener los datos de la empresa (aunque no existan, el empleado igual aparecerá)
-   WHERE 
-         e.id_empresa = ?  -- Filtro para empleados que pertenecen a la empresa con ID 17
-         AND e.estado_empleado_gestor in (?)  -- Filtro adicional para traer únicamente empleados activos
-   GROUP BY 
-         e.id_empleado_gestor;  -- Agrupación por ID único del empleado para evitar registros duplicados en caso de unión 1:N o N:1 (aunque no siempre es necesario en LEFT JOIN 1:1)
+-- Selecciona todos los campos del empleado, el nombre comercial de la empresa y el nombre del supervisor
+SELECT 
+    e.*,  -- Todos los campos del empleado
+    em.nombre_comercial_empresa AS nombre_empresa,  -- Nombre de la empresa (alias)
+    u.nombre_usuario AS nombre_supervisor  -- Nombre del usuario que es supervisor
+FROM 
+    gestor_empleado_tbl e  -- Tabla de empleados
+LEFT JOIN 
+    empresas_tbl em ON e.id_empresa = em.id_empresa  -- Unión con empresas
+LEFT JOIN 
+    usuarios_tbl u ON e.supervisor_empleado_gestor = u.id_usuario  -- Unión con usuarios para obtener el nombre del supervisor
+WHERE 
+    e.id_empresa = ?  -- ID de la empresa (ej. 17)
+    AND e.estado_empleado_gestor IN (?)  -- Estados permitidos (ej. 1 para activos)
+GROUP BY 
+    e.id_empleado_gestor;  -- Agrupación para evitar duplicados por JOINs
 
       `,
 };
