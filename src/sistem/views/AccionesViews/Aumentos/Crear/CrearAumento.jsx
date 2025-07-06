@@ -201,7 +201,11 @@ export const CrearAumento = () => {
       if (!selectedEmpleadoData) return;
 
       // Validación de monto del aumento
-      if (!formData.monto_aumento || isNaN(formData.monto_aumento) || Number(formData.monto_aumento) <= 0) {
+      if (
+         !formData.monto_aumento ||
+         isNaN(formData.monto_aumento) ||
+         Number(formData.monto_aumento) <= 0
+      ) {
          setError(true);
          setMessage("El monto del aumento es obligatorio y debe ser mayor a cero.");
          return;
@@ -250,30 +254,29 @@ export const CrearAumento = () => {
             cancelButton: "btn btn-secondary ms-2",
          },
          buttonsStyling: false,
+      });
+      if (result.isConfirmed) {
+         Swal.fire({
+            title: "Creando planilla",
+            text: "Por favor espere...",
+            allowOutsideClick: false,
+            didOpen: () => {
+               Swal.showLoading();
+            },
          });
-         if (result.isConfirmed) {  
-        Swal.fire({
-          title: "Creando planilla",
-          text: "Por favor espere...",
-          allowOutsideClick: false,
-          didOpen: () => {
-            Swal.showLoading();
-          },
-        });
          const response = await dispatch(fetchData_api(formData, "gestor/planilla/aumentos/crear"));
 
          if (response.success) {
             setError(false);
 
             Swal.fire({
-                  title: "Aumento creado exitosamente",
-                  text: "El Aumento ha sido creado exitosamente",
-                  icon: "success",
-                  confirmButtonText: "Aceptar",
-               })
-               .then(() => {
-                  navigate("/acciones/aumentos/lista");
-               });
+               title: "Aumento creado exitosamente",
+               text: "El Aumento ha sido creado exitosamente",
+               icon: "success",
+               confirmButtonText: "Aceptar",
+            }).then(() => {
+               navigate("/acciones/aumentos/lista");
+            });
          } else {
             const errorMessage = response.message || "Error al crear el Aumento";
             setError(true);

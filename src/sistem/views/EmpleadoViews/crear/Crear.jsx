@@ -204,9 +204,26 @@ const useEmployeeForm = () => {
             return;
          }
 
+         // Confirmación antes de crear el socio
+         const confirmResult = await swal.fire({
+            title: "¿Confirmar creación?",
+            text: "¿Está seguro que desea crear este Socio?",
+            icon: "question",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Sí, crear Socio",
+            cancelButtonText: "Cancelar"
+         });
+
+         // Si el usuario cancela, no continuar
+         if (!confirmResult.isConfirmed) {
+            return;
+         }
+
          setIsLoading(true);
 
-         const result = await swal.fire({
+         swal.fire({
             title: "Creando Socio",
             text: "Espere un momento mientras se crea el Socio",
             icon: "info",
@@ -216,37 +233,35 @@ const useEmployeeForm = () => {
             allowEscapeKey: false,
             allowEnterKey: false,
             allowClosePropagation: false,
-         })
-         if (result.isConfirmed) {
+         });
 
-            const response = await dispatch(fetchData_api(formData, "gestor/empleados/crear"));
+         const response = await dispatch(fetchData_api(formData, "gestor/empleados/crear"));
 
-            if (response.success) {
-               setError(false);
+         if (response.success) {
+            setError(false);
 
-               swal.fire({
-                  title: "Socio creado exitosamente",
-                  text: "El Socio ha sido creado exitosamente",
-                  icon: "success",
-                  confirmButtonText: "Aceptar",
-               }).then(() => {
-                  setFormData(getInitialFormData());
-                  validation.clearAllErrors();
-                  navigate("/empleados/lista");
-               });
-            
-            } else {
-               const errorMessage = improveErrorMessage(response.message || "Error al crear el Socio");
+            swal.fire({
+               title: "Socio creado exitosamente",
+               text: "El Socio ha sido creado exitosamente",
+               icon: "success",
+               confirmButtonText: "Aceptar",
+            }).then(() => {
+               setFormData(getInitialFormData());
+               validation.clearAllErrors();
+               navigate("/empleados/lista");
+            });
+           
+         } else {
+            const errorMessage = improveErrorMessage(response.message || "Error al crear el Socio");
 
-               swal.fire({
-                  title: "Error al crear el Socio",
-                  text: errorMessage,
-                  icon: "error",
-                  confirmButtonText: "Aceptar",
-               });
-               setError(true);
-               setMessage(errorMessage);
-            }
+            swal.fire({
+               title: "Error al crear el Socio",
+               text: errorMessage,
+               icon: "error",
+               confirmButtonText: "Aceptar",
+            });
+            setError(true);
+            setMessage(errorMessage);
          }
       } catch (error) {
          setError(true);

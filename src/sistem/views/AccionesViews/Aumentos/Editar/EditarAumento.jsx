@@ -169,20 +169,20 @@ export const EditarAumento = () => {
    useEffect(() => {
       if (isDataLoaded && planillaData.length > 0 && formData.planilla) {
          const planillaObj = findById(planillaData, formData.planilla, "planilla_id");
-         
+
          if (!planillaObj) {
             // La planilla no está disponible en las opciones
             setCanEdit(false);
             setError(true);
             setMessage(
-               "No se pudo seleccionar la planilla. Puede que esté cerrada, aplicada o procesada. Favor verificar en la vista de planillas si está en proceso."
+               "No se pudo seleccionar la planilla. Puede que esté cerrada, aplicada o procesada. Favor verificar en la vista de planillas si está en proceso.",
             );
          } else {
             // La planilla existe, verificar su estado
             const planillaEstado = planillaObj.planilla_estado;
             const puedeEditar = planillaEstado === "En Proceso";
             setCanEdit(puedeEditar);
-            
+
             if (!puedeEditar) {
                setError(true);
                setMessage(
@@ -204,11 +204,9 @@ export const EditarAumento = () => {
 
          // Verificar si se puede editar basado en el estado de la planilla
          if (planillaObj) {
-          
             const planillaEstado = planillaObj.planilla_estado;
             const puedeEditar = planillaEstado === "En Proceso";
             setCanEdit(puedeEditar);
-            
 
             if (!puedeEditar) {
                setError(true);
@@ -448,30 +446,38 @@ export const EditarAumento = () => {
                      </div>
                   </div>
                )}
-               
+
                {/* Alert for Planilla Not Available */}
-               {isDataLoaded && planillaData.length > 0 && formData.planilla && !selectedPlanillaData && (
-                  <div className="alert alert-danger mb-3" role="alert">
-                     <div className="d-flex align-items-center">
-                        <i className="fas fa-exclamation-triangle me-2"></i>
-                        <div>
-                           <strong>Planilla no disponible:</strong> La planilla seleccionada no está disponible en las opciones actuales.
-                           <div className="mt-2">
-                              <strong>Posibles razones:</strong>
-                              <ul className="mb-0 mt-1">
-                                 <li>La planilla puede estar cerrada</li>
-                                 <li>La planilla puede estar aplicada</li>
-                                 <li>La planilla puede estar procesada</li>
-                                 <li>La planilla puede estar cancelada</li>
-                              </ul>
-                           </div>
-                           <div className="mt-2">
-                              <strong>Acción requerida:</strong> Favor verificar en la vista de planillas si está en proceso.
+               {isDataLoaded &&
+                  planillaData.length > 0 &&
+                  formData.planilla &&
+                  !selectedPlanillaData && (
+                     <div
+                        className="alert alert-danger mb-3"
+                        role="alert"
+                     >
+                        <div className="d-flex align-items-center">
+                           <i className="fas fa-exclamation-triangle me-2"></i>
+                           <div>
+                              <strong>Planilla no disponible:</strong> La planilla seleccionada no
+                              está disponible en las opciones actuales.
+                              <div className="mt-2">
+                                 <strong>Posibles razones:</strong>
+                                 <ul className="mb-0 mt-1">
+                                    <li>La planilla puede estar cerrada</li>
+                                    <li>La planilla puede estar aplicada</li>
+                                    <li>La planilla puede estar procesada</li>
+                                    <li>La planilla puede estar cancelada</li>
+                                 </ul>
+                              </div>
+                              <div className="mt-2">
+                                 <strong>Acción requerida:</strong> Favor verificar en la vista de
+                                 planillas si está en proceso.
+                              </div>
                            </div>
                         </div>
                      </div>
-                  </div>
-               )}
+                  )}
                {/* Alert for Empleado Seleccionado */}
                {selectedEmpleadoData && (
                   <div
@@ -500,7 +506,7 @@ export const EditarAumento = () => {
                      {message}
                   </div>
                )}
-               
+
                {/* Mostrar mensaje de error cuando la planilla existe pero no se puede editar */}
                {error && message && selectedPlanillaData && !canEdit && (
                   <div
@@ -574,11 +580,17 @@ export const EditarAumento = () => {
                            </option>
                         ))}
                         {/* Mostrar la planilla actual si no está en las opciones */}
-                        {isDataLoaded && planillaData.length > 0 && formData.planilla && !selectedPlanillaData && (
-                           <option value={formData.planilla} disabled>
-                              Planilla ID: {formData.planilla} (No disponible)
-                           </option>
-                        )}
+                        {isDataLoaded &&
+                           planillaData.length > 0 &&
+                           formData.planilla &&
+                           !selectedPlanillaData && (
+                              <option
+                                 value={formData.planilla}
+                                 disabled
+                              >
+                                 Planilla ID: {formData.planilla} (No disponible)
+                              </option>
+                           )}
                      </select>
                   </div>
                   {/* Empleado */}

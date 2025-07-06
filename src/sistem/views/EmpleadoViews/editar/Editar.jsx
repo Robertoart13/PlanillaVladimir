@@ -264,19 +264,23 @@ const useEmployeeEditForm = () => {
 
          setIsLoading(true);
 
-         const result = await swal.fire({
-            title: "Actualizando Socio",
-            text: "Espere un momento mientras se actualiza el Socio",
-            icon: "info",
-            showConfirmButton: false,
-            showCancelButton: false,
-            allowOutsideClick: false,
-            allowEscapeKey: false,
-            allowEnterKey: false,
-            allowClosePropagation: false,
+         
+         // Confirmación antes de crear el socio
+         const confirmResult = await swal.fire({
+            title: "¿Confirmar actualización?",
+            text: "¿Está seguro que desea actualizar este Socio?",
+            icon: "question",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Sí, actualizar Socio",
+            cancelButtonText: "Cancelar"
          });
 
-         if (result.isConfirmed) {
+         // Si el usuario cancela, no continuar
+         if (!confirmResult.isConfirmed) {
+            return;
+         }
             // Get employee ID from localStorage
             const selectedEmployeeData = localStorage.getItem("selectedEmpleado");
             const employeeData = JSON.parse(selectedEmployeeData);
@@ -317,7 +321,7 @@ const useEmployeeEditForm = () => {
                setError(true);
                setMessage(errorMessage);
             }
-         }
+         
       } catch (error) {
          setError(true);
          setMessage("Error inesperado al actualizar el Socio");
