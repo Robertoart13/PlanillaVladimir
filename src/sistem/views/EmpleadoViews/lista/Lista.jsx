@@ -2,6 +2,12 @@ import { useMemo } from "react";
 import { TarjetaRow } from "../../../components/TarjetaRow/TarjetaRow";
 import { Button, Stack } from "@mui/material";
 import { useNavigate } from "react-router-dom";
+import { useRef, useState } from "react";
+
+// campos importantes
+import { useSelector } from "react-redux";
+import { useDataTable } from "../../../../hooks/getDataTableConfig";
+import { ErrorMessage } from "../../../components/ErrorMessage/ErrorMessage";
 
 /**
  * Obtiene las columnas de la tabla configuradas.
@@ -9,56 +15,45 @@ import { useNavigate } from "react-router-dom";
  */
 const obtenerColumnasTabla = () => [
    {
-      data: null,
+      data: "nombre_completo_empleado_gestor",
       title: "Nombre Completo",
       searchPanes: { show: true },
-      render: (data, type, row) => `${row.nombre_empleado} ${row.apellidos_empleado}`,
    },
    {
-      data: "cedula_empleado",
-      title: "Identificador Fiscal",
-      searchPanes: { show: true },
-   },
-   {
-      data: "cedula_empleado",
+      data: "cedula_empleado_gestor",
       title: "Cédula",
       searchPanes: { show: true },
    },
    {
-      data: "correo_empleado",
+      data: "correo_empleado_gestor",
       title: "Correo",
       searchPanes: { show: true },
    },
    {
-      data: "nombre_empresa",
-      title: "Empresa",
-      searchPanes: { show: true },
-   },
-   {
-      data: "nombre_supervisor",
+      data: "supervisor_empleado_gestor",
       title: "Supervisor",
       searchPanes: { show: true },
    },
    {
-      data: "ministerio_hacienda_empleado",
+      data: "ministerio_hacienda_empleado_gestor",
       title: "Ministerio de Hacienda",
       searchPanes: { show: true },
       render: (data) => renderEstadoInscripcion(data),
    },
    {
-      data: "rt_ins_empleado",
+      data: "rt_ins_empleado_gestor",
       title: "RT-INS",
       searchPanes: { show: true },
       render: (data) => renderEstadoInscripcion(data),
    },
    {
-      data: "caja_costarricense_seguro_social_empleado",
+      data: "ccss_empleado_gestor",
       title: "CCSS",
       searchPanes: { show: true },
       render: (data) => renderEstadoInscripcion(data),
    },
    {
-      data: "estado_empleado",
+      data: "estado_empleado_gestor",
       title: "Estado",
       searchPanes: { show: true },
       render: (data) => renderEstadoEmpleado(data),
@@ -67,7 +62,7 @@ const obtenerColumnasTabla = () => [
 
 /**
  * Renderiza el estado de inscripción de un empleado.
- * @param {number} data - Valor que indica si el empleado está inscrito.
+ * @param {number} data - Valor que indica si el empleado está inscrito (1 = Inscrito, 0 = No Inscrito).
  * @returns {string} HTML que representa el estado de inscripción.
  */
 const renderEstadoInscripcion = (data) => {
@@ -81,7 +76,7 @@ const renderEstadoInscripcion = (data) => {
 
 /**
  * Renderiza el estado de un empleado.
- * @param {number} data - Valor que indica si el empleado está activo.
+ * @param {number} data - Valor que indica si el empleado está activo (1 = Activo, 0 = Inactivo).
  * @returns {string} HTML que representa el estado del empleado.
  */
 const renderEstadoEmpleado = (data) => {
@@ -93,23 +88,116 @@ const renderEstadoEmpleado = (data) => {
    `;
 };
 
+const formatearDatosEmpleado = (datosEmpleado) => ({
+   id_empleado_gestor: datosEmpleado.id_empleado_gestor,
+   nombre_completo_empleado_gestor: datosEmpleado.nombre_completo_empleado_gestor,
+   correo_empleado_gestor: datosEmpleado.correo_empleado_gestor,
+   telefono_empleado_gestor: datosEmpleado.telefono_empleado_gestor,
+   cedula_empleado_gestor: datosEmpleado.cedula_empleado_gestor,
+   salario_base_empleado_gestor: datosEmpleado.salario_base_empleado_gestor,
+   tipo_contrato_empleado_gestor: datosEmpleado.tipo_contrato_empleado_gestor,
+   departamento_empleado_gestor: datosEmpleado.departamento_empleado_gestor,
+   puesto_empleado_gestor: datosEmpleado.puesto_empleado_gestor,
+   supervisor_empleado_gestor: datosEmpleado.supervisor_empleado_gestor,
+   id_empresa: datosEmpleado.id_empresa,
+   fecha_ingreso_empleado_gestor: datosEmpleado.fecha_ingreso_empleado_gestor,
+   fecha_salida_empleado_gestor: datosEmpleado.fecha_salida_empleado_gestor,
+   jornada_laboral_empleado_gestor: datosEmpleado.jornada_laboral_empleado_gestor,
+   numero_asegurado_empleado_gestor: datosEmpleado.numero_asegurado_empleado_gestor,
+   numero_ins_empleado_gestor: datosEmpleado.numero_ins_empleado_gestor,
+   numero_hacienda_empleado_gestor: datosEmpleado.numero_hacienda_empleado_gestor,
+   cuenta_bancaria_1_empleado_gestor: datosEmpleado.cuenta_bancaria_1_empleado_gestor,
+   cuenta_bancaria_2_empleado_gestor: datosEmpleado.cuenta_bancaria_2_empleado_gestor,
+   vacaciones_acumuladas_empleado_gestor: datosEmpleado.vacaciones_acumuladas_empleado_gestor,
+   aguinaldo_acumulado_empleado_gestor: datosEmpleado.aguinaldo_acumulado_empleado_gestor,
+   cesantia_acumulada_empleado_gestor: datosEmpleado.cesantia_acumulada_empleado_gestor,
+   ministerio_hacienda_empleado_gestor: datosEmpleado.ministerio_hacienda_empleado_gestor,
+   rt_ins_empleado_gestor: datosEmpleado.rt_ins_empleado_gestor,
+   ccss_empleado_gestor: datosEmpleado.ccss_empleado_gestor,
+   moneda_pago_empleado_gestor: datosEmpleado.moneda_pago_empleado_gestor,
+   tipo_planilla_empleado_gestor: datosEmpleado.tipo_planilla_empleado_gestor,
+   estado_empleado_gestor: datosEmpleado.estado_empleado_gestor,
+});
+
 /**
  * Componente principal que muestra la lista de empleados.
  * @returns {JSX.Element} Componente de lista de empleados.
  */
 export const EmpleadoLista = () => {
+   // Obtener el usuario autenticado desde Redux.
+   const { user } = useSelector((state) => state.auth);
+
    const navigate = useNavigate();
 
+   const tableRef = useRef(null);
+   const tableInstanceRef = useRef(null);
+
+   // Estados para manejar errores y mensajes.
+   const [error, setError] = useState(false);
+   const [message, setMessage] = useState("");
+
+   // Estado para manejar la selección de un artículo.
+   const [selected, setSelected] = useState(null);
+
+   // Estado para controlar la apertura del diálogo de creación de artículos.
+   const [openCreate, setOpenCreate] = useState(false);
+
+   // Estado para controlar la apertura del diálogo de edición
+   const [openEdit, setOpenEdit] = useState(false);
+
    /**
-    * Configuración para la tabla de empleados.
-    * Define las columnas y su configuración.
+    * Configuración para la tabla de catálogo de cuentas.
+    * Define el endpoint, el tipo de solicitud y los permisos necesarios.
     */
    const configuracionTabla = useMemo(
       () => ({
+         urlEndpoint: "gestor/empleados", // API endpoint para obtener los datos.
+         requestType: "POST", // Método HTTP para la solicitud.
+         transaccion: {
+            user: {
+               id: parseInt(user?.id_usuario) || 0,
+               rol: parseInt(user?.id_rol) || 0,
+            },
+            acceso: {
+               type: 0,
+               permiso: 0,
+               details: "No tienes permiso para ver la lista de empleados",
+            },
+         },
+         columnsLayout: "columns-2", // Diseño de columnas en la tabla.
          columns: obtenerColumnasTabla(), // Definición de columnas.
       }),
-      [], // No depende de ningún valor que cambie.
+      [user?.id_usuario], // Se actualiza si cambia el usuario autenticado.
    );
+
+   // Inicializa la tabla con los parámetros configurados.
+   useDataTable(
+      tableRef,
+      tableInstanceRef,
+      setSelected,
+      setOpenEdit,
+      setError,
+      setMessage,
+      user,
+      configuracionTabla.urlEndpoint,
+      configuracionTabla.requestType,
+      configuracionTabla.transaccion,
+      configuracionTabla.columnsLayout,
+      configuracionTabla.columnsFilter,
+      configuracionTabla.columns,
+      formatearDatosEmpleado,
+   );
+
+   /**
+    * Maneja el clic en una fila de la tabla.
+    * @param {Object} datosFila - Datos de la fila seleccionada.
+    */
+   const manejarClicFila = (datosFila) => {
+      // Almacena los datos de la fila seleccionada en el almacenamiento local
+      localStorage.setItem("selectedEmpleado", JSON.stringify(datosFila));
+      // Navega a la página de edición
+      navigate("/empleados/editar");
+   };
 
    /**
     * Abre el diálogo para crear un nuevo empleado.
@@ -124,6 +212,13 @@ export const EmpleadoLista = () => {
             texto="Listado de Empleados"
             subtitulo="Tabla que muestra todos los empleados disponibles."
          >
+            {/* Muestra mensajes de error cuando ocurren */}
+            {error && (
+               <ErrorMessage
+                  error={error}
+                  message={message}
+               />
+            )}
             {/* Botones para crear */}
             <Stack
                direction="row"
@@ -150,17 +245,12 @@ export const EmpleadoLista = () => {
             <div className="table-responsive">
                <div className="datatable-wrapper datatable-loading no-footer searchable fixed-columns">
                   <div className="datatable-container">
-                     <table className="table table-hover datatable-table">
-                        <thead>
-                           <tr>
-                              {configuracionTabla.columns.map((columna, index) => (
-                                 <th key={index}>{columna.title}</th>
-                              ))}
-                           </tr>
-                        </thead>
-                        <tbody>
-                           {/* Aquí se agregarán los datos cuando esté listo */}
-                        </tbody>
+                     <table
+                        ref={tableRef}
+                        className="table table-hover datatable-table"
+                     >
+                        <thead></thead>
+                        <tbody></tbody>
                      </table>
                   </div>
                </div>

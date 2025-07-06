@@ -16,7 +16,7 @@ export const CrearEmpleado = () => {
       departamento: "",
       puesto: "",
       supervisor: "",
-      id_empresa: "1", // Campo oculto
+      id_empresa: "", // Campo oculto
       fecha_ingreso: "",
       fecha_salida: "",
       jornada_laboral: "",

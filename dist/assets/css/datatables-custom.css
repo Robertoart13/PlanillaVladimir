@@ -1,0 +1,12 @@
+/* Estilos personalizados para ocultar elementos específicos de DataTables SearchPanes */
+
+/* Ocultar el botón de limpiar (×) */
+
+
+
+
+
+/* Ocultar específicamente los botones deshabilitados */
+.btn-group .btn.disabled {
+    display: none !important;
+}
