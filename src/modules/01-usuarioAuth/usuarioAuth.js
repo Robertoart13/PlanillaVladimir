@@ -16,9 +16,16 @@ import bcrypt from "bcryptjs";
  */
 const QUERIES = {
    USUARIO_POR_EMAIL: `
-    SELECT *
-    FROM usuarios_tbl
-    WHERE email_usuario = ?
+    SELECT 
+    u.*, 
+      e.nombre_comercial_empresa
+   FROM 
+      usuarios_tbl u
+   LEFT JOIN 
+      empresas_tbl e ON u.id_empresa_usuario = e.id_empresa
+   WHERE 
+      u.email_usuario = ?;
+
   `,
 };
 
@@ -37,6 +44,7 @@ const construirPayloadToken = (usuario) => ({
    intentos_login_usuario: usuario.intentos_login_usuario,
    login_usuario: usuario.login_usuario,
    id_empresa_usuario: usuario.id_empresa_usuario,
+   nombre_empresa: usuario.nombre_comercial_empresa,
 });
 
 /**
@@ -174,6 +182,7 @@ const prepararDatosUsuario = (usuario) => ({
    intentos_login_usuario: usuario.intentos_login_usuario,
    login_usuario: usuario.login_usuario,
    id_empresa_usuario: usuario.id_empresa_usuario,
+   nombre_empresa: usuario.nombre_comercial_empresa,
 });
 
 /**
