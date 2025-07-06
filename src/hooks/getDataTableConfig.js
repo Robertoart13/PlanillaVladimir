@@ -5,11 +5,11 @@ import "datatables.net";
 import "datatables.net-bs5";
 import "datatables.net-searchpanes-bs5";
 import "datatables.net-select-bs5";
-// import { verificarErroresRespuesta } from "./verificarErroresRespuesta";
-// import { crearRespuestaError } from "./crearRespuestaError";
+import { verificarErroresRespuesta } from "./verificarErroresRespuesta";
+import { crearRespuestaError } from "./crearRespuestaError";
 
 /**
- * Genera configuración para DataTables con opciones personalizadas  
+ * Genera configuración para DataTables con opciones personalizadas
  *
  * @param {Object} Parámetros requeridos
  * @param {Function} setError - Función para establecer estado de error

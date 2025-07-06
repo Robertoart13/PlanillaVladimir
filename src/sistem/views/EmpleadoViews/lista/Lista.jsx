@@ -15,6 +15,11 @@ import { ErrorMessage } from "../../../components/ErrorMessage/ErrorMessage";
  */
 const obtenerColumnasTabla = () => [
    {
+      data: "id_empleado_gestor",
+      title: "N° Socio",
+      searchPanes: { show: true },
+   },
+   {
       data: "nombre_completo_empleado_gestor",
       title: "Nombre Completo",
       searchPanes: { show: true },
@@ -61,8 +66,8 @@ const obtenerColumnasTabla = () => [
 ];
 
 /**
- * Renderiza el estado de inscripción de un empleado.
- * @param {number} data - Valor que indica si el empleado está inscrito (1 = Inscrito, 0 = No Inscrito).
+ * Renderiza el estado de inscripción de un Socio.
+ * @param {number} data - Valor que indica si el Socio está inscrito (1 = Inscrito, 0 = No Inscrito).
  * @returns {string} HTML que representa el estado de inscripción.
  */
 const renderEstadoInscripcion = (data) => {
@@ -75,9 +80,9 @@ const renderEstadoInscripcion = (data) => {
 };
 
 /**
- * Renderiza el estado de un empleado.
- * @param {number} data - Valor que indica si el empleado está activo (1 = Activo, 0 = Inactivo).
- * @returns {string} HTML que representa el estado del empleado.
+ * Renderiza el estado de un Socio.
+ * @param {number} data - Valor que indica si el Socio está activo (1 = Activo, 0 = Inactivo).
+ * @returns {string} HTML que representa el estado del Socio.
  */
 const renderEstadoEmpleado = (data) => {
    const estaActivo = data === 1;
@@ -120,8 +125,8 @@ const formatearDatosEmpleado = (datosEmpleado) => ({
 });
 
 /**
- * Componente principal que muestra la lista de empleados.
- * @returns {JSX.Element} Componente de lista de empleados.
+ * Componente principal que muestra la lista de Socios.
+ * @returns {JSX.Element} Componente de lista de Socios.
  */
 export const EmpleadoLista = () => {
    // Obtener el usuario autenticado desde Redux.
@@ -146,7 +151,7 @@ export const EmpleadoLista = () => {
    // Estado para controlar la apertura del diálogo de edición
    const [openEdit, setOpenEdit] = useState(false);
 
-   // Estado para el filtro de estado de empleados (1 = Activos, 2 = Inactivos, 3 = Todos)
+   // Estado para el filtro de estado de Socios (1 = Activos, 2 = Inactivos, 3 = Todos)
    const [estadoFiltro, setEstadoFiltro] = useState(1);
 
    /**
@@ -175,7 +180,7 @@ export const EmpleadoLista = () => {
             acceso: {
                type: 0,
                permiso: 0,
-               details: "No tienes permiso para ver la lista de empleados",
+               details: "No tienes permiso para ver la lista de Socios",
             },
          },
          columnsLayout: "columns-2", // Diseño de columnas en la tabla.
@@ -223,8 +228,8 @@ export const EmpleadoLista = () => {
    return (
       <>
          <TarjetaRow
-            texto="Listado de Empleados"
-            subtitulo="Tabla que muestra todos los empleados disponibles."
+            texto="Listado de Socios"
+            subtitulo="Tabla que muestra todos los Socios disponibles."
          >
             {/* Muestra mensajes de error cuando ocurren */}
             {error && (
@@ -244,7 +249,7 @@ export const EmpleadoLista = () => {
                   justifyContent: "space-between",
                }}
             >
-               {/* Botón para crear empleado */}
+               {/* Botón para crear Socio */}
                <Button
                   variant="contained"
                   onClick={abrirCrearEmpleado}
@@ -255,10 +260,10 @@ export const EmpleadoLista = () => {
                      className="ph-duotone ph-certificate"
                      style={{ paddingRight: "5px" }}
                   ></i>
-                  Crear Empleado
+                  Crear Socio
                </Button>
 
-               {/* Filtro de estado de empleados */}
+               {/* Filtro de estado de Socios */}
                <FormControl sx={{ minWidth: "250px" }}>
                   <InputLabel id="estado-filtro-label">Filtrar por Estado</InputLabel>
                   <Select
@@ -268,9 +273,9 @@ export const EmpleadoLista = () => {
                      label="Filtrar por Estado"
                      onChange={(e) => handleEstadoChange(e.target.value)}
                   >
-                     <MenuItem value={1}>Empleados Activos</MenuItem>
-                     <MenuItem value={2}>Empleados Inactivos</MenuItem>
-                     <MenuItem value={3}>Todos los Empleados</MenuItem>
+                     <MenuItem value={1}>Socios Activos</MenuItem>
+                     <MenuItem value={2}>Socios Inactivos</MenuItem>
+                     <MenuItem value={3}>Todos los Socios</MenuItem>
                   </Select>
                </FormControl>
             </Stack>

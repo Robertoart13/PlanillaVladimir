@@ -8,7 +8,7 @@ import { getDataTableConfig } from "./getDataTableConfig";
 
 /**
  * Custom React hook for initializing, managing, and cleaning up jQuery DataTables.
- *  
+ * 
  * This hook handles the complete lifecycle of a DataTable instance:
  * - Initializes the DataTable with the provided configuration
  * - Handles cleanup when the component unmounts

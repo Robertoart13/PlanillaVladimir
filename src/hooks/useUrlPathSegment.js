@@ -10,9 +10,8 @@ import { useLocation } from "react-router-dom";
  * - Para la URL "/permisos/lista":
  *   - useSegmentoRutaUrl(0) devuelve "permisos"
  *   - useSegmentoRutaUrl(1) devuelve "lista"
- *   - useSegmentoRutaUrl(2) devuelve null 
+ *   - useSegmentoRutaUrl(2) devuelve null
  */
-
 export const useSegmentoRutaUrl = (indiceSegmento = 0) => {
   const ubicacion = useLocation();
   
