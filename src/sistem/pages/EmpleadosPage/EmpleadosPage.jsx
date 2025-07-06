@@ -4,6 +4,7 @@ import { SistemLayout } from "../../layout/SistemLayout";
 import { useSegmentoRutaUrl } from "../../../hooks/useUrlPathSegment";
 import { EmpleadoLista } from "../../views/EmpleadoViews/lista/Lista";
 import { CrearEmpleado } from "../../views/EmpleadoViews/crear/Crear";
+import { EditarEmpleado } from "../../views/EmpleadoViews/editar/Editar";
 // import { CrearEmpleado } from "../../views/EmpleadoViews/crear/crear";
 // import { EditarEmpleado } from "../../views/EmpleadoViews/editar/Editar";;
 
@@ -29,7 +30,7 @@ export const EmpleadosPage = () => {
                      <>
                          {accion === "lista" && <EmpleadoLista />}
                         {accion === "crear" && <CrearEmpleado />}
-                        {/* {accion === "editar" && <EditarEmpleado />} */}
+                        {accion === "editar" && <EditarEmpleado />}
                      </>
               
                </div>

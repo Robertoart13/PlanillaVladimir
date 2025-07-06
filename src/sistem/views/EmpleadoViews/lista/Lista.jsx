@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
 import { TarjetaRow } from "../../../components/TarjetaRow/TarjetaRow";
 import { Button, Stack, FormControl, InputLabel, Select, MenuItem } from "@mui/material";
 import { useNavigate } from "react-router-dom";
@@ -15,7 +15,7 @@ import { ErrorMessage } from "../../../components/ErrorMessage/ErrorMessage";
  */
 const obtenerColumnasTabla = () => [
    {
-      data: "id_empleado_gestor",
+      data: "numero_socio_empleado_gestor",
       title: "N° Socio",
       searchPanes: { show: true },
    },
@@ -95,6 +95,7 @@ const renderEstadoEmpleado = (data) => {
 
 const formatearDatosEmpleado = (datosEmpleado) => ({
    id_empleado_gestor: datosEmpleado.id_empleado_gestor,
+   numero_socio_empleado_gestor: datosEmpleado.numero_socio_empleado_gestor,
    nombre_completo_empleado_gestor: datosEmpleado.nombre_completo_empleado_gestor,
    correo_empleado_gestor: datosEmpleado.correo_empleado_gestor,
    telefono_empleado_gestor: datosEmpleado.telefono_empleado_gestor,
@@ -207,13 +208,33 @@ export const EmpleadoLista = () => {
       formatearDatosEmpleado,
    );
 
+   // Manejar la selección de empleado para editar
+   useEffect(() => {
+      if (selected) {
+         manejarClicFila(selected);
+         // Limpiar la selección después de navegar
+         setSelected(null);
+      }
+   }, [selected]);
+
    /**
     * Maneja el clic en una fila de la tabla.
     * @param {Object} datosFila - Datos de la fila seleccionada.
     */
    const manejarClicFila = (datosFila) => {
-      // Almacena los datos de la fila seleccionada en el almacenamiento local
-      localStorage.setItem("selectedEmpleado", JSON.stringify(datosFila));
+      console.log("Datos de fila seleccionada:", datosFila);
+      
+      // Formatear todos los datos del empleado usando la función formatearDatosEmpleado
+      const datosFormateados = formatearDatosEmpleado(datosFila);
+      console.log("Datos formateados:", datosFormateados);
+      
+      // Almacena todos los datos formateados en el almacenamiento local
+      localStorage.setItem("selectedEmpleado", JSON.stringify(datosFormateados));
+      
+      // Verificar que se guardó correctamente
+      const datosGuardados = localStorage.getItem("selectedEmpleado");
+      console.log("Datos guardados en localStorage:", JSON.parse(datosGuardados));
+      
       // Navega a la página de edición
       navigate("/empleados/editar");
    };

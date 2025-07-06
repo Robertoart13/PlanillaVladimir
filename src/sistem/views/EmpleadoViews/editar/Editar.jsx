@@ -137,269 +137,107 @@ const useFormValidation = () => {
 };
 
 /**
- * Custom hook for managing form data and validation
+ * Custom hook for managing form data and validation for editing
  * @returns {Object} - Object containing form data, handlers, and validation functions
  */
-const useEmployeeForm = () => {
+const useEmployeeEditForm = () => {
    const [error, setError] = useState(false);
    const [message, setMessage] = useState("");
    const [isLoading, setIsLoading] = useState(false);
+   const [isLoadingData, setIsLoadingData] = useState(true);
    const validation = useFormValidation();
    const navigate = useNavigate();
    const dispatch = useDispatch();
 
-
    const [formData, setFormData] = useState(getInitialFormData());
 
-   // Debug effect to log form data changes
+   // Load employee data on component mount
    useEffect(() => {
-      console.log("Form data updated:", formData);
-   }, [formData]);
+      loadEmployeeData();
+   }, []);
 
    /**
-    * Handles email validation on change using shared utilities
-    * @param {string} email - The email value to validate
+    * Loads employee data from localStorage and API
     */
-   const handleEmailValidationLocal = (email) => {
-      handleEmailValidation(email, validation.setEmailError);
+   const loadEmployeeData = async () => {
+      try {
+         setIsLoadingData(true);
+         
+         // Get employee data from localStorage (set by the list component)
+         const selectedEmployeeData = localStorage.getItem("selectedEmpleado");
+         
+         if (!selectedEmployeeData) {
+            setError(true);
+            setMessage("No se encontraron datos del Socio para editar");
+            return;
+         }
+
+         const employeeData = JSON.parse(selectedEmployeeData);
+         
+         // Debug: Log the employee data to verify it's being loaded correctly
+         console.log("Employee data loaded from localStorage:", employeeData);
+         
+         // Transform the data to match our form structure
+         const transformedData = {
+            nombre_completo: employeeData.nombre_completo_empleado_gestor || "",
+            correo: employeeData.correo_empleado_gestor || "",
+            telefono: employeeData.telefono_empleado_gestor || "",
+            cedula: employeeData.cedula_empleado_gestor || "",
+            salario_base: employeeData.salario_base_empleado_gestor || "",
+            tipo_contrato: employeeData.tipo_contrato_empleado_gestor || "",
+            departamento: employeeData.departamento_empleado_gestor || "",
+            puesto: employeeData.puesto_empleado_gestor || "",
+            supervisor: employeeData.supervisor_empleado_gestor || "",
+            id_empresa: employeeData.id_empresa || "",
+            fecha_ingreso: employeeData.fecha_ingreso_empleado_gestor || "",
+            fecha_salida: employeeData.fecha_salida_empleado_gestor || "",
+            jornada_laboral: employeeData.jornada_laboral_empleado_gestor || "",
+            numero_asegurado: employeeData.numero_asegurado_empleado_gestor || "",
+            numero_ins: employeeData.numero_ins_empleado_gestor || "",
+            numero_hacienda: employeeData.numero_hacienda_empleado_gestor || "",
+            cuenta_bancaria_1: employeeData.cuenta_bancaria_1_empleado_gestor || "",
+            cuenta_bancaria_2: employeeData.cuenta_bancaria_2_empleado_gestor || "",
+            vacaciones_acumuladas: employeeData.vacaciones_acumuladas_empleado_gestor || "0",
+            aguinaldo_acumulado: employeeData.aguinaldo_acumulado_empleado_gestor || "0",
+            cesantia_acumulada: employeeData.cesantia_acumulada_empleado_gestor || "0",
+            ministerio_hacienda: Boolean(employeeData.ministerio_hacienda_empleado_gestor),
+            rt_ins: Boolean(employeeData.rt_ins_empleado_gestor),
+            ccss: Boolean(employeeData.ccss_empleado_gestor),
+            moneda_pago: employeeData.moneda_pago_empleado_gestor || "",
+            tipo_planilla: employeeData.tipo_planilla_empleado_gestor || "",
+         };
+         
+         // Debug: Log the transformed data
+         console.log("Transformed form data:", transformedData);
+
+         setFormData(transformedData);
+         
+         // Clear any existing validation errors
+         validation.clearAllErrors();
+         setError(false);
+         setMessage("");
+
+      } catch (error) {
+         console.error("Error loading employee data:", error);
+         setError(true);
+         setMessage("Error al cargar los datos del Socio");
+      } finally {
+         setIsLoadingData(false);
+      }
    };
 
    /**
-    * Handles cédula validation on change using shared utilities
-    * @param {string} cedula - The cédula value to validate
+    * Validates all required fields in the form
+    * @returns {boolean} - True if all validations pass, false otherwise
     */
-   const handleCedulaValidationLocal = (cedula) => {
-      handleCedulaValidation(cedula, validation.setCedulaError);
-   };
-
-   /**
-    * Handles name validation on change using shared utilities
-    * @param {string} name - The name value to validate
-    */
-   const handleNameValidationLocal = (name) => {
-      handleNameValidation(name, validation.setNombreError);
-   };
-
-   /**
-    * Handles phone validation on change using shared utilities
-    * @param {string} phone - The phone value to validate
-    */
-   const handlePhoneValidationLocal = (phone) => {
-      handlePhoneValidation(phone, validation.setTelefonoError);
-   };
-
-   /**
-    * Handles salary validation on change using shared utilities
-    * @param {string} salary - The salary value to validate
-    */
-   const handleSalaryValidationLocal = (salary) => {
-      handleSalaryValidation(salary, validation.setSalarioError);
-   };
-
-   /**
-    * Handles number validation on change using shared utilities
-    * @param {string} number - The number value to validate
-    * @param {string} fieldName - The field name for error state
-    */
-   const handleNumberValidationLocal = (number, fieldName) => {
-      handleNumberValidation(number, fieldName, {
-         setNumeroAseguradoError: validation.setNumeroAseguradoError,
-         setNumeroInsError: validation.setNumeroInsError,
-         setNumeroHaciendaError: validation.setNumeroHaciendaError,
-      });
-   };
-
-   /**
-    * Handles form field changes with validation using shared utilities
-    * @param {Event} e - The change event
-    */
-   const handleFormInputChange = (e) => {
-      handleInputChange(e, formData, setFormData, {
-         setEmailError: validation.setEmailError,
-         setCedulaError: validation.setCedulaError,
-         setNombreError: validation.setNombreError,
-         setTelefonoError: validation.setTelefonoError,
-         setSalarioError: validation.setSalarioError,
-         setNumeroAseguradoError: validation.setNumeroAseguradoError,
-         setNumeroInsError: validation.setNumeroInsError,
-         setNumeroHaciendaError: validation.setNumeroHaciendaError,
-      });
-   };
-
-   /**
-    * Handles switch changes for institution fields using shared utilities
-    * @param {string} fieldName - The name of the institution field
-    * @param {boolean} checked - The checked state of the switch
-    */
-   const handleFormSwitchChange = (fieldName, checked) => {
-      handleSwitchChange(fieldName, checked, formData, setFormData);
-   };
-
-   /**
-    * Generates a random number between min and max
-    * @param {number} min - Minimum value
-    * @param {number} max - Maximum value
-    * @returns {number} - Random number
-    */
-   const getRandomNumber = (min, max) => {
-      return Math.floor(Math.random() * (max - min + 1)) + min;
-   };
-
-   /**
-    * Generates a random element from an array
-    * @param {Array} array - Array to select from
-    * @returns {*} - Random element
-    */
-   const getRandomElement = (array) => {
-      return array[Math.floor(Math.random() * array.length)];
-   };
-
-   /**
-    * Generates a random Costa Rican name
-    * @returns {string} - Random full name
-    */
-   const generateRandomName = () => {
-      const nombres = [
-         "María José", "Juan Carlos", "Ana Sofía", "Luis Fernando", "Carmen Elena",
-         "Roberto Antonio", "Patricia Isabel", "Carlos Manuel", "Laura Cristina",
-         "Miguel Ángel", "Sofia Alejandra", "Diego Alejandro", "Valeria María",
-         "Andrés Felipe", "Daniela Carolina", "Jorge Luis", "Natalia Andrea",
-         "Ricardo José", "Gabriela Patricia", "Francisco Javier"
-      ];
-      
-      const apellidos = [
-         "Rodríguez López", "González Pérez", "Hernández Mora", "Jiménez Castro",
-         "Morales Vega", "Rojas Chaves", "Castro Méndez", "Vargas Solís",
-         "Méndez Rojas", "Araya Campos", "Salazar Herrera", "Ramírez Valverde",
-         "Cordero Guzmán", "Villalobos Brenes", "Acuña Madrigal", "Brenes Mora",
-         "Campos Rojas", "Chaves Solís", "Díaz Castro", "Espinoza Vega"
-      ];
-
-      return `${getRandomElement(nombres)} ${getRandomElement(apellidos)}`;
-   };
-
-   /**
-    * Generates a random email
-    * @param {string} name - Name to use in email
-    * @returns {string} - Random email
-    */
-   const generateRandomEmail = (name) => {
-      const domains = ["gmail.com", "hotmail.com", "yahoo.com", "outlook.com", "empresa.com"];
-      const cleanName = name.toLowerCase().replace(/[áéíóúñ]/g, (match) => {
-         const accents = { 'á': 'a', 'é': 'e', 'í': 'i', 'ó': 'o', 'ú': 'u', 'ñ': 'n' };
-         return accents[match];
-      }).replace(/\s+/g, '.');
-      
-      return `${cleanName}@${getRandomElement(domains)}`;
-   };
-
-   /**
-    * Generates a random phone number
-    * @returns {string} - Random phone number
-    */
-   const generateRandomPhone = () => {
-      const prefixes = ["8", "7", "6"];
-      const prefix = getRandomElement(prefixes);
-      const number = getRandomNumber(10000000, 99999999).toString();
-      return `${prefix}${number}`;
-   };
-
-   /**
-    * Generates a random cédula
-    * @returns {string} - Random cédula
-    */
-   const generateRandomCedula = () => {
-      const letters = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"];
-      const letter = getRandomElement(letters);
-      const number = getRandomNumber(10000000, 99999999).toString();
-      return `${letter}${number}`;
-   };
-
-   /**
-    * Generates a random date within the last 5 years
-    * @returns {string} - Random date in YYYY-MM-DD format
-    */
-   const generateRandomDate = () => {
-      const today = new Date();
-      const fiveYearsAgo = new Date(today.getFullYear() - 5, today.getMonth(), today.getDate());
-      const randomTime = fiveYearsAgo.getTime() + Math.random() * (today.getTime() - fiveYearsAgo.getTime());
-      const randomDate = new Date(randomTime);
-      return randomDate.toISOString().split('T')[0];
-   };
-
-   /**
-    * Generates a random bank account number
-    * @returns {string} - Random bank account
-    */
-   const generateRandomBankAccount = () => {
-      const prefix = "CR";
-      const number = getRandomNumber(10000000000000000000, 99999999999999999999).toString();
-      return `${prefix}${number}`;
-   };
-
-   /**
-    * Loads random example employee data into the form
-    * Follows the proper format for all validation rules
-    */
-   const loadExampleData = () => {
-      const randomName = generateRandomName();
-      
-      const exampleEmployee = {
-         nombre_completo: randomName,
-         correo: generateRandomEmail(randomName),
-         telefono: generateRandomPhone(),
-         cedula: generateRandomCedula(),
-         salario_base: getRandomNumber(300000, 2000000).toString(),
-         tipo_contrato: getRandomElement(["indefinido", "plazo_fijo", "por_servicios_profesionales"]),
-         departamento: getRandomElement([
-            "administracion", "contabilidad", "operaciones", "recursos_humanos",
-            "marketing", "ventas", "it", "logistica", "legal", "investigacion_desarollo",
-            "servicio_cliente", "compras", "produccion"
-         ]),
-         puesto: getRandomElement([
-            "administrador", "contador", "bodeguero", "gerente", "analista",
-            "desarrollador", "soporte_tecnico", "vendedor", "recepcionista",
-            "asistente", "supervisor", "coordinador", "director",
-            "especialista_en_marketing", "rrhh"
-         ]),
-         supervisor: getRandomElement(["Socio_1", "Socio_2", "Socio_3"]),
-         id_empresa: "",
-         fecha_ingreso: generateRandomDate(),
-         fecha_salida: Math.random() > 0.8 ? generateRandomDate() : "", // 20% chance of having end date
-         jornada_laboral: getRandomElement([
-            "tiempo_completo", "medio_tiempo", "por_horas", "temporal",
-            "freelance", "practicas", "remoto", "contrato", "jornada_parcial", "becario"
-         ]),
-         numero_asegurado: getRandomNumber(100000000, 999999999).toString(),
-         numero_ins: getRandomNumber(100000000, 999999999).toString(),
-         numero_hacienda: getRandomNumber(100000000, 999999999).toString(),
-         cuenta_bancaria_1: Math.random() > 0.3 ? generateRandomBankAccount() : "", // 70% chance of having account
-         cuenta_bancaria_2: Math.random() > 0.7 ? generateRandomBankAccount() : "", // 30% chance of having second account
-         vacaciones_acumuladas: getRandomNumber(0, 30).toString(),
-         aguinaldo_acumulado: getRandomNumber(0, 500000).toString(),
-         cesantia_acumulada: getRandomNumber(0, 300000).toString(),
-         ministerio_hacienda: Math.random() > 0.3, // 70% chance of being true
-         rt_ins: Math.random() > 0.2, // 80% chance of being true
-         ccss: Math.random() > 0.4, // 60% chance of being true
-         moneda_pago: getRandomElement(["colones", "dolares", "colones_y_dolares"]),
-         tipo_planilla: getRandomElement(["quincenal", "bisemanal", "semanal"]),
-      };
-
-      // Clear any existing validation errors first
-      validation.clearAllErrors();
+   const validateForm = () => {
+      // Clear all previous errors
       setError(false);
       setMessage("");
+      validation.clearAllErrors();
 
-      // Set the form data
-      setFormData(exampleEmployee);
-   };
-
-   /**
-    * Validates all required fields and sets appropriate error messages using shared utilities
-    * @returns {boolean} - True if all required fields are valid, false otherwise
-    */
-   const validateRequiredFieldsLocal = () => {
-      return validateRequiredFields(formData, {
+      // Validate required fields
+      const requiredFieldsValid = validateRequiredFields(formData, {
          setNombreError: validation.setNombreError,
          setEmailError: validation.setEmailError,
          setTelefonoError: validation.setTelefonoError,
@@ -417,26 +255,18 @@ const useEmployeeForm = () => {
          setMonedaPagoError: validation.setMonedaPagoError,
          setTipoPlanillaError: validation.setTipoPlanillaError,
       });
-   };
-
-   /**
-    * Validates all required fields in the form
-    * @returns {boolean} - True if all validations pass, false otherwise
-    */
-   const validateForm = () => {
-      // Clear all previous errors
-      setError(false);
-      setMessage("");
-      validation.clearAllErrors();
-
-      // Validate required fields
-      const requiredFieldsValid = validateRequiredFieldsLocal();
 
       // Check for existing validation errors
       const hasValidationErrors = validation.hasErrors();
 
       // Validación adicional para campos únicos
-      const uniqueFieldsValid = validateUniqueFieldsLocal();
+      const uniqueFieldsValid = validateUniqueFields(formData, {
+         setNumeroAseguradoError: validation.setNumeroAseguradoError,
+         setNumeroInsError: validation.setNumeroInsError,
+         setNumeroHaciendaError: validation.setNumeroHaciendaError,
+         setEmailError: validation.setEmailError,
+         setCedulaError: validation.setCedulaError,
+      });
 
       if (!requiredFieldsValid || hasValidationErrors || !uniqueFieldsValid) {
          setError(true);
@@ -448,21 +278,7 @@ const useEmployeeForm = () => {
    };
 
    /**
-    * Validates unique fields to ensure they are properly filled
-    * @returns {boolean} - True if all unique fields are valid, false otherwise
-    */
-   const validateUniqueFieldsLocal = () => {
-      return validateUniqueFields(formData, {
-         setNumeroAseguradoError: validation.setNumeroAseguradoError,
-         setNumeroInsError: validation.setNumeroInsError,
-         setNumeroHaciendaError: validation.setNumeroHaciendaError,
-         setEmailError: validation.setEmailError,
-         setCedulaError: validation.setCedulaError,
-      });
-   };
-
-   /**
-    * Handles form submission to create employee
+    * Handles form submission to update employee
     */
    const handleSubmit = async () => {
       try {
@@ -476,8 +292,8 @@ const useEmployeeForm = () => {
          setIsLoading(true);
 
          swal.fire({
-            title: "Creando Socio",
-            text: "Espere un momento mientras se crea el Socio",
+            title: "Actualizando Socio",
+            text: "Espere un momento mientras se actualiza el Socio",
             icon: "info",
             showConfirmButton: false,
             showCancelButton: false,
@@ -487,28 +303,38 @@ const useEmployeeForm = () => {
             allowClosePropagation: false,
          });
 
-         const response = await dispatch(fetchData_api(formData, "gestor/empleados/crear"));
+         // Get employee ID from localStorage
+         const selectedEmployeeData = localStorage.getItem("selectedEmpleado");
+         const employeeData = JSON.parse(selectedEmployeeData);
+         const employeeId = employeeData.id_empleado_gestor;
+
+         // Add employee ID to form data for update
+         const updateData = {
+            ...formData,
+            id_empleado_gestor: employeeId,
+         };
+
+         const response = await dispatch(fetchData_api(updateData, "gestor/empleados/editar"));
 
          if (response.success) {
             setError(false);
 
             swal.fire({
-               title: "Socio creado exitosamente",
-               text: "El Socio ha sido creado exitosamente",
+               title: "Socio actualizado exitosamente",
+               text: "El Socio ha sido actualizado exitosamente",
                icon: "success",
                confirmButtonText: "Aceptar",
             }).then(() => {
-               // Reset form using shared utility
-               setFormData(getInitialFormData());
-               validation.clearAllErrors();
+               // Clear localStorage and navigate back to list
+               localStorage.removeItem("selectedEmpleado");
                navigate("/empleados/lista");
             });
            
          } else {
-            const errorMessage = improveErrorMessage(response.message || "Error al crear el Socio");
-
+            const errorMessage = improveErrorMessage(response.message);
+            
             swal.fire({
-               title: "Error al crear el Socio",
+               title: "Error al actualizar el Socio",
                text: errorMessage,
                icon: "error",
                confirmButtonText: "Aceptar",
@@ -518,12 +344,12 @@ const useEmployeeForm = () => {
          }
       } catch (error) {
          setError(true);
-         setMessage("Error inesperado al crear el Socio");
-         console.error("Error creating employee:", error);
+         setMessage("Error inesperado al actualizar el Socio");
+         console.error("Error updating employee:", error);
          
          swal.fire({
             title: "Error inesperado",
-            text: "Ha ocurrido un error inesperado al crear el Socio. Por favor, intente nuevamente.",
+            text: "Ha ocurrido un error inesperado al actualizar el Socio. Por favor, intente nuevamente.",
             icon: "error",
             confirmButtonText: "Aceptar",
          });
@@ -532,15 +358,38 @@ const useEmployeeForm = () => {
       }
    };
 
+   /**
+    * Handles form field changes with validation using shared utilities
+    */
+   const handleFormInputChange = (e) => {
+      handleInputChange(e, formData, setFormData, {
+         setEmailError: validation.setEmailError,
+         setCedulaError: validation.setCedulaError,
+         setNombreError: validation.setNombreError,
+         setTelefonoError: validation.setTelefonoError,
+         setSalarioError: validation.setSalarioError,
+         setNumeroAseguradoError: validation.setNumeroAseguradoError,
+         setNumeroInsError: validation.setNumeroInsError,
+         setNumeroHaciendaError: validation.setNumeroHaciendaError,
+      });
+   };
+
+   /**
+    * Handles switch changes for institution fields using shared utilities
+    */
+   const handleFormSwitchChange = (fieldName, checked) => {
+      handleSwitchChange(fieldName, checked, formData, setFormData);
+   };
+
    return {
       formData,
       error,
       message,
       isLoading,
+      isLoadingData,
       validation,
-      handleInputChange: handleFormInputChange,
-      handleSwitchChange: handleFormSwitchChange,
-      loadExampleData,
+      handleFormInputChange,
+      handleFormSwitchChange,
       handleSubmit,
    };
 };
@@ -615,26 +464,42 @@ const FormField = ({
 );
 
 /**
- * Main component for creating a new employee
- * @returns {JSX.Element} - CrearSocio component
+ * Main component for editing an existing employee
+ * @returns {JSX.Element} - EditarEmpleado component
  */
-export const CrearEmpleado = () => {
+export const EditarEmpleado = () => {
    const { 
       formData, 
       error, 
       message, 
       isLoading, 
+      isLoadingData,
       validation, 
-      handleInputChange, 
-      handleSwitchChange,
-      loadExampleData,
+      handleFormInputChange, 
+      handleFormSwitchChange,
       handleSubmit 
-   } = useEmployeeForm();
+   } = useEmployeeEditForm();
+
+   if (isLoadingData) {
+      return (
+         <TarjetaRow
+            texto="Editando Socio"
+            subtitulo="Cargando datos del Socio..."
+         >
+            <div className="text-center p-4">
+               <div className="spinner-border" role="status">
+                  <span className="visually-hidden">Cargando...</span>
+               </div>
+               <p className="mt-2">Cargando datos del Socio...</p>
+            </div>
+         </TarjetaRow>
+      );
+   }
 
    return (
       <TarjetaRow
-         texto="Crear un nuevo Socio"
-         subtitulo="Complete la información del Socio"
+         texto="Editar Socio"
+         subtitulo="Modifique la información del Socio"
       >
          {error && (
             <ErrorMessage
@@ -652,27 +517,22 @@ export const CrearEmpleado = () => {
                </h6>
                <p className="mb-2">
                   Los campos marcados con <span className="text-info">(Único)</span> deben ser diferentes para cada Socio. 
-                  Si intenta crear un Socio con datos que ya existen, recibirá un mensaje de error específico.
+                  Si intenta actualizar un Socio con datos que ya existen, recibirá un mensaje de error específico.
                </p>
                <p className="mb-0">
                   <strong>Campos únicos:</strong> Correo electrónico, Cédula, Número de asegurado, Número de INS, Número de hacienda.
                </p>
             </div>
 
-            {/* Botón para cargar datos de ejemplo */}
-            <div className="mb-4">
-               <button
-                  type="button"
-                  onClick={loadExampleData}
-                  className="btn btn-outline-primary me-2"
-                  disabled={isLoading}
-               >
-                  <i className="fas fa-random me-2"></i>
-                  Generar Socio Aleatorio
-               </button>
-               <small className="text-muted">
-                  Haz clic para llenar el formulario con datos aleatorios válidos
-               </small>
+            {/* Información sobre el socio que se está editando */}
+            <div className="alert alert-success mb-4">
+               <h6 className="alert-heading">
+                  <i className="fas fa-user-edit me-2"></i>
+                  Editando Socio
+               </h6>
+               <p className="mb-0">
+                  <strong>Socio:</strong> {formData.nombre_completo} | <strong>Cédula:</strong> {formData.cedula} | <strong>Correo:</strong> {formData.correo}
+               </p>
             </div>
 
             {/* Información Personal */}
@@ -684,7 +544,7 @@ export const CrearEmpleado = () => {
                      id="nombre_completo"
                      name="nombre_completo"
                      value={formData.nombre_completo}
-                     onChange={handleInputChange}
+                     onChange={handleFormInputChange}
                      placeholder="Ingrese el nombre completo"
                      required
                      error={validation.nombreError}
@@ -697,7 +557,7 @@ export const CrearEmpleado = () => {
                      name="correo"
                      type="email"
                      value={formData.correo}
-                     onChange={handleInputChange}
+                     onChange={handleFormInputChange}
                      placeholder="Socio@empresa.com"
                      required
                      isUnique
@@ -712,7 +572,7 @@ export const CrearEmpleado = () => {
                      id="telefono"
                      name="telefono"
                      value={formData.telefono}
-                     onChange={handleInputChange}
+                     onChange={handleFormInputChange}
                      placeholder="88888888"
                      required
                      error={validation.telefonoError}
@@ -724,7 +584,7 @@ export const CrearEmpleado = () => {
                      id="cedula"
                      name="cedula"
                      value={formData.cedula}
-                     onChange={handleInputChange}
+                     onChange={handleFormInputChange}
                      placeholder="CT57623562"
                      required
                      isUnique
@@ -742,7 +602,7 @@ export const CrearEmpleado = () => {
                      id="salario_base"
                      name="salario_base"
                      value={formData.salario_base}
-                     onChange={handleInputChange}
+                     onChange={handleFormInputChange}
                      placeholder="500000"
                      required
                      error={validation.salarioError}
@@ -755,7 +615,7 @@ export const CrearEmpleado = () => {
                      name="tipo_contrato"
                      type="select"
                      value={formData.tipo_contrato}
-                     onChange={handleInputChange}
+                     onChange={handleFormInputChange}
                      required
                      error={validation.tipoContratoError}
                   >
@@ -776,7 +636,7 @@ export const CrearEmpleado = () => {
                      name="departamento"
                      type="select"
                      value={formData.departamento}
-                     onChange={handleInputChange}
+                     onChange={handleFormInputChange}
                      required
                      error={validation.departamentoError}
                   >
@@ -795,7 +655,7 @@ export const CrearEmpleado = () => {
                      name="puesto"
                      type="select"
                      value={formData.puesto}
-                     onChange={handleInputChange}
+                     onChange={handleFormInputChange}
                      required
                      error={validation.puestoError}
                   >
@@ -816,7 +676,7 @@ export const CrearEmpleado = () => {
                      name="supervisor"
                      type="select"
                      value={formData.supervisor}
-                     onChange={handleInputChange}
+                     onChange={handleFormInputChange}
                      required
                      error={validation.supervisorError}
                   >
@@ -835,7 +695,7 @@ export const CrearEmpleado = () => {
                      name="jornada_laboral"
                      type="select"
                      value={formData.jornada_laboral}
-                     onChange={handleInputChange}
+                     onChange={handleFormInputChange}
                      required
                      error={validation.jornadaError}
                   >
@@ -859,7 +719,7 @@ export const CrearEmpleado = () => {
                      name="fecha_ingreso"
                      type="date"
                      value={formData.fecha_ingreso}
-                     onChange={handleInputChange}
+                     onChange={handleFormInputChange}
                      required
                      error={validation.fechaIngresoError}
                   />
@@ -871,7 +731,7 @@ export const CrearEmpleado = () => {
                      name="fecha_salida"
                      type="date"
                      value={formData.fecha_salida}
-                     onChange={handleInputChange}
+                     onChange={handleFormInputChange}
                   />
                </div>
             </div>
@@ -885,7 +745,7 @@ export const CrearEmpleado = () => {
                      id="numero_asegurado"
                      name="numero_asegurado"
                      value={formData.numero_asegurado}
-                     onChange={handleInputChange}
+                     onChange={handleFormInputChange}
                      placeholder="123456789"
                      required
                      isUnique
@@ -898,7 +758,7 @@ export const CrearEmpleado = () => {
                      id="numero_ins"
                      name="numero_ins"
                      value={formData.numero_ins}
-                     onChange={handleInputChange}
+                     onChange={handleFormInputChange}
                      placeholder="123456789"
                      required
                      isUnique
@@ -911,7 +771,7 @@ export const CrearEmpleado = () => {
                      id="numero_hacienda"
                      name="numero_hacienda"
                      value={formData.numero_hacienda}
-                     onChange={handleInputChange}
+                     onChange={handleFormInputChange}
                      placeholder="123456789"
                      required
                      isUnique
@@ -929,7 +789,7 @@ export const CrearEmpleado = () => {
                      id="cuenta_bancaria_1"
                      name="cuenta_bancaria_1"
                      value={formData.cuenta_bancaria_1}
-                     onChange={handleInputChange}
+                     onChange={handleFormInputChange}
                      placeholder="CR12345678901234567890"
                   />
                </div>
@@ -939,7 +799,7 @@ export const CrearEmpleado = () => {
                      id="cuenta_bancaria_2"
                      name="cuenta_bancaria_2"
                      value={formData.cuenta_bancaria_2}
-                     onChange={handleInputChange}
+                     onChange={handleFormInputChange}
                      placeholder="CR12345678901234567890"
                   />
                </div>
@@ -954,7 +814,7 @@ export const CrearEmpleado = () => {
                      id="vacaciones_acumuladas"
                      name="vacaciones_acumuladas"
                      value={formData.vacaciones_acumuladas}
-                     onChange={handleInputChange}
+                     onChange={handleFormInputChange}
                      placeholder="0"
                   />
                </div>
@@ -964,7 +824,7 @@ export const CrearEmpleado = () => {
                      id="aguinaldo_acumulado"
                      name="aguinaldo_acumulado"
                      value={formData.aguinaldo_acumulado}
-                     onChange={handleInputChange}
+                     onChange={handleFormInputChange}
                      placeholder="0"
                   />
                </div>
@@ -974,7 +834,7 @@ export const CrearEmpleado = () => {
                      id="cesantia_acumulada"
                      name="cesantia_acumulada"
                      value={formData.cesantia_acumulada}
-                     onChange={handleInputChange}
+                     onChange={handleFormInputChange}
                      placeholder="0"
                   />
                </div>
@@ -990,7 +850,7 @@ export const CrearEmpleado = () => {
                      name="moneda_pago"
                      type="select"
                      value={formData.moneda_pago}
-                     onChange={handleInputChange}
+                     onChange={handleFormInputChange}
                      required
                      error={validation.monedaPagoError}
                   >
@@ -1009,7 +869,7 @@ export const CrearEmpleado = () => {
                      name="tipo_planilla"
                      type="select"
                      value={formData.tipo_planilla}
-                     onChange={handleInputChange}
+                     onChange={handleFormInputChange}
                      required
                      error={validation.tipoPlanillaError}
                   >
@@ -1060,9 +920,9 @@ export const CrearEmpleado = () => {
                className="btn btn-dark mb-4"
                disabled={isLoading || validation.hasErrors()}
             >
-               {isLoading ? "Creando..." : "Crear Socio"}
+               {isLoading ? "Actualizando..." : "Actualizar Socio"}
             </button>
          </div>
       </TarjetaRow>
    );
-};
+}; 
