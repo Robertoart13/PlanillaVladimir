@@ -71,11 +71,12 @@ function createConnectionPool(baseDatos) {
 
    // Crea y retorna el pool de conexiones con los parámetros configurados
    return mysql.createPool({
-      ...configuracionBD, // Propiedades específicas de la base de datos (usuario, host, etc.)
-      waitForConnections: true, // Esperar por nuevas conexiones cuando el pool esté lleno
-      connectionLimit: CONNECTION_LIMIT, // Límite máximo de conexiones en el pool
-      queueLimit: QUEUE_LIMIT, // Límite máximo de conexiones en la cola
-      charset: "utf8mb4", // Codificación de caracteres para manejar texto multilingüe
+      ...configuracionBD, // Propiedades específicas de la base de datos
+      waitForConnections: true,
+      connectionLimit: CONNECTION_LIMIT,
+      queueLimit: QUEUE_LIMIT,
+      charset: "utf8mb4", // Soporte completo para caracteres especiales
+      collation: "utf8mb4_unicode_ci", // Collation para ordenamiento correcto
    });
 }
 

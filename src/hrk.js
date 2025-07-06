@@ -65,19 +65,25 @@ function showLastDeployChanges(logPath) {
  * setupBasicMiddlewares(app);
  */
 function setupBasicMiddlewares(app) {
+  // Configurar codificación UTF-8 para todas las respuestas
+  app.use((req, res, next) => {
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    next();
+  });
+
   // Middleware para analizar el cuerpo de la solicitud en formato JSON
-  app.use(express.json());
+  app.use(express.json({ limit: '10mb' }));
 
-  // Middleware para analizar datos codificados en URL (por ejemplo, formularios)
-  app.use(express.urlencoded({ extended: true }));
+  // Middleware para analizar datos codificados en URL
+  app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-  // Middleware para parsear cookies en las solicitudes
-  app.use(cookieParser()); // Aquí añadimos cookie-parser
+  // Middleware para parsear cookies
+  app.use(cookieParser());
 
-  // Middleware para registrar las solicitudes HTTP en la consola (usando el formato "dev" de morgan)
+  // Middleware para logging de solicitudes HTTP
   app.use(morgan("dev"));
 
-  // Middleware para servir archivos estáticos desde la carpeta 'public'
+  // Middleware para archivos estáticos
   app.use(express.static(path.join(__dirname, "../public")));
 }
 
