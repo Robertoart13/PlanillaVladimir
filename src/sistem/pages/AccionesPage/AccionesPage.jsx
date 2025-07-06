@@ -6,6 +6,7 @@ import { CrearAumento } from "../../views/AccionesViews/Aumentos/Crear/CrearAume
 import { EditarAumento } from "../../views/AccionesViews/Aumentos/Editar/EditarAumento";
 import { AumentosLista } from "../../views/AccionesViews/Aumentos/Lista/AumentosLista";
 import { CrearBonificaciones } from "../../views/AccionesViews/Bonificaciones/Crear/CrearBonificaciones";
+import { EditarBonificaciones } from "../../views/AccionesViews/Bonificaciones/Editar/EditarBonificaciones";
 import { BonificacionesLista } from "../../views/AccionesViews/Bonificaciones/Lista/BonificacionesLista";
 import { CrearDeduccion } from "../../views/AccionesViews/Deducciones/Crear/CrearDeduccion";
 import { DeduccionesLista } from "../../views/AccionesViews/Deducciones/Lista/DeduccionesLista";
@@ -56,6 +57,7 @@ export const AccionesPage = () => {
                               <div className="row align-items-center">
                                  {accion2 === "lista" && <BonificacionesLista />}
                                  {accion2 === "crear" && <CrearBonificaciones />}
+                                 {accion2 === "editar" && <EditarBonificaciones />}
                               </div>
                            )}
                            {accion === "dias-uso-personal" && (
