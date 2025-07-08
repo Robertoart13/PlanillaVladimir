@@ -36,13 +36,50 @@ const QUERIES = {
          puesto_empleado_gestor,
          correo_empleado_gestor,
          telefono_empleado_gestor,
-         id_empresa
+         id_empresa,
+         cedula_empleado_gestor
       FROM gestor_empleado_tbl
       WHERE estado_empleado_gestor = 1
          AND (fecha_salida_empleado_gestor IS NULL OR fecha_salida_empleado_gestor = '')
          AND salario_base_empleado_gestor IS NOT NULL
          AND salario_base_empleado_gestor != ''
          AND id_empresa = ?;
+      `,
+      // Consulta para obtener aumentos del empleado
+      AUMENTOS: `
+      SELECT *
+      FROM gestor_aumento_tbl
+      WHERE planilla_id_aumento_gestor = ?
+        AND empresa_id_aumento_gestor = ?
+        AND empleado_id_aumento_gestor = ?
+        AND estado_planilla_aumento_gestor = "Pendiente";
+      `,
+      // Consulta para obtener rebajos a compensación del empleado
+      REBAJOS_COMPENSACION: `
+      SELECT *
+      FROM gestor_rebajo_compensacion_tbl
+      WHERE planilla_id_rebajo_compensacion = ?
+        AND empresa_id_rebajo_compensacion = ?
+        AND empleado_id_rebajo_compensacion = ?
+        AND activo_rebajo_compensacion = 1;
+      `,
+      // Consulta para obtener horas extras del empleado
+      HORAS_EXTRAS: `
+      SELECT *
+      FROM gestor_horas_extras_tbl
+      WHERE planilla_id_horas_extras_gestor = ?
+        AND empresa_id_horas_extras_gestor = ?
+        AND empleado_id_horas_extras_gestor = ?
+        AND activo_horas_extras_gestor = 1;
+      `,
+      // Consulta para obtener compensación por métrica del empleado
+      COMPENSACION_METRICA: `
+      SELECT *
+      FROM gestor_compensacion_metrica_tbl
+      WHERE planilla_id_compensacion_metrica_gestor = ?
+        AND empresa_id_compensacion_metrica_gestor = ?
+        AND empleado_id_compensacion_metrica_gestor = ?
+        AND activo_compensacion_metrica_gestor = 1;
       `,
 };
 
@@ -58,12 +95,78 @@ const QUERIES = {
  * @throws {Error} Si ocurre un error durante la consulta a la base de datos.
  * ====================================================================================================================================
  */
-const obtenerTodosDatos = async (id_empresa, database) => {
+const obtenerTodosDatos = async (datos, database) => {
 
    try {
-      const resultado = await realizarConsulta(QUERIES.TRAER_TODOS_LOS_EMPLEADOS_DE_LA_EMPRESA, [id_empresa], database); 
-      console.log(resultado);
-      return resultado;
+      // Obtener la lista de empleados
+      const resultado = await realizarConsulta(QUERIES.TRAER_TODOS_LOS_EMPLEADOS_DE_LA_EMPRESA, [datos.empresa_id], database); 
+      
+      // Si hay un error en la consulta principal, retornarlo
+      if (resultado?.status === 500) {
+         return resultado;
+      }
+
+      // Recorrer cada empleado y obtener sus datos adicionales
+      const empleadosConDatosAdicionales = await Promise.all(
+         resultado.datos.map(async (empleado) => {
+
+            try {
+               // Ejecutar las 4 consultas adicionales para cada empleado
+               const [aumentos, rebajosCompensacion, horasExtras, compensacionMetrica] = await Promise.all([
+                  // Consulta de aumentos
+                  realizarConsulta(
+                     QUERIES.AUMENTOS, 
+                     [datos.planilla_id, datos.empresa_id, empleado.id_empleado_gestor], 
+                     database
+                  ),
+                  // Consulta de rebajos a compensación
+                  realizarConsulta(
+                     QUERIES.REBAJOS_COMPENSACION, 
+                     [datos.planilla_id, datos.empresa_id, empleado.id_empleado_gestor], 
+                     database
+                  ),
+                  // Consulta de horas extras
+                  realizarConsulta(
+                     QUERIES.HORAS_EXTRAS, 
+                     [datos.planilla_id, datos.empresa_id, empleado.id_empleado_gestor], 
+                     database
+                  ),
+                  // Consulta de compensación por métrica
+                  realizarConsulta(
+                     QUERIES.COMPENSACION_METRICA, 
+                     [datos.planilla_id, datos.empresa_id, empleado.id_empleado_gestor], 
+                     database
+                  )
+               ]);
+
+               // Agregar los datos adicionales al empleado
+               return {
+                  ...empleado,
+                  aumentos: aumentos?.status === 500 ? [] : (aumentos?.datos || []),
+                  rebajos_compensacion: rebajosCompensacion?.status === 500 ? [] : (rebajosCompensacion?.datos || []),
+                  horas_extras: horasExtras?.status === 500 ? [] : (horasExtras?.datos || []),
+                  compensacion_metrica: compensacionMetrica?.status === 500 ? [] : (compensacionMetrica?.datos || [])
+               };
+            } catch (error) {
+               // Si hay error en las consultas adicionales, retornar el empleado sin datos adicionales
+               console.error(`Error obteniendo datos adicionales para empleado ${empleado.id_empleado_gestor}:`, error);
+               return {
+                  ...empleado,
+                  aumentos: [],
+                  rebajos_compensacion: [],
+                  horas_extras: [],
+                  compensacion_metrica: []
+               };
+            }
+         })
+      );
+
+      // Retornar el resultado con los empleados y sus datos adicionales
+      return {
+         ...resultado,
+         datos: empleadosConDatosAdicionales
+      };
+
    } catch (error) {
       return manejarError(
          error,
@@ -115,6 +218,8 @@ const esConsultarExitosa = (resultado) => {
  * ====================================================================================================================================
  */
 const obtenerListaCompleta = async (req, res) => {
+
+   console.log(res);
    try {
       // 1. Validar los datos iniciales de la solicitud (por ejemplo, formato y autenticidad de los datos).
       const errorValidacion = await realizarValidacionesIniciales(res);
@@ -122,7 +227,7 @@ const obtenerListaCompleta = async (req, res) => {
 
       // 3. Obtener los datos de la base de datos una vez validados los permisos.
       const resultado = await obtenerTodosDatos(
-         res.transaccion.user.id_empresa,
+         res.transaccion.data,
          res?.database);
 
       // 4. Verificar si la edición fue exitosa.
