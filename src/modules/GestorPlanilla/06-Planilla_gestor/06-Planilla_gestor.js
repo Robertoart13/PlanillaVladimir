@@ -61,7 +61,9 @@ const QUERIES = {
 const obtenerTodosDatos = async (id_empresa, database) => {
 
    try {
-      return await realizarConsulta(QUERIES.TRAER_TODOS_LOS_EMPLEADOS_DE_LA_EMPRESA, [id_empresa], database); 
+      const resultado = await realizarConsulta(QUERIES.TRAER_TODOS_LOS_EMPLEADOS_DE_LA_EMPRESA, [id_empresa], database); 
+      console.log(resultado);
+      return resultado;
    } catch (error) {
       return manejarError(
          error,
