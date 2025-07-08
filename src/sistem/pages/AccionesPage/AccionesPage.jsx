@@ -9,6 +9,7 @@ import { CrearBonificaciones } from "../../views/AccionesViews/Bonificaciones/Cr
 import { EditarBonificaciones } from "../../views/AccionesViews/Bonificaciones/Editar/EditarBonificaciones";
 import { BonificacionesLista } from "../../views/AccionesViews/Bonificaciones/Lista/BonificacionesLista";
 import { CrearDeduccion } from "../../views/AccionesViews/Deducciones/Crear/CrearDeduccion";
+import { EditarDeduccion } from "../../views/AccionesViews/Deducciones/Editar/EditarDeduccion";
 import { DeduccionesLista } from "../../views/AccionesViews/Deducciones/Lista/DeduccionesLista";
 import { CrearHoraExtra } from "../../views/AccionesViews/Horas-extra/Crear/CrearHoraExtra";
 import { EditarHoraExtra } from "../../views/AccionesViews/Horas-extra/Editar/EditarHoraExtra";
@@ -60,6 +61,7 @@ export const AccionesPage = () => {
                               <div className="row align-items-center">
                                  {accion2 === "lista" && <DeduccionesLista />}
                                  {accion2 === "crear" && <CrearDeduccion />}
+                                 {accion2 === "editar" && <EditarDeduccion />}
                               </div>
                            )}
                            {accion === "compensacion-metrica" && (

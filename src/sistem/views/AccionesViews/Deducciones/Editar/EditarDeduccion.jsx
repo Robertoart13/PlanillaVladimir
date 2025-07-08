@@ -3,7 +3,7 @@ import { useDispatch } from "react-redux";
 import { fetchData_api } from "../../../../../store/fetchData_api/fetchData_api_Thunks";
 import formatCurrency from "../../../../../hooks/formatCurrency";
 import Swal from "sweetalert2";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 // Opciones para los tipos de rebajo según la documentación
 const tiposRebajo = [
@@ -48,6 +48,33 @@ function getOptionList(data, valueKey, labelKey) {
  */
 function findById(data, id, idKey) {
    return Array.isArray(data) ? data.find((item) => item[idKey] == id) || null : null;
+}
+
+/**
+ * Formatea una fecha para el input de tipo date (YYYY-MM-DD).
+ * @param {string} fechaString - Fecha en formato string.
+ * @returns {string} Fecha formateada para input type="date".
+ */
+function formatearFechaParaInput(fechaString) {
+  if (!fechaString) return "";
+  
+  try {
+    const fecha = new Date(fechaString);
+    if (isNaN(fecha.getTime())) {
+      console.warn("Fecha inválida:", fechaString);
+      return "";
+    }
+    
+    // Formatear como YYYY-MM-DD para input type="date"
+    const year = fecha.getFullYear();
+    const month = String(fecha.getMonth() + 1).padStart(2, '0');
+    const day = String(fecha.getDate()).padStart(2, '0');
+    
+    return `${year}-${month}-${day}`;
+  } catch (error) {
+    console.error("Error al formatear fecha:", error);
+    return "";
+  }
 }
 
 // ============================================================================
@@ -182,12 +209,13 @@ function useEmpleados(dispatch) {
 // ============================================================================
 
 /**
- * Componente para crear rebajos a compensación.
+ * Componente para editar rebajos a compensación.
  * Permite calcular automáticamente los rebajos según la legislación laboral costarricense.
  */
-export const CrearDeduccion = () => {
+export const EditarDeduccion = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { id } = useParams();
   
   // ============================================================================
   // HOOKS Y ESTADOS
@@ -198,8 +226,9 @@ export const CrearDeduccion = () => {
   const { empleadoOptions, empleadoData, isLoading: isLoadingEmpleados, fetchEmpleados } = useEmpleados(dispatch);
   
   const [formData, setFormData] = useState({
-    planilla: "",
-    empleado: "",
+    id_rebajo_compensacion: "",
+    planilla_id_rebajo_compensacion: "",
+    empleado_id_rebajo_compensacion: "",
     tipo_rebajo: "",
     horas_rebajadas: "",
     dias_rebajados: "",
@@ -210,7 +239,7 @@ export const CrearDeduccion = () => {
     motivo_rebajo: "",
     fecha_rebajo: new Date().toISOString().split('T')[0],
     aplica_compensacion_anual: false,
-    estado: "Activo",
+    estado_rebajo: "Pendiente",
   });
 
   const [selectedPlanillaData, setSelectedPlanillaData] = useState(null);
@@ -220,6 +249,7 @@ export const CrearDeduccion = () => {
   // Estado de error y mensaje
   const [error, setError] = useState(false);
   const [message, setMessage] = useState("");
+  const [isDataLoaded, setIsDataLoaded] = useState(false);
 
   // ============================================================================
   // EFECTOS
@@ -236,40 +266,98 @@ export const CrearDeduccion = () => {
     fetchPlanillas();
   }, [fetchPlanillas]);
 
-  // Cuando cambia la planilla, buscar datos y empleados
+  // Cargar datos del rebajo a compensación desde localStorage al montar el componente
   useEffect(() => {
-    if (formData.planilla) {
-      const planillaObj = findById(planillaData, formData.planilla, "planilla_id");
-      setSelectedPlanillaData(planillaObj);
-      fetchEmpleados();
-      setFormData((prev) => ({ ...prev, empleado: "" })); // Limpiar selección de empleado
-    } else {
-      setSelectedPlanillaData(null);
-      setFormData((prev) => ({ ...prev, empleado: "" }));
-    }
-  }, [formData.planilla, planillaData, fetchEmpleados]);
+    const selectedDeduccion = localStorage.getItem("selectedDeduccion");
+    if (selectedDeduccion) {
+      try {
+        const deduccionData = JSON.parse(selectedDeduccion);
 
-  // Cuando cambia el empleado, buscar datos y actualizar salario
+        console.log(deduccionData);
+
+
+
+        // Mapear los datos del localStorage al formData
+        // Los datos ahora vienen con los nombres correctos de la tabla gestor_rebajo_compensacion_tbl
+        const mappedData = {
+          id_rebajo_compensacion: deduccionData.id_rebajo_compensacion || "",
+          planilla_id_rebajo_compensacion: deduccionData.planilla_id_rebajo || "",
+          empleado_id_rebajo_compensacion: deduccionData.empleado_id_rebajo || "",
+          tipo_rebajo: deduccionData.tipo_rebajo || "",
+          horas_rebajadas: deduccionData.horas_rebajadas || "",
+          dias_rebajados: deduccionData.dias_rebajados || "",
+          monto_fijo_rebajo: deduccionData.monto_fijo_rebajo || "",
+          salario_actual: deduccionData.salario_actual || "",
+          tipo_jornada_laboral: deduccionData.tipo_jornada_laboral || "mensual",
+          monto_rebajo_calculado: deduccionData.monto_rebajo_calculado || "",
+          motivo_rebajo: deduccionData.motivo_rebajo || "",
+          fecha_rebajo: formatearFechaParaInput(deduccionData.fecha_rebajo),
+          aplica_compensacion_anual: deduccionData.aplica_compensacion_anual === 1 || deduccionData.aplica_compensacion_anual === true,
+          estado_rebajo: deduccionData.estado_rebajo || "Pendiente",
+        };
+
+        setFormData(mappedData);
+        setIsDataLoaded(true);
+
+        // Configurar tipo de rebajo seleccionado
+        const tipoSeleccionado = tiposRebajo.find(t => t.value === deduccionData.tipo_rebajo);
+        setTipoRebajoSeleccionado(tipoSeleccionado);
+
+        // Cargar planillas y empleados para obtener datos completos
+        fetchPlanillas();
+        fetchEmpleados();
+
+      } catch (error) {
+        setError(true);
+        setMessage("Error al cargar los datos del rebajo a compensación");
+      }
+    } else {
+      // Si no hay datos en localStorage, redirigir a la lista
+      navigate("/acciones/rebajo-compensacion/lista");
+    }
+  }, [navigate, fetchPlanillas, fetchEmpleados]);
+
+  // Cuando cambia la planilla, buscar datos
   useEffect(() => {
-    if (formData.empleado) {
-      const empleadoObj = findById(empleadoData, formData.empleado, "id_empleado_gestor");
+    if (formData.planilla_id_rebajo_compensacion) {
+      const planillaObj = findById(planillaData, formData.planilla_id_rebajo_compensacion, "planilla_id");
+      setSelectedPlanillaData(planillaObj);
+    }
+  }, [formData.planilla_id_rebajo_compensacion, planillaData]);
+
+  // Cuando cambia el empleado, buscar datos
+  useEffect(() => {
+    if (formData.empleado_id_rebajo_compensacion) {
+      const empleadoObj = findById(empleadoData, formData.empleado_id_rebajo_compensacion, "id_empleado_gestor");
       setSelectedEmpleadoData(empleadoObj);
-      if (empleadoObj?.salario_base_empleado_gestor) {
-        setFormData((prev) => ({
+      
+      // Si no tenemos salario actual, usar el del empleado
+      if (!formData.salario_actual && empleadoObj?.salario_base_empleado_gestor) {
+        setFormData(prev => ({
           ...prev,
           salario_actual: empleadoObj.salario_base_empleado_gestor.toString(),
           tipo_jornada_laboral: empleadoObj.tipo_jornada_laboral_empleado_gestor || "mensual",
         }));
       }
-    } else {
-      setSelectedEmpleadoData(null);
-      setFormData((prev) => ({ 
-        ...prev, 
-        salario_actual: "",
-        tipo_jornada_laboral: "",
-      }));
     }
-  }, [formData.empleado, empleadoData]);
+  }, [formData.empleado_id_rebajo_compensacion, empleadoData, formData.salario_actual]);
+
+  // Cuando se cargan los datos del empleado y tenemos datos del localStorage, establecer el empleado seleccionado
+  useEffect(() => {
+    if (isDataLoaded && formData.empleado_id_rebajo_compensacion && empleadoData.length > 0) {
+      const empleadoObj = findById(empleadoData, formData.empleado_id_rebajo_compensacion, "id_empleado_gestor");
+      setSelectedEmpleadoData(empleadoObj);
+      
+      // Si no tenemos salario actual, usar el del empleado
+      if (!formData.salario_actual && empleadoObj?.salario_base_empleado_gestor) {
+        setFormData(prev => ({
+          ...prev,
+          salario_actual: empleadoObj.salario_base_empleado_gestor.toString(),
+          tipo_jornada_laboral: empleadoObj.tipo_jornada_laboral_empleado_gestor || "mensual",
+        }));
+      }
+    }
+  }, [isDataLoaded, formData.empleado_id_rebajo_compensacion, empleadoData, formData.salario_actual]);
 
   // Calcular rebajo automáticamente cuando cambien los campos relevantes
   useEffect(() => {
@@ -376,7 +464,7 @@ export const CrearDeduccion = () => {
    * @returns {boolean} True si el formulario es válido.
    */
   const isFormValid = () => {
-    if (!formData.planilla || !formData.empleado || !formData.tipo_rebajo || !formData.fecha_rebajo) {
+    if (!formData.planilla_id_rebajo_compensacion || !formData.empleado_id_rebajo_compensacion || !formData.tipo_rebajo || !formData.fecha_rebajo) {
       return false;
     }
 
@@ -408,13 +496,13 @@ export const CrearDeduccion = () => {
     // VALIDACIONES
     // ============================================================================
     
-    if (!formData.planilla) {
+    if (!formData.planilla_id_rebajo_compensacion) {
       setError(true);
       setMessage("Debe seleccionar una planilla.");
       return;
     }
 
-    if (!formData.empleado) {
+    if (!formData.empleado_id_rebajo_compensacion) {
       setError(true);
       setMessage("Debe seleccionar un socio.");
       return;
@@ -469,8 +557,8 @@ export const CrearDeduccion = () => {
     // CONFIRMACIÓN
     // ============================================================================
     
-    const nombre = selectedEmpleadoData.nombre_completo_empleado_gestor;
-    const socio = selectedEmpleadoData.numero_socio_empleado_gestor;
+    const nombre = selectedEmpleadoData?.nombre_completo_empleado_gestor || "N/A";
+    const socio = selectedEmpleadoData?.numero_socio_empleado_gestor || "N/A";
     const tipoRebajo = tipoRebajoSeleccionado?.label || formData.tipo_rebajo;
     const fechaRebajo = formData.fecha_rebajo;
     const montoCalculado = formatCurrency(formData.monto_rebajo_calculado);
@@ -497,11 +585,11 @@ export const CrearDeduccion = () => {
   `;
 
     const result = await Swal.fire({
-      title: "¿Está seguro de crear este rebajo a compensación?",
+      title: "¿Está seguro de actualizar este rebajo a compensación?",
       html: htmlMsg,
       icon: "question",
       showCancelButton: true,
-      confirmButtonText: "Sí, crear rebajo",
+      confirmButtonText: "Sí, actualizar rebajo",
       cancelButtonText: "Cancelar",
       focusCancel: true,
       customClass: {
@@ -515,7 +603,7 @@ export const CrearDeduccion = () => {
       try {
         // Mostrar loading
         Swal.fire({
-          title: "Creando rebajo a compensación",
+          title: "Actualizando rebajo a compensación",
           text: "Por favor espere...",
           allowOutsideClick: false,
           didOpen: () => {
@@ -524,25 +612,25 @@ export const CrearDeduccion = () => {
         });
 
         // Enviar datos al backend
-        const response = await dispatch(fetchData_api(formData, "gestor/planilla/deducciones/crear"));
+        const response = await dispatch(fetchData_api(formData, "gestor/planilla/deducciones/editar"));
 
         if (response.success) {
           setError(false);
 
           Swal.fire({
-            title: "Rebajo a compensación creado exitosamente",
-            text: "El rebajo ha sido registrado correctamente",
+            title: "Rebajo a compensación actualizado exitosamente",
+            text: "El rebajo ha sido actualizado correctamente",
             icon: "success",
             confirmButtonText: "Aceptar",
           }).then(() => {
             navigate("/acciones/rebajo-compensacion/lista");
           });
         } else {
-          const errorMessage = response.message || "Error al crear el rebajo a compensación";
+          const errorMessage = response.message || "Error al actualizar el rebajo a compensación";
           setError(true);
           setMessage(errorMessage);
           Swal.fire({
-            title: "Error al crear el rebajo",
+            title: "Error al actualizar el rebajo",
             text: errorMessage,
             icon: "error",
             confirmButtonText: "Aceptar",
@@ -550,11 +638,11 @@ export const CrearDeduccion = () => {
         }
         
       } catch (error) {
-        console.error('Error al crear rebajo a compensación:', error);
+        console.error('Error al actualizar rebajo a compensación:', error);
         Swal.fire({
           icon: 'error',
           title: 'Error',
-          text: 'Hubo un error al crear el rebajo a compensación'
+          text: 'Hubo un error al actualizar el rebajo a compensación'
         });
       }
     }
@@ -567,9 +655,9 @@ export const CrearDeduccion = () => {
   return (
     <div className="card">
       <div className="card-header">
-        <h5>Crear Rebajo a Compensación</h5>
+        <h5>Editar Rebajo a Compensación</h5>
         <p className="text-muted">
-          Complete el formulario para crear un nuevo registro de Rebajo a Compensación.
+          Modifique los datos del rebajo a compensación seleccionado.
           El sistema calculará automáticamente el monto según la legislación laboral costarricense.
         </p>
       </div>
@@ -636,18 +724,18 @@ export const CrearDeduccion = () => {
               <input
                 className="form-check-input"
                 type="checkbox"
-                id="estado"
-                name="estado"
-                checked={formData.estado === "Activo"}
+                id="estado_rebajo"
+                name="estado_rebajo"
+                checked={formData.estado_rebajo === "Activo"}
                 onChange={(e) => {
                   setFormData(prev => ({
                     ...prev,
-                    estado: e.target.checked ? "Activo" : "Inactivo"
+                    estado_rebajo: e.target.checked ? "Activo" : "Inactivo"
                   }));
                 }}
               />
-              <label className="form-check-label" htmlFor="estado">
-                {formData.estado === "Activo" ? "Activo" : "Inactivo"}
+              <label className="form-check-label" htmlFor="estado_rebajo">
+                {formData.estado_rebajo === "Activo" ? "Activo" : "Inactivo"}
               </label>
             </div>
           </div>
@@ -655,14 +743,14 @@ export const CrearDeduccion = () => {
           <div className="row">
             {/* Planilla */}
             <div className="col-md-6 mb-3">
-              <label className="form-label" htmlFor="planilla">
+              <label className="form-label" htmlFor="planilla_id_rebajo_compensacion">
                 Planilla <span className="text-danger">*</span>
               </label>
               <select
                 className="form-select"
-                id="planilla"
-                name="planilla"
-                value={formData.planilla}
+                id="planilla_id_rebajo_compensacion"
+                name="planilla_id_rebajo_compensacion"
+                value={formData.planilla_id_rebajo_compensacion}
                 onChange={handleChange}
                 required
                 disabled={isLoadingPlanillas}
@@ -683,22 +771,20 @@ export const CrearDeduccion = () => {
 
             {/* Empleado */}
             <div className="col-md-6 mb-3">
-              <label className="form-label" htmlFor="empleado">
+              <label className="form-label" htmlFor="empleado_id_rebajo_compensacion">
                 Socio <span className="text-danger">*</span>
               </label>
               <select
                 className="form-select"
-                id="empleado"
-                name="empleado"
-                value={formData.empleado}
+                id="empleado_id_rebajo_compensacion"
+                name="empleado_id_rebajo_compensacion"
+                value={formData.empleado_id_rebajo_compensacion}
                 onChange={handleChange}
                 required
-                disabled={!formData.planilla || isLoadingEmpleados}
+                disabled={isLoadingEmpleados}
               >
                 <option value="">
-                  {!formData.planilla
-                    ? "Seleccione primero una planilla"
-                    : isLoadingEmpleados
+                  {isLoadingEmpleados
                     ? "Cargando empleados..."
                     : "Seleccione el Socio"}
                 </option>
@@ -977,7 +1063,7 @@ export const CrearDeduccion = () => {
               title={!isFormValid() ? 'Complete todos los campos obligatorios' : ''}
             >
               <i className="fas fa-save me-2"></i>
-              Crear Rebajo a Compensación
+              Actualizar Rebajo a Compensación
             </button>
             <button
               type="button"
@@ -992,4 +1078,4 @@ export const CrearDeduccion = () => {
       </div>
     </div>
   );
-};
+}; 
