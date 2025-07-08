@@ -137,9 +137,9 @@ import Gestor_Aumento_Editar from "../modules/GestorPlanilla/03-Gestor_Aumento/G
 
  * ====================================================================================================================================
  */
-import Gestor_Bono_Crear from "../modules/GestorPlanilla/03-Gestor_Bono/Gestor_Bono_Crear.js";
-import Gestor_Bono_Listar from "../modules/GestorPlanilla/03-Gestor_Bono/Gesto_Bono_Lista.js";
-import Gestor_Bono_Editar from "../modules/GestorPlanilla/03-Gestor_Bono/Gestor_Bono_Editar.js";
+import Gestor_Compensacion_Metrica_Crear from "../modules/GestorPlanilla/03-Gestor_Bono/Gestor_Bono_Crear.js";
+import Gestor_Compensacion_Metrica_Listar from "../modules/GestorPlanilla/03-Gestor_Bono/Gesto_Bono_Lista.js";
+import Gestor_Compensacion_Metrica_Editar from "../modules/GestorPlanilla/03-Gestor_Bono/Gestor_Bono_Editar.js";
 
 /**
  * ====================================================================================================================================
@@ -701,23 +701,23 @@ function getModulesConfig() {
       {
          category: "Gestor", // Nombre del módulo
          model: {
-            ...Gestor_Bono_Crear,
-            ...Gestor_Bono_Listar,
-            ...Gestor_Bono_Editar,
+            ...Gestor_Compensacion_Metrica_Crear,
+            ...Gestor_Compensacion_Metrica_Listar,
+            ...Gestor_Compensacion_Metrica_Editar,
             }, // Combinamos ambos modelos
          routes: [
             {
-               path: "gestor/planilla/bonificaciones/crear", // Ruta para la lista de planilla
+               path: "gestor/planilla/compensaciones-metrica/crear", // Ruta para crear compensación por métrica
                method: "crearTransaccion", // Método que se ejecutará
                isAuthRequired: true, // Requiere autenticación
             },
             {
-               path: "gestor/planilla/bonificaciones/lista", // Ruta para la lista de planilla
+               path: "gestor/planilla/compensaciones-metrica/lista", // Ruta para listar compensaciones por métrica
                method: "obtenerListaCompleta", // Método que se ejecutará
                isAuthRequired: true, // Requiere autenticación
             }, 
             {
-               path: "gestor/planilla/bonificaciones/editar", // Ruta para la lista de planilla
+               path: "gestor/planilla/compensaciones-metrica/editar", // Ruta para editar compensación por métrica
                method: "editarTransaccion", // Método que se ejecutará
                isAuthRequired: true, // Requiere autenticación
             }, 

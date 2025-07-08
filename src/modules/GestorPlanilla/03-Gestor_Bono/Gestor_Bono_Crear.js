@@ -1,6 +1,6 @@
 /**
  * ====================================================================================================================================
- * @fileoverview Módulo para la creación de registros en el sistema de
+ * @fileoverview Módulo para la creación de registros de compensación por métrica en el sistema
  * @requires ../../mysql2-promise/mysql2-promise
  * @requires ../../hooks/realizarValidacionesIniciales
  * @requires ../../hooks/crearRespuestaExitosa
@@ -8,7 +8,7 @@
  * @requires ../../hooks/crearRespuestaErrorCrear
  *
  * Este módulo proporciona las funcionalidades necesarias para crear nuevos registros
- * en la base de datos, con validación de permisos y manejo estructurado de errores.
+ * de compensación por métrica en la base de datos, con validación de permisos y manejo estructurado de errores.
  * ====================================================================================================================================
  */
 
@@ -21,26 +21,32 @@ import bcrypt from "bcryptjs";
 /**
  * ====================================================================================================================================
  * Definición de las consultas SQL utilizadas en este módulo.
- * Contiene la consulta para insertar un nuevo registro en la base de datos.
+ * Contiene la consulta para insertar un nuevo registro de compensación por métrica en la base de datos.
  * ====================================================================================================================================
  */
 const QUERIES = {
    QUERIES_INSERT: `
-   INSERT INTO gestor_compe_tbl ( 
-         empresa_id_compe_gestor,
-         planilla_id_compe_gestor,
-         empleado_id_compe_gestor,
-         monto_compe_gestor,
-         motivo_compe_gestor,
-         aplica_aguinaldo_compe_gestor,
-         usuario_id_compe_gestor
+   INSERT INTO gestor_compensacion_metrica_tbl ( 
+         empresa_id_compensacion_metrica_gestor,
+         planilla_id_compensacion_metrica_gestor,
+         empleado_id_compensacion_metrica_gestor,
+         tipo_compensacion_metrica_gestor,
+         monto_compensacion_metrica_gestor,
+         motivo_compensacion_gestor,
+         fecha_compensacion_metrica_gestor,
+         aplica_en_compensacion_anual_gestor,
+         estado_compensacion_metrica_gestor,
+         usuario_id_compensacion_metrica_gestor
    ) VALUES (
           ?,                                 -- ID de la empresa (debe existir en empresas_tbl)
          ?,                                  -- ID de la planilla (debe existir en planilla_tbl)
          ?,                                 -- ID del empleado (debe existir en gestor_empleado_tbl)
-         ?,                            -- Monto de la compensación
-         ?, -- Motivo del ajuste
-         ?,                                  -- Aplica para aguinaldo (1 = Sí)
+         ?,                                 -- Tipo de compensación por métrica
+         ?,                                 -- Monto de la compensación
+         ?,                                 -- Motivo de la compensación
+         ?,                                 -- Fecha de compensación
+         ?,                                 -- Aplica para compensación anual (1 = Sí, 0 = No)
+         ?,                                 -- Estado inicial (Pendiente)
          ?                                   -- ID del usuario que creó el registro
 );
 `,
@@ -48,9 +54,9 @@ const QUERIES = {
 
 /**
  * ====================================================================================================================================
- * Inserta un nuevo registro en la base de datos.
+ * Inserta un nuevo registro de compensación por métrica en la base de datos.
  *
- * Esta función ejecuta la consulta SQL para crear un nuevo registro de registro
+ * Esta función ejecuta la consulta SQL para crear un nuevo registro de compensación por métrica
  * con los parámetros proporcionados. Utiliza consultas preparadas para prevenir inyecciones SQL.
  *
  * @param {Object|string} database - Objeto de conexión a la base de datos o nombre de la base de datos.
@@ -59,17 +65,18 @@ const QUERIES = {
  * ====================================================================================================================================
  */
 const crearNuevoRegistroBd = async (datos, usuario_id, empresa_id, database) => {
-
-
    const result = await realizarConsulta(
       QUERIES.QUERIES_INSERT,
       [
          empresa_id,
          datos.planilla,
          datos.empleado,
+         datos.tipo_compensacion_metrica || 'productividad', // Valor por defecto
          datos.monto_bonificacion,
          datos.motivo_compensacion,
+         datos.fecha_compensacion || new Date().toISOString().split('T')[0], // Fecha actual si no se proporciona
          datos.aplica_Compensacion_Anual ? 1 : 0,
+         'Pendiente', // Estado inicial
          usuario_id,
       ],
       database,
@@ -97,9 +104,9 @@ const esCreacionExitosa = (resultado) => {
 
 /**
  * ====================================================================================================================================
- * Crea un nuevo registro en el sistema, validando previamente el acceso del usuario.
+ * Crea un nuevo registro de compensación por métrica en el sistema, validando previamente el acceso del usuario.
  *
- * Esta función principal gestiona el proceso completo de creación de un registro:
+ * Esta función principal gestiona el proceso completo de creación de un registro de compensación por métrica:
  * 1. Valida los datos de entrada y los permisos del usuario
  * 2. Crea el nuevo registro en la base de datos
  * 3. Verifica que la operación haya sido exitosa
@@ -145,12 +152,12 @@ const crearTransaccion = async (req, res) => {
 
 /**
  * ====================================================================================================================================
- * Exportación del módulo que contiene los métodos disponibles para crear registros.
+ * Exportación del módulo que contiene los métodos disponibles para crear registros de compensación por métrica.
  * Este módulo expone la funcionalidad de creación de nuevos registros.
  * ====================================================================================================================================
  */
-const Gestor_Bono_Crear = { 
+const Gestor_Compensacion_Metrica_Crear = { 
    crearTransaccion,
 };
 
-export default Gestor_Bono_Crear; 
+export default Gestor_Compensacion_Metrica_Crear; 

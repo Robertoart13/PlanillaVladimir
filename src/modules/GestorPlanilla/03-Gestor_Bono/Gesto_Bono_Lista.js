@@ -1,13 +1,13 @@
 /**
  * ====================================================================================================================================
- * @fileoverview Módulo para listar registros en el sistema
+ * @fileoverview Módulo para listar registros de compensación por métrica en el sistema
  * @requires ../../mysql2-promise/mysql2-promise
  * @requires ../../hooks/realizarValidacionesIniciales
  * @requires ../../hooks/crearRespuestaExitosa
  * @requires ../../hooks/verificarPermisosUsuario
  *
  * Este módulo proporciona funcionalidades para consultar y listar los registros
- * disponibles en el sistema, con validaciones de permisos y manejo de errores.
+ * de compensación por métrica disponibles en el sistema, con validaciones de permisos y manejo de errores.
  * ====================================================================================================================================
  */
 
@@ -23,31 +23,31 @@ import { crearRespuestaErrorCrear } from "../../../hooks/crearRespuestaErrorCrea
  * ====================================================================================================================================
  */
 const QUERIES = {
-   // Consulta SQL para obtener todos los registros de la tabla
+   // Consulta SQL para obtener todos los registros de compensación por métrica
    QUERIES_SELECT: `
   SELECT 
-      gc.*,  -- Todos los campos del registro de compensación
+      gcm.*,  -- Todos los campos del registro de compensación por métrica
       e.nombre_comercial_empresa AS nombre_empresa,
       p.planilla_codigo AS codigo_planilla,
       u.nombre_usuario AS nombre_usuario_creador,
       em.nombre_completo_empleado_gestor AS nombre_empleado
    FROM 
-      gestor_compe_tbl gc
+      gestor_compensacion_metrica_tbl gcm
    INNER JOIN 
-      empresas_tbl e ON gc.empresa_id_compe_gestor = e.id_empresa
+      empresas_tbl e ON gcm.empresa_id_compensacion_metrica_gestor = e.id_empresa
    INNER JOIN 
-      planilla_tbl p ON gc.planilla_id_compe_gestor = p.planilla_id
+      planilla_tbl p ON gcm.planilla_id_compensacion_metrica_gestor = p.planilla_id
    INNER JOIN 
-      usuarios_tbl u ON gc.usuario_id_compe_gestor = u.id_usuario
+      usuarios_tbl u ON gcm.usuario_id_compensacion_metrica_gestor = u.id_usuario
    INNER JOIN 
-      gestor_empleado_tbl em ON gc.empleado_id_compe_gestor = em.id_empleado_gestor
+      gestor_empleado_tbl em ON gcm.empleado_id_compensacion_metrica_gestor = em.id_empleado_gestor
    WHERE 
-      gc.empresa_id_compe_gestor = ?   -- ← parámetro: ID empresa
-      AND gc.estado_planilla_compe_gestor = ?  -- ← parámetro: estado planilla
+      gcm.empresa_id_compensacion_metrica_gestor = ?   -- ← parámetro: ID empresa
+      AND gcm.estado_compensacion_metrica_gestor = ?  -- ← parámetro: estado compensación
       AND (
-         (gc.estado_planilla_compe_gestor IN ('En proceso', 'Aplicado') AND gc.estado_compe_gestor = 1)
+         (gcm.estado_compensacion_metrica_gestor IN ('Pendiente', 'Aprobada') AND gcm.estado_compensacion_metrica_gestor != 'Cancelada')
          OR
-         (gc.estado_planilla_compe_gestor IN ('Procesado', 'Cancelado') AND gc.estado_compe_gestor = 0)
+         (gcm.estado_compensacion_metrica_gestor IN ('Aplicada', 'Cancelada'))
       );
 
       `,
@@ -55,7 +55,7 @@ const QUERIES = {
 
 /**
  * ====================================================================================================================================
- * Realiza una consulta a la base de datos para obtener todos los registros.
+ * Realiza una consulta a la base de datos para obtener todos los registros de compensación por métrica.
  *
  * Esta función ejecuta una consulta SQL definida en el objeto `QUERIES`, la cual extrae todos
  * los registros almacenados en la base de datos sin aplicar filtros.
@@ -80,14 +80,14 @@ const obtenerTodosDatos = async (estados, id_empresa, database) => {
 
 /**
  * ====================================================================================================================================
- * Verifica si la edición del registro fue exitosa.
+ * Verifica si la consulta del registro fue exitosa.
  *
- * Esta función evalúa el resultado de la operación de actualización para determinar
+ * Esta función evalúa el resultado de la operación de consulta para determinar
  * si se realizó correctamente, verificando las filas afectadas y el código de estado.
  *
  * @param {Object} resultado - Resultado de la operación en la base de datos.
- * @param {Object} [resultado.datos] - Datos retornados por la actualización.
- * @param {number} [resultado.datos.affectedRows] - Número de filas afectadas por la actualización.
+ * @param {Object} [resultado.datos] - Datos retornados por la consulta.
+ * @param {number} [resultado.datos.affectedRows] - Número de filas afectadas por la consulta.
  * @param {number} [resultado.status] - Código de estado de la operación.
  * @returns {boolean} - `true` si la operación fue exitosa, `false` en caso contrario.
  * ====================================================================================================================================
@@ -98,7 +98,7 @@ const esConsultarExitosa = (resultado) => {
 
 /**
  * ====================================================================================================================================
- * Obtiene la lista completa de registros, validando previamente los permisos del usuario.
+ * Obtiene la lista completa de registros de compensación por métrica, validando previamente los permisos del usuario.
  *
  * Este método realiza los siguientes pasos:
  * 1. Valida los datos de la solicitud.
@@ -130,7 +130,7 @@ const obtenerListaCompleta = async (req, res) => {
          res.transaccion.user.id_empresa,
          res?.database);
 
-      // 4. Verificar si la edición fue exitosa.
+      // 4. Verificar si la consulta fue exitosa.
       if (!esConsultarExitosa(resultado)) {
          return crearRespuestaErrorCrear(`Error al cargar el registro: ${resultado.error}`);
       }
@@ -150,12 +150,12 @@ const obtenerListaCompleta = async (req, res) => {
 
 /**
  * ====================================================================================================================================
- * Exportación del módulo que contiene los métodos disponibles para interactuar con registros.
+ * Exportación del módulo que contiene los métodos disponibles para interactuar con registros de compensación por métrica.
  * Este módulo expone la funcionalidad de obtener la lista completa, entre otras.
  * ====================================================================================================================================
  */
-const Gestor_Bono_Listar = {
+const Gestor_Compensacion_Metrica_Listar = {
    obtenerListaCompleta, // Método que obtiene la lista completa, con validaciones y permisos.
 };
 
-export default Gestor_Bono_Listar;
+export default Gestor_Compensacion_Metrica_Listar;

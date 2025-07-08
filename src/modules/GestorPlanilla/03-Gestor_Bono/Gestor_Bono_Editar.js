@@ -1,6 +1,6 @@
 /**
  * ====================================================================================================================================
- * @fileoverview Módulo para la edición de registros en el sistema de nómina
+ * @fileoverview Módulo para la edición de registros de compensación por métrica en el sistema
  * @requires ../../mysql2-promise/mysql2-promise
  * @requires ../../hooks/realizarValidacionesIniciales
  * @requires ../../hooks/crearRespuestaExitosa
@@ -8,7 +8,7 @@
  * @requires ../../hooks/crearRespuestaErrorCrear
  *
  * Este módulo proporciona las funcionalidades necesarias para actualizar registros
- * existentes en la base de datos, con validación de permisos y manejo estructurado de errores.
+ * de compensación por métrica existentes en la base de datos, con validación de permisos y manejo estructurado de errores.
  * ====================================================================================================================================
  */
 
@@ -20,30 +20,31 @@ import { crearRespuestaErrorCrear } from "../../../hooks/crearRespuestaErrorCrea
 /**
  * ====================================================================================================================================
  * Definición de las consultas SQL utilizadas en este módulo.
- * Contiene la consulta para actualizar un registro existente en la base de datos.
+ * Contiene la consulta para actualizar un registro de compensación por métrica existente en la base de datos.
  * ====================================================================================================================================
  */
 const QUERIES = {
    QUERIES_UPDATE: `
       UPDATE 
-         gestor_compe_tbl   
+         gestor_compensacion_metrica_tbl   
       SET
-      empresa_id_compe_gestor=?,
-      planilla_id_compe_gestor=?,
-      empleado_id_compe_gestor=?,
-      monto_compe_gestor=?,
-      motivo_compe_gestor=?,
-      aplica_aguinaldo_compe_gestor=?,
-      estado_compe_gestor=?,
-      estado_planilla_compe_gestor=?
-      WHERE id_compe_gestor   = ?;    
+         empresa_id_compensacion_metrica_gestor=?,
+         planilla_id_compensacion_metrica_gestor=?,
+         empleado_id_compensacion_metrica_gestor=?,
+         tipo_compensacion_metrica_gestor=?,
+         monto_compensacion_metrica_gestor=?,
+         motivo_compensacion_gestor=?,
+         fecha_compensacion_metrica_gestor=?,
+         aplica_en_compensacion_anual_gestor=?,
+         estado_compensacion_metrica_gestor=?
+      WHERE id_compensacion_metrica_gestor = ?;    
    `,
    
 };
 
 /**
  * ====================================================================================================================================
- * Actualiza un registro de registro en la base de datos.
+ * Actualiza un registro de compensación por métrica en la base de datos.
  *
  * Esta función ejecuta la consulta SQL de actualización utilizando los valores proporcionados
  * para modificar un registro existente identificado por su ID.
@@ -52,21 +53,20 @@ const QUERIES = {
  * @returns {Promise<Object>} - Resultado de la operación de actualización en la base de datos.
  * ====================================================================================================================================
  */
-const editarRegistroBd =async (datos, empresa_id, database) => {
-
-
+const editarRegistroBd = async (datos, empresa_id, database) => {
    return await realizarConsulta(
       QUERIES.QUERIES_UPDATE,
       [
          empresa_id,
-         datos.planilla_id_compe_gestor,
-         datos.empleado_id_compe_gestor,
-         datos.monto_compe_gestor,
-         datos.motivo_compe_gestor,
-         datos.aplica_aguinaldo_compe_gestor,
-         datos.estado_compe_gestor === 1 ? 1 : 0,
-         datos.estado_compe_gestor === 1 && datos.estado_procesado === "En proceso" ? datos.estado_procesado : "Cancelado",
-         datos.id_compe_gestor,
+         datos.planilla_id_compensacion_metrica_gestor,
+         datos.empleado_id_compensacion_metrica_gestor,
+         datos.tipo_compensacion_metrica_gestor || 'productividad',
+         datos.monto_compensacion_metrica_gestor,
+         datos.motivo_compensacion_gestor,
+         datos.fecha_compensacion_metrica_gestor || new Date().toISOString().split('T')[0],
+         datos.aplica_en_compensacion_anual_gestor,
+         datos.estado_compensacion_metrica_gestor,
+         datos.id_compensacion_metrica_gestor,
       ],
       database,
    );
@@ -92,9 +92,9 @@ const esEdicionExitosa = (resultado) => {
 
 /**
  * ====================================================================================================================================
- * Edita un registro existente en el sistema, validando previamente el acceso del usuario.
+ * Edita un registro de compensación por métrica existente en el sistema, validando previamente el acceso del usuario.
  *
- * Esta función principal gestiona el proceso completo de actualización de un registro:
+ * Esta función principal gestiona el proceso completo de actualización de un registro de compensación por métrica:
  * 1. Valida los datos de entrada y los permisos del usuario
  * 2. Actualiza el registro existente en la base de datos
  * 3. Verifica que la operación haya sido exitosa
@@ -114,13 +114,10 @@ const esEdicionExitosa = (resultado) => {
  * ====================================================================================================================================
  */
 const editarTransaccion = async (req, res) => {
-
    try {
       // 1. Validar los datos iniciales de la solicitud (por ejemplo, formato y autenticidad de los datos).
       const errorValidacion = await realizarValidacionesIniciales(res);
       if (errorValidacion) return errorValidacion; // Si hay un error en la validación, lo retorna inmediatamente.
-
-     
 
       // 3. Realizar la edición en la base de datos
       const resultado = await editarRegistroBd( 
@@ -128,13 +125,10 @@ const editarTransaccion = async (req, res) => {
          res?.transaccion?.user?.id_empresa,
          res?.database);
 
-
-     
       // 4. Verificar si la edición fue exitosa.
       if (!esEdicionExitosa(resultado)) {
          return crearRespuestaErrorCrear(`Error al editar el registro: ${resultado.error}`);
       }
-
 
       // 5. Si la edición fue exitosa, retornar una respuesta exitosa.
       return crearRespuestaExitosa(resultado.datos);
@@ -145,12 +139,12 @@ const editarTransaccion = async (req, res) => {
 
 /**
  * ====================================================================================================================================
- * Exportación del módulo que contiene los métodos disponibles para editar registros.
+ * Exportación del módulo que contiene los métodos disponibles para editar registros de compensación por métrica.
  * Este módulo expone la funcionalidad de edición de registros existentes.
  * ====================================================================================================================================
  */
-const Gestor_Bono_Editar = {     
+const Gestor_Compensacion_Metrica_Editar = {     
    editarTransaccion,
 };
 
-export default Gestor_Bono_Editar;
+export default Gestor_Compensacion_Metrica_Editar;
