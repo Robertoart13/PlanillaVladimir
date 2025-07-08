@@ -151,6 +151,16 @@ import Gestor_Extra_Crear from "../modules/GestorPlanilla/03-Gestor_Extra/Gestor
 import Gestor_Extra_Listar from "../modules/GestorPlanilla/03-Gestor_Extra/Gesto_Extra_Lista.js";
 import Gestor_Extra_Editar from "../modules/GestorPlanilla/03-Gestor_Extra/Gestor_Extra_Editar.js";
 
+/**
+ * ====================================================================================================================================
+ * Importación de módulos que tengan solo que ver con el gestor de planilla no de Natual 
+
+ * ====================================================================================================================================
+ */
+import Gestor_Deducciones_Crear from "../modules/GestorPlanilla/04-Gestor_Deducciones/Gestor_Deducciones_Crear.js";
+import Gestor_Deducciones_Listar from "../modules/GestorPlanilla/04-Gestor_Deducciones/Gestor_Deducciones_Lista.js";
+import Gestor_Deducciones_Editar from "../modules/GestorPlanilla/04-Gestor_Deducciones/Gestor_Deducciones_Editar.js";
+
 
 
 
@@ -743,6 +753,36 @@ function getModulesConfig() {
             },
             {
                path: "gestor/planilla/compensaciones/editar", // Ruta para editar compensación extra
+               method: "editarTransaccion", // Método que se ejecutará
+               isAuthRequired: true, // Requiere autenticación
+            },
+         ],
+      },
+      {
+         category: "Gestor", // Nombre del módulo
+         model: {
+            ...Gestor_Deducciones_Crear,
+            ...Gestor_Deducciones_Listar,
+            ...Gestor_Deducciones_Editar,
+            }, // Combinamos ambos modelos
+         routes: [
+            {
+               path: "gestor/planilla/deducciones/crear", // Ruta para crear rebajo a compensación
+               method: "crearTransaccion", // Método que se ejecutará
+               isAuthRequired: true, // Requiere autenticación
+            },
+            {
+               path: "gestor/planilla/deducciones/lista", // Ruta para listar rebajos a compensación
+               method: "obtenerListaCompleta", // Método que se ejecutará
+               isAuthRequired: true, // Requiere autenticación
+            },
+            {
+               path: "gestor/planilla/deducciones/obtener", // Ruta para obtener un rebajo específico
+               method: "obtenerRegistroPorId", // Método que se ejecutará
+               isAuthRequired: true, // Requiere autenticación
+            },
+            {
+               path: "gestor/planilla/deducciones/editar", // Ruta para editar rebajo a compensación
                method: "editarTransaccion", // Método que se ejecutará
                isAuthRequired: true, // Requiere autenticación
             },
