@@ -1,8 +1,13 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useDispatch } from "react-redux";
 import { fetchData_api } from "../../../../../store/fetchData_api/fetchData_api_Thunks";
+import formatCurrency from "../../../../../hooks/formatCurrency";
 import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
+
+// ============================================================================
+// FUNCIONES UTILITARIAS
+// ============================================================================
 
 /**
  * Mapea un array de objetos a un array de opciones para un select.
@@ -18,7 +23,87 @@ function getOptionList(data, valueKey, labelKey) {
 }
 
 /**
- * Hook para obtener y manejar las planillas.
+ * Busca un objeto en un array por id.
+ * @param {Array} data - Array de objetos.
+ * @param {string|number} id - Valor a buscar.
+ * @param {string} idKey - Clave del id.
+ * @returns {Object|null}
+ */
+function findById(data, id, idKey) {
+   return Array.isArray(data) ? data.find((item) => item[idKey] == id) || null : null;
+}
+
+// ============================================================================
+// FUNCIONES DE CÁLCULO DE COMPENSACIÓN
+// ============================================================================
+
+/**
+ * Calcula el salario por hora basado en el salario y tipo de jornada.
+ * Convierte diferentes tipos de salario (quincenal, semanal) a mensual y luego a por hora.
+ * 
+ * @param {number} salario - Salario del empleado.
+ * @param {string} tipoJornada - Tipo de jornada (mensual, quincenal, semanal).
+ * @returns {number} Salario por hora calculado.
+ * @throws {Error} Si el tipo de jornada no es válido.
+ */
+function calcularSalarioPorHora(salario, tipoJornada) {
+  let salarioMensual = 0;
+  
+  switch (tipoJornada.toLowerCase()) {
+    case 'mensual':
+      salarioMensual = salario;
+      break;
+    case 'quincenal':
+      salarioMensual = salario * 2; // 2 quincenas = 1 mes
+      break;
+    case 'semanal':
+      salarioMensual = salario * 4.333; // Promedio de semanas por mes
+      break;
+    default:
+      throw new Error(`Tipo de jornada inválido: ${tipoJornada}`);
+  }
+  
+  // Salario por hora = Salario mensual / 30 días / 8 horas diarias
+  return salarioMensual / 30 / 8;
+}
+
+/**
+ * Calcula la compensación extra basada en el salario, tipo de jornada, tipo de compensación y horas.
+ * Aplica los multiplicadores según la legislación laboral costarricense.
+ * 
+ * @param {number} salario - Salario del empleado.
+ * @param {string} tipoJornada - Tipo de jornada (mensual, quincenal, semanal).
+ * @param {string} tipoCompensacion - Tipo de compensación extra.
+ * @param {number} horas - Cantidad de horas trabajadas.
+ * @returns {number} Monto de la compensación extra calculada.
+ */
+function calcularCompensacionExtra(salario, tipoJornada, tipoCompensacion, horas) {
+  // Obtener salario por hora
+  const salarioHora = calcularSalarioPorHora(salario, tipoJornada);
+  
+  // Multiplicadores según legislación costarricense
+  const multiplicadores = {
+    'diurna': 1.5,           // 50% adicional
+    'nocturna': 1.5,         // 50% adicional
+    'feriado': 2.0,          // 100% adicional (doble)
+    'día de descanso': 2.0,  // 100% adicional (doble)
+    'jornada acumulativa': 2.0, // 100% adicional (doble)
+  };
+
+  const multiplicador = multiplicadores[tipoCompensacion.toLowerCase()] || 1;
+  
+  // Cálculo final: Salario por hora × Multiplicador × Horas trabajadas
+  return salarioHora * horas * multiplicador;
+}
+
+// ============================================================================
+// HOOKS PERSONALIZADOS
+// ============================================================================
+
+/**
+ * Hook para obtener y manejar las planillas disponibles.
+ * @param {Function} dispatch - Función dispatch de Redux.
+ * @returns {Object} Objeto con opciones de planillas, estado de carga y función para obtener planillas.
  */
 function usePlanillas(dispatch) {
    const [planillaOptions, setPlanillaOptions] = useState([]);
@@ -27,51 +112,80 @@ function usePlanillas(dispatch) {
    const fetchPlanillas = useCallback(async () => {
       setIsLoading(true);
       setPlanillaOptions([]);
-      const response = await dispatch(fetchData_api(null, "gestor/planillas/listas"));
-      if (response.success && response.data.array?.length > 0) {
-         setPlanillaOptions(getOptionList(response.data.array, "planilla_id", "planilla_codigo"));
+      
+      try {
+        const response = await dispatch(fetchData_api(null, "gestor/planillas/listas"));
+        if (response.success && response.data.array?.length > 0) {
+           setPlanillaOptions(getOptionList(response.data.array, "planilla_id", "planilla_codigo"));
+        }
+      } catch (error) {
+        console.error("Error al cargar planillas:", error);
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
    }, [dispatch]);
 
    return { planillaOptions, isLoading, fetchPlanillas };
 }
 
 /**
- * Hook para obtener y manejar los empleados.
+ * Hook para obtener y manejar los empleados disponibles.
+ * @param {Function} dispatch - Función dispatch de Redux.
+ * @returns {Object} Objeto con opciones de empleados, datos completos, estado de carga y función para obtener empleados.
  */
 function useEmpleados(dispatch) {
    const [empleadoOptions, setEmpleadoOptions] = useState([]);
+   const [empleadoData, setEmpleadoData] = useState([]);
    const [isLoading, setIsLoading] = useState(false);
 
    const fetchEmpleados = useCallback(async () => {
       setIsLoading(true);
       setEmpleadoOptions([]);
-      const response = await dispatch(fetchData_api(null, "gestor/planillas/empleados/options"));
-      if (response.success && response.data.array?.length > 0) {
-         setEmpleadoOptions(
-            getOptionList(
-               response.data.array,
-               "id_empleado_gestor",
-               "nombre_completo_empleado_gestor",
-            ),
-         );
+      setEmpleadoData([]);
+      
+      try {
+        const response = await dispatch(fetchData_api(null, "gestor/planillas/empleados/options"));
+        if (response.success && response.data.array?.length > 0) {
+           setEmpleadoData(response.data.array);
+           setEmpleadoOptions(
+              getOptionList(
+                 response.data.array,
+                 "id_empleado_gestor",
+                 "nombre_completo_empleado_gestor",
+              ),
+           );
+        }
+      } catch (error) {
+        console.error("Error al cargar empleados:", error);
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
    }, [dispatch]);
 
-   return { empleadoOptions, isLoading, fetchEmpleados };
+   return { empleadoOptions, empleadoData, isLoading, fetchEmpleados };
 }
 
+// ============================================================================
+// COMPONENTE PRINCIPAL
+// ============================================================================
+
+/**
+ * Componente para crear compensaciones extra (horas extra).
+ * Permite calcular automáticamente las compensaciones según la legislación laboral costarricense.
+ */
 export const CrearHoraExtra = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  // Hook para obtener planillas
-  const { planillaOptions, isLoading: isLoadingPlanillas, fetchPlanillas } = usePlanillas(dispatch);
-  
-  // Hook para obtener empleados
-  const { empleadoOptions, isLoading: isLoadingEmpleados, fetchEmpleados } = useEmpleados(dispatch);
 
+  // ============================================================================
+  // HOOKS Y ESTADOS
+  // ============================================================================
+  
+  // Hooks para obtener datos
+  const { planillaOptions, isLoading: isLoadingPlanillas, fetchPlanillas } = usePlanillas(dispatch);
+  const { empleadoOptions, empleadoData, isLoading: isLoadingEmpleados, fetchEmpleados } = useEmpleados(dispatch);
+
+  // Estado del formulario
   const [formData, setFormData] = useState({
     planilla: "",
     empleado: "",
@@ -79,7 +193,19 @@ export const CrearHoraExtra = () => {
     motivo_compensacion: "-- no es obligatorio",
     aplica_aguinaldo: false,
     estado: "Activo",
+    Remuneracion_Actual: "",
+    tipo_planilla_emepleado: "",
+    tipo_compensacion_extra: "",
+    cantidad_horas: "",
+    fecha_compensacion: new Date().toISOString().split('T')[0], // Fecha actual por defecto
   });
+
+  // Estado del empleado seleccionado
+  const [selectedEmpleadoData, setSelectedEmpleadoData] = useState(null);
+
+  // ============================================================================
+  // EFECTOS
+  // ============================================================================
 
   // Cargar planillas al montar el componente
   useEffect(() => {
@@ -91,7 +217,73 @@ export const CrearHoraExtra = () => {
     fetchEmpleados();
   }, [fetchEmpleados]);
 
-  // Manejar cambios en los inputs 
+  // Actualizar datos del empleado cuando se selecciona uno
+  useEffect(() => {
+    if (formData.empleado) {
+      const empleadoObj = findById(empleadoData, formData.empleado, "id_empleado_gestor");
+      setSelectedEmpleadoData(empleadoObj);
+      
+      if (empleadoObj?.salario_base_empleado_gestor) {
+        setFormData((prev) => ({
+          ...prev,
+          Remuneracion_Actual: empleadoObj.salario_base_empleado_gestor.toString(),
+          tipo_planilla_emepleado: empleadoObj.tipo_planilla_empleado_gestor,
+        }));
+      }
+    } else {
+      setSelectedEmpleadoData(null);
+      setFormData((prev) => ({ 
+        ...prev, 
+        Remuneracion_Actual: "",
+        tipo_planilla_emepleado: "",
+      }));
+    }
+  }, [formData.empleado, empleadoData]);
+
+  // Calcular compensación extra automáticamente cuando cambien los campos relevantes
+  useEffect(() => {
+    const salario = parseFloat(formData.Remuneracion_Actual);
+    const tipoJornada = formData.tipo_planilla_emepleado;
+    const tipoCompensacion = formData.tipo_compensacion_extra;
+    const horas = parseFloat(formData.cantidad_horas);
+
+    // Solo calcular si todos los campos necesarios están completos
+    if (salario && tipoJornada && tipoCompensacion && horas && horas > 0) {
+      try {
+        const compensacionCalculada = calcularCompensacionExtra(
+          salario,
+          tipoJornada,
+          tipoCompensacion,
+          horas
+        );
+        setFormData((prev) => ({
+          ...prev,
+          compensacion_extra: compensacionCalculada.toFixed(2),
+        }));
+      } catch (error) {
+        console.error("Error al calcular compensación extra:", error);
+        setFormData((prev) => ({
+          ...prev,
+          compensacion_extra: "",
+        }));
+      }
+    } else {
+      // Limpiar compensación si faltan datos
+      setFormData((prev) => ({
+        ...prev,
+        compensacion_extra: "",
+      }));
+    }
+  }, [formData.Remuneracion_Actual, formData.tipo_planilla_emepleado, formData.tipo_compensacion_extra, formData.cantidad_horas]);
+
+  // ============================================================================
+  // FUNCIONES DE MANEJO
+  // ============================================================================
+
+  /**
+   * Maneja el cambio de cualquier input del formulario.
+   * @param {Event} e - Evento del input.
+   */
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
@@ -100,21 +292,37 @@ export const CrearHoraExtra = () => {
     }));
   };
 
-  // Validar si el formulario está completo
+  /**
+   * Valida si el formulario está completo y cumple con las validaciones.
+   * @returns {boolean} True si el formulario es válido.
+   */
   const isFormValid = () => {
+    const horas = parseFloat(formData.cantidad_horas);
+    const compensacion = parseFloat(formData.compensacion_extra);
+    
     return (
       formData.planilla &&
       formData.empleado &&
-      formData.compensacion_extra &&
-      parseFloat(formData.compensacion_extra) > 0
+      formData.tipo_compensacion_extra &&
+      formData.cantidad_horas &&
+      formData.fecha_compensacion &&
+      horas >= 0.5 &&
+      horas <= 12.0 &&
+      compensacion > 0
     );
   };
 
-  // Manejar submit
+  /**
+   * Maneja el envío del formulario.
+   * @param {Event} e - Evento del formulario.
+   */
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    // Validaciones
+    // ============================================================================
+    // VALIDACIONES
+    // ============================================================================
+    
     if (!formData.planilla) {
       Swal.fire({
         icon: 'error',
@@ -133,6 +341,43 @@ export const CrearHoraExtra = () => {
       return;
     }
 
+    if (!formData.tipo_compensacion_extra) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Debe seleccionar el tipo de compensación extra'
+      });
+      return;
+    }
+
+    if (!formData.cantidad_horas || parseFloat(formData.cantidad_horas) < 0.5) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'La cantidad de horas debe ser al menos 0.5 horas'
+      });
+      return;
+    }
+
+    const horas = parseFloat(formData.cantidad_horas);
+    if (horas > 12.0) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'La cantidad de horas no puede exceder 12 horas por día'
+      });
+      return;
+    }
+
+    if (!formData.fecha_compensacion) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Debe seleccionar la fecha de la compensación'
+      });
+      return;
+    }
+
     if (!formData.compensacion_extra || parseFloat(formData.compensacion_extra) <= 0) {
       Swal.fire({
         icon: 'error',
@@ -142,7 +387,10 @@ export const CrearHoraExtra = () => {
       return;
     }
 
-    // Confirmación antes de crear
+    // ============================================================================
+    // CONFIRMACIÓN
+    // ============================================================================
+    
     const result = await Swal.fire({
       title: '¿Está seguro?',
       text: "¿Desea crear la Compensación Extra?",
@@ -156,35 +404,55 @@ export const CrearHoraExtra = () => {
 
     if (result.isConfirmed) {
       try {
+        // Mostrar loading
+        Swal.fire({
+          title: 'Creando compensación extra',
+          text: 'Por favor espere...',
+          allowOutsideClick: false,
+          didOpen: () => {
+            Swal.showLoading();
+          },
+        });
+
+        // Enviar datos al backend
         const response = await dispatch(fetchData_api(formData, "gestor/planilla/compensaciones/crear"));
 
-         if (response.success) {
-            Swal.fire({
-              icon: 'success',
-              title: '¡Creado!',
-              text: 'La Compensación Extra ha sido creada exitosamente'
-            }).then(() => {
-              navigate("/acciones/horas-extra/lista");
-            });
-            
-            // Limpiar formulario después de crear
-            setFormData({
-              planilla: "",
-              empleado: "",
-              compensacion_extra: "",
-              motivo_compensacion: "-- no es obligatorio",
-              aplica_aguinaldo: false,
-              estado: "Activo",
-            });
-          }else{
-            Swal.fire({
-              icon: 'error',
-              title: 'Error',
-              text: response.message
-            });
-         }
+        if (response.success) {
+          // Éxito
+          Swal.fire({
+            icon: 'success',
+            title: '¡Creado!',
+            text: 'La Compensación Extra ha sido creada exitosamente'
+          }).then(() => {
+            navigate("/acciones/horas-extra/lista");
+          });
+          
+          // Limpiar formulario
+          setFormData({
+            planilla: "",
+            empleado: "",
+            compensacion_extra: "",
+            motivo_compensacion: "-- no es obligatorio",
+            aplica_aguinaldo: false,
+            estado: "Activo",
+            Remuneracion_Actual: "",
+            tipo_planilla_emepleado: "",
+            tipo_compensacion_extra: "",
+            cantidad_horas: "",
+            fecha_compensacion: new Date().toISOString().split('T')[0],
+          });
+        } else {
+          // Error del backend
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: response.message || 'Error al crear la compensación extra'
+          });
+        }
         
       } catch (error) {
+        // Error de red o sistema
+        console.error('Error al crear compensación extra:', error);
         Swal.fire({
           icon: 'error',
           title: 'Error',
@@ -194,18 +462,48 @@ export const CrearHoraExtra = () => {
     }
   };
 
+  // ============================================================================
+  // RENDERIZADO
+  // ============================================================================
+
   return (
     <div className="card">
+      {/* Header del formulario */}
       <div className="card-header">
         <h5>Crear Compensacion Extra</h5>
         <p className="text-muted">
           Complete el formulario para crear un nuevo registro de compensacion extra.
+          El sistema calculará automáticamente el monto según la legislación laboral costarricense.
         </p>
       </div>
       
       <div className="card-body">
         <form onSubmit={handleSubmit}>
-          {/* Estado */}
+          {/* ========================================================================
+               ALERTA INFORMATIVA DEL EMPLEADO SELECCIONADO
+          ======================================================================== */}
+          {selectedEmpleadoData && (
+            <div
+              className="alert alert-success mb-3"
+              role="alert"
+              style={{ background: "#c6fcf5" }}
+            >
+              <div className="d-flex align-items-center">
+                <i className="fas fa-user-edit me-2"></i>
+                <div>
+                  <strong>Socio seleccionado:</strong>{" "}
+                  {selectedEmpleadoData.nombre_completo_empleado_gestor} |
+                  <strong> Cédula:</strong> {selectedEmpleadoData.cedula_empleado_gestor} |
+                  <strong> Número de Socio:</strong>{" "}
+                  {selectedEmpleadoData.numero_socio_empleado_gestor}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ========================================================================
+               CAMPO DE ESTADO
+          ======================================================================== */}
           <div className="col-md-12 mb-3" style={{display: "flex", justifyContent: "flex-end", alignItems: "flex-end", flexDirection: "column"}}>
             <label className="form-label d-block">
               Estado
@@ -230,6 +528,9 @@ export const CrearHoraExtra = () => {
             </div>
           </div>
 
+          {/* ========================================================================
+               PRIMERA FILA: PLANILLA, EMPLEADO, REMUNERACIÓN Y TIPO DE JORNADA
+          ======================================================================== */}
           <div className="row">
             {/* Planilla */}
             <div className="col-md-6 mb-3">
@@ -300,33 +601,148 @@ export const CrearHoraExtra = () => {
                 </div>
               )}
             </div>
+          </div>
 
-            {/* Compensacion Extra */}
-            <div className="col-md-6 mb-3">
-              <label className="form-label" htmlFor="compensacion_extra">
-                Compensacion Extra <span className="text-danger">*</span>
+          {/* ========================================================================
+               SEGUNDA FILA: REMUNERACIÓN, TIPO DE JORNADA, TIPO DE COMPENSACIÓN Y HORAS
+          ======================================================================== */}
+          <div className="row">
+            {/* Remuneracion Actual */}
+            <div className="col-md-3 mb-3">
+              <label
+                className="form-label"
+                htmlFor="Remuneracion_Actual"
+              >
+                Remuneracion Actual
+              </label>
+              <div className="input-group">
+                <span className="input-group-text">₡</span>
+                <input
+                  type="text"
+                  className="form-control"
+                  id="Remuneracion_Actual"
+                  name="Remuneracion_Actual"
+                  value={formatCurrency(formData.Remuneracion_Actual || 0)}
+                  readOnly
+                  placeholder="₡0.00"
+                />
+              </div>
+            </div>
+
+            {/* Tipo de Jornada */}
+            <div className="col-md-3 mb-3">
+              <label
+                className="form-label"
+                htmlFor="tipo_planilla_emepleado"
+              >
+                Tipo de Jornada
+              </label>
+              <input
+                type="text"
+                className="form-control"
+                id="tipo_planilla_emepleado"
+                name="tipo_planilla_emepleado"
+                value={formData.tipo_planilla_emepleado || ""}
+                readOnly
+                placeholder="No disponible"
+              />
+            </div>
+
+            {/* Tipo de Compensación Extra */}
+            <div className="col-md-3 mb-3">
+              <label className="form-label" htmlFor="tipo_compensacion_extra">
+                Tipo de Compensación Extra <span className="text-danger">*</span>
+              </label>
+              <select
+                className="form-select"
+                id="tipo_compensacion_extra"
+                name="tipo_compensacion_extra"
+                value={formData.tipo_compensacion_extra}
+                onChange={handleChange}
+                required
+              >
+                <option value="">Seleccione tipo</option>
+                <option value="Diurna">Diurna (50% adicional)</option>
+                <option value="Nocturna">Nocturna (50% adicional)</option>
+                <option value="Feriado">Feriado (100% adicional)</option>
+                <option value="Día de descanso">Día de descanso (100% adicional)</option>
+                <option value="Jornada acumulativa">Jornada acumulativa (100% adicional)</option>
+              </select>
+            </div>
+
+            {/* Cantidad de Horas */}
+            <div className="col-md-3 mb-3">
+              <label className="form-label" htmlFor="cantidad_horas">
+                Cantidad de Horas <span className="text-danger">*</span>
               </label>
               <input
                 type="number"
-                className={`form-control ${formData.compensacion_extra && parseFloat(formData.compensacion_extra) <= 0 ? 'is-invalid' : ''}`}
-                id="compensacion_extra"
-                name="compensacion_extra"
-                value={formData.compensacion_extra}
+                className={`form-control ${formData.cantidad_horas && (parseFloat(formData.cantidad_horas) < 0.5 || parseFloat(formData.cantidad_horas) > 12.0) ? 'is-invalid' : ''}`}
+                id="cantidad_horas"
+                name="cantidad_horas"
+                value={formData.cantidad_horas}
                 onChange={handleChange}
-                placeholder="0.00"
-                step="0.01"
-                min="0.01"
+                placeholder="0.5"
+                step="0.5"
+                min="0.5"
+                max="12.0"
                 required
               />
-              {formData.compensacion_extra && parseFloat(formData.compensacion_extra) <= 0 && (
+              {formData.cantidad_horas && (parseFloat(formData.cantidad_horas) < 0.5 || parseFloat(formData.cantidad_horas) > 12.0) && (
                 <div className="invalid-feedback">
-                  La compensación debe ser mayor a cero
+                  Las horas deben estar entre 0.5 y 12.0
                 </div>
               )}
             </div>
+          </div>
+
+          {/* ========================================================================
+               TERCERA FILA: FECHA, COMPENSACIÓN CALCULADA Y MOTIVO
+          ======================================================================== */}
+          <div className="row">
+            {/* Fecha de Compensación */}
+            <div className="col-md-3 mb-3">
+              <label className="form-label" htmlFor="fecha_compensacion">
+                Fecha de Compensación <span className="text-danger">*</span>
+              </label>
+              <input
+                type="date"
+                className="form-control"
+                id="fecha_compensacion"
+                name="fecha_compensacion"
+                value={formData.fecha_compensacion}
+                onChange={handleChange}
+                required
+              />
+              <div className="form-text">
+                Fecha en que se trabajó la compensación extra
+              </div>
+            </div>
+
+            {/* Compensacion Extra (Calculada) */}
+            <div className="col-md-6 mb-3">
+              <label className="form-label" htmlFor="compensacion_extra">
+                Compensacion Extra (Calculada) <span className="text-danger">*</span>
+              </label>
+              <div className="input-group">
+                <span className="input-group-text">₡</span>
+                <input
+                  type="text"
+                  className="form-control"
+                  id="compensacion_extra"
+                  name="compensacion_extra"
+                  value={formatCurrency(formData.compensacion_extra || 0)}
+                  readOnly
+                  placeholder="Se calcula automáticamente"
+                />
+              </div>
+              <div className="form-text">
+                Este monto se calcula automáticamente basado en el salario, tipo de jornada, tipo de compensación y horas trabajadas
+              </div>
+            </div>
 
             {/* Motivo de la Compensación */}
-            <div className="col-md-6 mb-3">
+            <div className="col-md-3 mb-3">
               <label className="form-label" htmlFor="motivo_compensacion">
                 Motivo de la Compensación
               </label>
@@ -345,7 +761,51 @@ export const CrearHoraExtra = () => {
             </div>
           </div>
 
-          {/* Aplica Aguinaldo */}
+          {/* ========================================================================
+               DETALLE DEL CÁLCULO (Solo se muestra cuando hay compensación calculada)
+          ======================================================================== */}
+          {formData.compensacion_extra && parseFloat(formData.compensacion_extra) > 0 && (
+            <div className="alert alert-info mb-3" role="alert">
+              <div className="d-flex align-items-center">
+                <i className="fas fa-calculator me-2"></i>
+                <div>
+                  <strong>Detalle del Cálculo:</strong>
+                  <div className="mt-1">
+                    {(() => {
+                      try {
+                        const salario = parseFloat(formData.Remuneracion_Actual);
+                        const tipoJornada = formData.tipo_planilla_emepleado;
+                        const salarioHora = calcularSalarioPorHora(salario, tipoJornada);
+                        const multiplicadores = {
+                          'diurna': 1.5,
+                          'nocturna': 1.5,
+                          'feriado': 2.0,
+                          'día de descanso': 2.0,
+                          'jornada acumulativa': 2.0,
+                        };
+                        const multiplicador = multiplicadores[formData.tipo_compensacion_extra.toLowerCase()] || 1;
+                        
+                        return (
+                          <>
+                            <div>• Salario por hora: {formatCurrency(salarioHora)}</div>
+                            <div>• Multiplicador ({formData.tipo_compensacion_extra}): {multiplicador}x</div>
+                            <div>• Horas trabajadas: {formData.cantidad_horas} horas</div>
+                            <div>• Cálculo: {formatCurrency(salarioHora)} × {multiplicador} × {formData.cantidad_horas} = {formatCurrency(formData.compensacion_extra)}</div>
+                          </>
+                        );
+                      } catch (error) {
+                        return <div>Error en el cálculo</div>;
+                      }
+                    })()}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ========================================================================
+               CAMPO DE APLICA AGUINALDO
+          ======================================================================== */}
           <div className="row">
             <div className="col-md-6 mb-3">
               <div className="form-check">
@@ -367,7 +827,9 @@ export const CrearHoraExtra = () => {
             </div>
           </div>
 
-          {/* Botones de acción */}
+          {/* ========================================================================
+               BOTONES DE ACCIÓN
+          ======================================================================== */}
           <div className="d-flex gap-2 mt-4">
             <button
               type="submit"

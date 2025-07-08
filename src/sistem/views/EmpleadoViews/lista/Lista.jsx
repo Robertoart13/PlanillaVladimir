@@ -123,6 +123,7 @@ const formatearDatosEmpleado = (datosEmpleado) => ({
    moneda_pago_empleado_gestor: datosEmpleado.moneda_pago_empleado_gestor,
    tipo_planilla_empleado_gestor: datosEmpleado.tipo_planilla_empleado_gestor,
    estado_empleado_gestor: datosEmpleado.estado_empleado_gestor,
+   montoAsegurado_gestor_empelado: datosEmpleado.montoAsegurado_gestor_empelado,
 });
 
 /**

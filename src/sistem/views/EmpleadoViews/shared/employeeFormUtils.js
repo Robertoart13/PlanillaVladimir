@@ -90,6 +90,7 @@ export const REQUIRED_FIELDS_CONFIG = {
    numero_hacienda: "El número de hacienda es obligatorio",
    moneda_pago: "La moneda de pago es obligatoria",
    tipo_planilla: "El tipo de planilla es obligatorio",
+   monto_asegurado: "El monto de asegurado es obligatorio cuando CCSS está activado",
 };
 
 /**
@@ -130,6 +131,9 @@ export const getInitialFormData = () => ({
    ministerio_hacienda: false,
    rt_ins: false,
    ccss: false,
+   
+   // CCSS Amount (only required when CCSS is checked)
+   monto_asegurado: "",
    
    // Payment Configuration
    moneda_pago: "",
@@ -203,6 +207,7 @@ export const formOptions = {
    ],
    
    tipoPlanilla: [
+      { value: "mensual", label: "Mensual" },
       { value: "quincenal", label: "Quincenal" },
       { value: "bisemanal", label: "Bisemanal" },
       { value: "semanal", label: "Semanal" },
@@ -335,6 +340,7 @@ export const handleNumberValidation = (number, fieldName, errorSetters) => {
       numero_asegurado: errorSetters.setNumeroAseguradoError,
       numero_ins: errorSetters.setNumeroInsError,
       numero_hacienda: errorSetters.setNumeroHaciendaError,
+      monto_asegurado: errorSetters.setMontoAseguradoError,
    };
 
    const setError = errorMap[fieldName];
@@ -346,6 +352,28 @@ export const handleNumberValidation = (number, fieldName, errorSetters) => {
          "Este campo solo puede contener números"
       );
    }
+};
+
+/**
+ * Handles monto asegurado validation - only required when CCSS is checked
+ */
+export const handleMontoAseguradoValidation = (monto, ccssChecked, setMontoAseguradoError) => {
+   if (!ccssChecked) {
+      setMontoAseguradoError("");
+      return;
+   }
+
+   if (!monto || monto.trim() === "") {
+      setMontoAseguradoError("El monto de asegurado es obligatorio cuando CCSS está activado");
+      return;
+   }
+
+   if (!validationUtils.validateNumberFormat(monto)) {
+      setMontoAseguradoError("El monto de asegurado solo puede contener números");
+      return;
+   }
+
+   setMontoAseguradoError("");
 };
 
 /**
@@ -379,6 +407,7 @@ export const setFieldValidationError = (fieldName, errorMessage, errorSetters) =
       numero_hacienda: errorSetters.setNumeroHaciendaError,
       moneda_pago: errorSetters.setMonedaPagoError,
       tipo_planilla: errorSetters.setTipoPlanillaError,
+      monto_asegurado: errorSetters.setMontoAseguradoError,
    };
 
    const setter = errorSettersMap[fieldName];
@@ -394,7 +423,13 @@ export const validateRequiredFields = (formData, errorSetters) => {
    let hasErrors = false;
 
    Object.entries(REQUIRED_FIELDS_CONFIG).forEach(([fieldName, errorMessage]) => {
-      if (isFieldEmpty(formData[fieldName])) {
+      // Special handling for monto_asegurado - only required when CCSS is checked
+      if (fieldName === 'monto_asegurado') {
+         if (formData.ccss && isFieldEmpty(formData[fieldName])) {
+            hasErrors = true;
+            setFieldValidationError(fieldName, errorMessage, errorSetters);
+         }
+      } else if (isFieldEmpty(formData[fieldName])) {
          hasErrors = true;
          setFieldValidationError(fieldName, errorMessage, errorSetters);
       }
@@ -444,6 +479,7 @@ export const handleInputChange = (e, formData, setFormData, errorSetters) => {
       numero_asegurado: () => handleNumberValidation(value, name, errorSetters),
       numero_ins: () => handleNumberValidation(value, name, errorSetters),
       numero_hacienda: () => handleNumberValidation(value, name, errorSetters),
+      monto_asegurado: () => handleMontoAseguradoValidation(value, formData.ccss, errorSetters.setMontoAseguradoError),
       // Select field validations
       tipo_contrato: () => handleSelectValidation(value, errorSetters.setTipoContratoError, "El tipo de contrato es obligatorio"),
       departamento: () => handleSelectValidation(value, errorSetters.setDepartamentoError, "El departamento es obligatorio"),
@@ -463,8 +499,20 @@ export const handleInputChange = (e, formData, setFormData, errorSetters) => {
 /**
  * Handles switch changes for institution fields
  */
-export const handleSwitchChange = (fieldName, checked, formData, setFormData) => {
+export const handleSwitchChange = (fieldName, checked, formData, setFormData, errorSetters = null) => {
    setFormData({ ...formData, [fieldName]: checked });
+   
+   // If CCSS is being toggled and we have error setters, validate monto_asegurado
+   if (fieldName === 'ccss') {
+      if (errorSetters && errorSetters.setMontoAseguradoError) {
+         handleMontoAseguradoValidation(formData.monto_asegurado, checked, errorSetters.setMontoAseguradoError);
+      }
+      
+      // If CCSS is being unchecked, clear the monto_asegurado field
+      if (!checked) {
+         setFormData(prevData => ({ ...prevData, monto_asegurado: "0" }));
+      }
+   }
 };
 
 // ============================================================================

@@ -61,6 +61,7 @@ const useFormValidation = () => {
    const [numeroHaciendaError, setNumeroHaciendaError] = useState("");
    const [monedaPagoError, setMonedaPagoError] = useState("");
    const [tipoPlanillaError, setTipoPlanillaError] = useState("");
+   const [montoAseguradoError, setMontoAseguradoError] = useState("");
 
    const clearAllErrors = () => {
       setEmailError("");
@@ -78,6 +79,7 @@ const useFormValidation = () => {
       setNumeroHaciendaError("");
       setMonedaPagoError("");
       setTipoPlanillaError("");
+      setMontoAseguradoError("");
    };
 
    const hasErrors = () => {
@@ -85,7 +87,8 @@ const useFormValidation = () => {
          emailError || cedulaError || nombreError || telefonoError ||
          salarioError || tipoContratoError || departamentoError || puestoError ||
          jornadaError || fechaIngresoError || numeroAseguradoError ||
-         numeroInsError || numeroHaciendaError || monedaPagoError || tipoPlanillaError
+         numeroInsError || numeroHaciendaError || monedaPagoError || tipoPlanillaError ||
+         montoAseguradoError
       );
    };
 
@@ -94,12 +97,12 @@ const useFormValidation = () => {
       emailError, cedulaError, nombreError, telefonoError, salarioError,
       tipoContratoError, departamentoError, puestoError,
       jornadaError, fechaIngresoError, numeroAseguradoError, numeroInsError,
-      numeroHaciendaError, monedaPagoError, tipoPlanillaError,
+      numeroHaciendaError, monedaPagoError, tipoPlanillaError, montoAseguradoError,
       // Error setters
       setEmailError, setCedulaError, setNombreError, setTelefonoError, setSalarioError,
       setTipoContratoError, setDepartamentoError, setPuestoError,
       setJornadaError, setFechaIngresoError, setNumeroAseguradoError, setNumeroInsError,
-      setNumeroHaciendaError, setMonedaPagoError, setTipoPlanillaError,
+      setNumeroHaciendaError, setMonedaPagoError, setTipoPlanillaError, setMontoAseguradoError,
       // Utility functions
       clearAllErrors, hasErrors,
    };
@@ -138,6 +141,7 @@ const useEmployeeForm = () => {
          setFechaIngresoError: validation.setFechaIngresoError,
          setMonedaPagoError: validation.setMonedaPagoError,
          setTipoPlanillaError: validation.setTipoPlanillaError,
+         setMontoAseguradoError: validation.setMontoAseguradoError,
       });
    };
 
@@ -145,7 +149,9 @@ const useEmployeeForm = () => {
     * Handles switch changes for institution fields
     */
    const handleFormSwitchChange = (fieldName, checked) => {
-      handleSwitchChange(fieldName, checked, formData, setFormData);
+      handleSwitchChange(fieldName, checked, formData, setFormData, {
+         setMontoAseguradoError: validation.setMontoAseguradoError,
+      });
    };
 
    /**
@@ -172,6 +178,7 @@ const useEmployeeForm = () => {
          setNumeroHaciendaError: validation.setNumeroHaciendaError,
          setMonedaPagoError: validation.setMonedaPagoError,
          setTipoPlanillaError: validation.setTipoPlanillaError,
+         setMontoAseguradoError: validation.setMontoAseguradoError,
       });
 
       const hasValidationErrors = validation.hasErrors();
@@ -760,6 +767,26 @@ export const CrearEmpleado = () => {
                   </div>
                </div>
             </FormSection>
+
+            {/* CCSS Amount - Only visible when CCSS is checked */}
+            {formData.ccss && (
+               <FormSection title="Configuración CCSS">
+                  <div className="row">
+                     <div className="col-md-6">
+                        <FormField
+                           label="Monto de asegurado"
+                           id="monto_asegurado"
+                           name="monto_asegurado"
+                           value={formData.monto_asegurado}
+                           onChange={handleInputChange}
+                           placeholder="500000"
+                           required
+                           error={validation.montoAseguradoError}
+                        />
+                     </div>
+                  </div>
+               </FormSection>
+            )}
 
             {/* Submit Button */}
             <button

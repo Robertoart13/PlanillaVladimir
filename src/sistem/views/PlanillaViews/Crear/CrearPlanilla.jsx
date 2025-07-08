@@ -162,7 +162,7 @@ export const CrearPlanilla = () => {
       if (respuesta.success) {
         Swal.fire("¡Creado!", "La planilla ha sido creada exitosamente.", "success").then(() => {
           navigate("/planilla/lista");
-          setFormData(initializeFormData());
+          
         });
       } else {
         Swal.fire({

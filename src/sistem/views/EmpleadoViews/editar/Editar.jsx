@@ -49,6 +49,7 @@ const useFormValidation = () => {
    const [numeroHaciendaError, setNumeroHaciendaError] = useState("");
    const [monedaPagoError, setMonedaPagoError] = useState("");
    const [tipoPlanillaError, setTipoPlanillaError] = useState("");
+   const [montoAseguradoError, setMontoAseguradoError] = useState("");
 
    const clearAllErrors = () => {
       setEmailError("");
@@ -66,6 +67,7 @@ const useFormValidation = () => {
       setNumeroHaciendaError("");
       setMonedaPagoError("");
       setTipoPlanillaError("");
+      setMontoAseguradoError("");
    };
 
    const hasErrors = () => {
@@ -84,7 +86,8 @@ const useFormValidation = () => {
          numeroInsError ||
          numeroHaciendaError ||
          monedaPagoError ||
-         tipoPlanillaError
+         tipoPlanillaError ||
+         montoAseguradoError
       );
    };
 
@@ -105,6 +108,7 @@ const useFormValidation = () => {
       numeroHaciendaError,
       monedaPagoError,
       tipoPlanillaError,
+      montoAseguradoError,
       // Error setters
       setEmailError,
       setCedulaError,
@@ -121,6 +125,7 @@ const useFormValidation = () => {
       setNumeroHaciendaError,
       setMonedaPagoError,
       setTipoPlanillaError,
+      setMontoAseguradoError,
       // Utility functions
       clearAllErrors,
       hasErrors,
@@ -163,6 +168,8 @@ const useEmployeeEditForm = () => {
 
          const employeeData = JSON.parse(selectedEmployeeData);
 
+         console.log(employeeData);
+
          // Transform the data to match our form structure
          const transformedData = {
             nombre_completo: employeeData.nombre_completo_empleado_gestor || "",
@@ -188,6 +195,7 @@ const useEmployeeEditForm = () => {
             ministerio_hacienda: Boolean(employeeData.ministerio_hacienda_empleado_gestor),
             rt_ins: Boolean(employeeData.rt_ins_empleado_gestor),
             ccss: Boolean(employeeData.ccss_empleado_gestor),
+            monto_asegurado: employeeData.montoAsegurado_gestor_empelado || "",
             moneda_pago: employeeData.moneda_pago_empleado_gestor || "",
             tipo_planilla: employeeData.tipo_planilla_empleado_gestor || "",
             estado_empleado_gestor: employeeData.estado_empleado_gestor === 1,
@@ -230,6 +238,7 @@ const useEmployeeEditForm = () => {
          setNumeroHaciendaError: validation.setNumeroHaciendaError,
          setMonedaPagoError: validation.setMonedaPagoError,
          setTipoPlanillaError: validation.setTipoPlanillaError,
+         setMontoAseguradoError: validation.setMontoAseguradoError,
       });
 
       const hasValidationErrors = validation.hasErrors();
@@ -358,6 +367,7 @@ const useEmployeeEditForm = () => {
          setFechaIngresoError: validation.setFechaIngresoError,
          setMonedaPagoError: validation.setMonedaPagoError,
          setTipoPlanillaError: validation.setTipoPlanillaError,
+         setMontoAseguradoError: validation.setMontoAseguradoError,
       });
    };
 
@@ -365,7 +375,9 @@ const useEmployeeEditForm = () => {
     * Handles switch changes for institution fields and employee status
     */
    const handleFormSwitchChange = (fieldName, checked) => {
-      handleSwitchChange(fieldName, checked, formData, setFormData);
+      handleSwitchChange(fieldName, checked, formData, setFormData, {
+         setMontoAseguradoError: validation.setMontoAseguradoError,
+      });
    };
 
    return {
@@ -941,6 +953,26 @@ export const EditarEmpleado = () => {
                   </div>
                </div>
             </FormSection>
+
+            {/* CCSS Amount - Only visible when CCSS is checked */}
+            {formData.ccss && (
+               <FormSection title="Configuración CCSS">
+                  <div className="row">
+                     <div className="col-md-6">
+                        <FormField
+                           label="Monto de asegurado"
+                           id="monto_asegurado"
+                           name="monto_asegurado"
+                           value={formData.monto_asegurado}
+                           onChange={handleFormInputChange}
+                           placeholder="500000"
+                           required
+                           error={validation.montoAseguradoError}
+                        />
+                     </div>
+                  </div>
+               </FormSection>
+            )}
 
             {/* Submit Button */}
             <button

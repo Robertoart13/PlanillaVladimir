@@ -242,10 +242,10 @@ export const useDataTable = (
       });
 
       setupRowSelectionEvent(tableInstanceRef.current);
-   }, [tableRef, tableInstanceRef, setError, setMessage, user, setupRowSelectionEvent, transaccion]);
+   }, [tableRef, tableInstanceRef, setError, setMessage, user, setupRowSelectionEvent, transaccion, urlEndpoint, requestType, columnsLayout, columnsFilter, columns, formatUserData]);
 
    useEffect(() => {
-      // Inicializar la tabla solo una vez al montar el componente
+      // Inicializar la tabla cuando cambien los parámetros
       initializeTable();
 
       // Limpiar al desmontar
@@ -257,5 +257,5 @@ export const useDataTable = (
             tableInstanceRef.current = null;
          }
       };
-   }, [tableRef, initializeTable]);
+   }, [tableRef, initializeTable, transaccion, urlEndpoint, requestType, columnsLayout, columnsFilter, columns, formatUserData]);
 };

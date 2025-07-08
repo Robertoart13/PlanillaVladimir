@@ -150,7 +150,7 @@ const OPCIONES_ESTADO = [
     * @param {Function} navigate - Función de navegación de React Router.
     */
    const navegarCrearHorasExtra = (navigate) => {
-      navigate("/acciones/horas-extra/crear");
+      navigate("/acciones/compensacion-extra/crear");
    };
 
 /**
@@ -211,7 +211,7 @@ export const HorasExtraLista = () => {
       const datosGuardados = localStorage.getItem("selectedHorasExtra");
 
       // Navega a la página de edición de planilla
-      navigate("/acciones/horas-extra/editar");
+      navigate("/acciones/compensacion-extra/editar"); 
    };
 
    // Configuración de la tabla usando useMemo para optimizar el rendimiento.

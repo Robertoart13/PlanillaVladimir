@@ -104,11 +104,12 @@ export const CrearAumento = () => {
       empresa: "",
       planilla: "",
       empleado: "",
+      remuneracion_actual: "",
+      tipo_ajuste: "Fijo",
       monto_aumento: "",
-      aplica_aguinaldo: false,
+      remuneracion_nueva: "",
+      fecha_efectiva: "",
       estado: "Activo",
-      Remuneracion_Actual: "",
-      Remuneracion_Nueva: "",
    });
    const [selectedPlanillaData, setSelectedPlanillaData] = useState(null);
    const [selectedEmpleadoData, setSelectedEmpleadoData] = useState(null);
@@ -150,37 +151,44 @@ export const CrearAumento = () => {
          if (empleadoObj?.salario_base_empleado_gestor) {
             setFormData((prev) => ({
                ...prev,
-               Remuneracion_Actual: empleadoObj.salario_base_empleado_gestor.toString(),
+               remuneracion_actual: empleadoObj.salario_base_empleado_gestor.toString(),
             }));
          }
       } else {
          setSelectedEmpleadoData(null);
-         setFormData((prev) => ({ ...prev, Remuneracion_Actual: "" }));
+         setFormData((prev) => ({ ...prev, remuneracion_actual: "" }));
       }
       // eslint-disable-next-line
    }, [formData.empleado, empleadoData]);
 
-   // Calcular Remuneracion nueva cuando cambie el monto de aumento o Remuneracion actual
+   // Calcular Remuneracion nueva cuando cambie el monto de aumento, tipo de ajuste o remuneracion actual
    useEffect(() => {
-      /**
-       * Calcula la suma directa: Remuneracion_Actual + monto_aumento
-       * Solo muestra el resultado si ambos campos son válidos, si no, muestra ₡0.00
-       */
-      const actual = parseFloat(formData.Remuneracion_Actual);
+      const actual = parseFloat(formData.remuneracion_actual);
       const aumento = parseFloat(formData.monto_aumento);
+      
       if (!isNaN(actual) && !isNaN(aumento) && formData.monto_aumento !== "") {
-         const nuevo = actual + aumento;
+         let nuevo = 0;
+         
+         if (formData.tipo_ajuste === "Fijo") {
+            // Aumento fijo: suma directa
+            nuevo = actual + aumento;
+         } else if (formData.tipo_ajuste === "Porcentual") {
+            // Aumento porcentual: calcular porcentaje
+            const porcentaje = aumento / 100;
+            nuevo = actual + (actual * porcentaje);
+         }
+         
          setFormData((prev) => ({
             ...prev,
-            Remuneracion_Nueva: nuevo.toFixed(2),
+            remuneracion_nueva: nuevo.toFixed(2),
          }));
       } else {
          setFormData((prev) => ({
             ...prev,
-            Remuneracion_Nueva: "",
+            remuneracion_nueva: "",
          }));
       }
-   }, [formData.Remuneracion_Actual, formData.monto_aumento]);
+   }, [formData.remuneracion_actual, formData.monto_aumento, formData.tipo_ajuste]);
 
    /**
     * Maneja el cambio de cualquier input del formulario.
@@ -200,20 +208,42 @@ export const CrearAumento = () => {
       e.preventDefault();
       if (!selectedEmpleadoData) return;
 
-      // Validación de monto del aumento
-      if (
-         !formData.monto_aumento ||
-         isNaN(formData.monto_aumento) ||
-         Number(formData.monto_aumento) <= 0
-      ) {
+      // Validaciones
+      if (!formData.planilla) {
+         setError(true);
+         setMessage("Debe seleccionar una planilla.");
+         return;
+      }
+
+      if (!formData.empleado) {
+         setError(true);
+         setMessage("Debe seleccionar un socio.");
+         return;
+      }
+
+      if (!formData.remuneracion_actual || isNaN(formData.remuneracion_actual) || Number(formData.remuneracion_actual) <= 0) {
+         setError(true);
+         setMessage("La remuneración actual es obligatoria y debe ser mayor a cero.");
+         return;
+      }
+
+      if (!formData.monto_aumento || isNaN(formData.monto_aumento) || Number(formData.monto_aumento) <= 0) {
          setError(true);
          setMessage("El monto del aumento es obligatorio y debe ser mayor a cero.");
          return;
       }
 
-      const aplicaAguinaldo = formData.aplica_aguinaldo;
+      if (!formData.fecha_efectiva) {
+         setError(true);
+         setMessage("La fecha efectiva es obligatoria.");
+         return;
+      }
+
       const nombre = selectedEmpleadoData.nombre_completo_empleado_gestor;
       const socio = selectedEmpleadoData.numero_socio_empleado_gestor;
+      const tipoAjuste = formData.tipo_ajuste;
+      const montoAumento = formData.monto_aumento;
+      const fechaEfectiva = formData.fecha_efectiva;
 
       // HTML mejorado y centrado para el swal
       let htmlMsg = `
@@ -225,28 +255,25 @@ export const CrearAumento = () => {
           <b>Número de Socio:</b> <span style="font-weight:500;">${socio}</span>
         </div>
         <div style="font-size:1.1em; margin-bottom:6px;">
-          <b>¿Aplica a la Compensación Anual?:</b>
-          <span style="font-weight:500; color:${aplicaAguinaldo ? "green" : "red"};">
-            ${aplicaAguinaldo ? "Sí" : "No"}
+          <b>Tipo de Ajuste:</b> <span style="font-weight:500; color:blue;">${tipoAjuste}</span>
+        </div>
+        <div style="font-size:1.1em; margin-bottom:6px;">
+          <b>Monto del Aumento:</b> <span style="font-weight:500; color:green;">
+            ${tipoAjuste === "Fijo" ? "₡" : "%"}${montoAumento}
           </span>
         </div>
-        ${
-           !aplicaAguinaldo
-              ? `<div style="color:#d32f2f; font-weight:bold; margin-top:10px;">
-                ¿Aplica a la Compensación Anual? está desmarcado.<br/>
-                ¿Está seguro que esta acción de personal no aplica a la compensación anual?
-              </div>`
-              : ""
-        }
+        <div style="font-size:1.1em; margin-bottom:6px;">
+          <b>Fecha Efectiva:</b> <span style="font-weight:500;">${fechaEfectiva}</span>
+        </div>
       </div>
     `;
 
       const result = await Swal.fire({
-         title: "¿Está seguro de crear esta acción de personal?",
+         title: "¿Está seguro de crear este aumento salarial?",
          html: htmlMsg,
-         icon: aplicaAguinaldo ? "question" : "warning",
+         icon: "question",
          showCancelButton: true,
-         confirmButtonText: "Sí, crear",
+         confirmButtonText: "Sí, crear aumento",
          cancelButtonText: "Cancelar",
          focusCancel: true,
          customClass: {
@@ -255,49 +282,50 @@ export const CrearAumento = () => {
          },
          buttonsStyling: false,
       });
+      
       if (result.isConfirmed) {
          Swal.fire({
-            title: "Creando planilla",
+            title: "Creando aumento salarial",
             text: "Por favor espere...",
             allowOutsideClick: false,
             didOpen: () => {
                Swal.showLoading();
             },
          });
+         
          const response = await dispatch(fetchData_api(formData, "gestor/planilla/aumentos/crear"));
 
          if (response.success) {
             setError(false);
 
             Swal.fire({
-               title: "Aumento creado exitosamente",
-               text: "El Aumento ha sido creado exitosamente",
+               title: "Aumento salarial creado exitosamente",
+               text: "El aumento ha sido registrado correctamente",
                icon: "success",
                confirmButtonText: "Aceptar",
             }).then(() => {
                navigate("/acciones/aumentos/lista");
             });
          } else {
-            const errorMessage = response.message || "Error al crear el Aumento";
+            const errorMessage = response.message || "Error al crear el aumento salarial";
             setError(true);
             setMessage(errorMessage);
-            swal.fire({
-               title: "Error al crear el Socio",
+            Swal.fire({
+               title: "Error al crear el aumento",
                text: errorMessage,
                icon: "error",
                confirmButtonText: "Aceptar",
             });
          }
       }
-      // Si cancela, no hacer nada
    };
 
    return (
       <div className="card">
          <div className="card-header">
-            <h5>Crear Aumento de Remuneracion</h5>
+            <h5>Crear Aumento Salarial</h5>
             <p className="text-muted">
-               Complete el formulario para crear un nuevo aumento de remuneracion.
+               Complete el formulario para registrar un nuevo aumento salarial.
             </p>
          </div>
          <div className="card-body">
@@ -322,6 +350,7 @@ export const CrearAumento = () => {
                      </div>
                   </div>
                )}
+               
                {/* Alert for Empleado Seleccionado */}
                {selectedEmpleadoData && (
                   <div
@@ -341,7 +370,8 @@ export const CrearAumento = () => {
                      </div>
                   </div>
                )}
-               {/* Mostrar mensaje de error debajo del socio */}
+               
+               {/* Mostrar mensaje de error */}
                {error && message && (
                   <div
                      className="alert alert-danger mt-2"
@@ -350,6 +380,7 @@ export const CrearAumento = () => {
                      {message}
                   </div>
                )}
+               
                {/* Estado */}
                <div
                   className="col-md-12 mb-3"
@@ -383,6 +414,7 @@ export const CrearAumento = () => {
                      </label>
                   </div>
                </div>
+               
                <div className="row">
                   {/* Planilla */}
                   <div className="col-md-6 mb-3">
@@ -414,6 +446,7 @@ export const CrearAumento = () => {
                         ))}
                      </select>
                   </div>
+                  
                   {/* Empleado */}
                   <div className="col-md-6 mb-3">
                      <label
@@ -448,27 +481,50 @@ export const CrearAumento = () => {
                         ))}
                      </select>
                   </div>
+                  
                   {/* Remuneracion Actual */}
                   <div className="col-md-4 mb-3">
                      <label
                         className="form-label"
-                        htmlFor="Remuneracion_Actual"
+                        htmlFor="remuneracion_actual"
                      >
-                        Remuneracion Actual
+                        Remuneración Actual <span className="text-danger">*</span>
                      </label>
                      <div className="input-group">
                         <span className="input-group-text">₡</span>
                         <input
                            type="text"
                            className="form-control"
-                           id="Remuneracion_Actual"
-                           name="Remuneracion_Actual"
-                           value={formatCurrency(formData.Remuneracion_Actual || 0)}
+                           id="remuneracion_actual"
+                           name="remuneracion_actual"
+                           value={formatCurrency(formData.remuneracion_actual || 0)}
                            readOnly
                            placeholder="₡0.00"
                         />
                      </div>
                   </div>
+                  
+                  {/* Tipo de Ajuste */}
+                  <div className="col-md-4 mb-3">
+                     <label
+                        className="form-label"
+                        htmlFor="tipo_ajuste"
+                     >
+                        Tipo de Ajuste <span className="text-danger">*</span>
+                     </label>
+                     <select
+                        className="form-select"
+                        id="tipo_ajuste"
+                        name="tipo_ajuste"
+                        value={formData.tipo_ajuste}
+                        onChange={handleChange}
+                        required
+                     >
+                        <option value="Fijo">Fijo (₡)</option>
+                        <option value="Porcentual">Porcentual (%)</option>
+                     </select>
+                  </div>
+                  
                   {/* Monto del Aumento */}
                   <div className="col-md-4 mb-3">
                      <label
@@ -478,7 +534,9 @@ export const CrearAumento = () => {
                         Monto del Aumento <span className="text-danger">*</span>
                      </label>
                      <div className="input-group">
-                        <span className="input-group-text">₡</span>
+                        <span className="input-group-text">
+                           {formData.tipo_ajuste === "Fijo" ? "₡" : "%"}
+                        </span>
                         <input
                            type="number"
                            className="form-control"
@@ -486,57 +544,60 @@ export const CrearAumento = () => {
                            name="monto_aumento"
                            value={formData.monto_aumento}
                            onChange={handleChange}
-                           placeholder="0.00"
-                           step="0.01"
+                           placeholder={formData.tipo_ajuste === "Fijo" ? "0.00" : "0"}
+                           step={formData.tipo_ajuste === "Fijo" ? "0.01" : "0.01"}
                            min="0"
                         />
                      </div>
+                     <small className="form-text text-muted">
+                        {formData.tipo_ajuste === "Fijo" 
+                           ? "Ingrese el monto fijo a sumar" 
+                           : "Ingrese el porcentaje a aplicar"}
+                     </small>
                   </div>
+                  
                   {/* Remuneracion Nueva */}
-                  <div className="col-md-4 mb-3">
+                  <div className="col-md-6 mb-3">
                      <label
                         className="form-label"
-                        htmlFor="Remuneracion_Nueva"
+                        htmlFor="remuneracion_nueva"
                      >
-                        Remuneracion Nueva
+                        Remuneración Nueva
                      </label>
                      <div className="input-group">
                         <span className="input-group-text">₡</span>
                         <input
                            type="text"
                            className="form-control"
-                           id="Remuneracion_Nueva"
-                           name="Remuneracion_Nueva"
-                           value={formatCurrency(formData.Remuneracion_Nueva || 0)}
+                           id="remuneracion_nueva"
+                           name="remuneracion_nueva"
+                           value={formatCurrency(formData.remuneracion_nueva || 0)}
                            readOnly
                            placeholder="Se calcula automáticamente"
                         />
                      </div>
                   </div>
-                  {/* Aplica Aguinaldo */}
+                  
+                  {/* Fecha Efectiva */}
                   <div className="col-md-6 mb-3">
-                     <div className="form-check">
-                        <input
-                           className="form-check-input"
-                           type="checkbox"
-                           id="aplica_aguinaldo"
-                           name="aplica_aguinaldo"
-                           checked={formData.aplica_aguinaldo}
-                           onChange={handleChange}
-                        />
-                        <label
-                           className="form-check-label"
-                           htmlFor="aplica_aguinaldo"
-                        >
-                           ¿Aplica a la Compensacion Anual?
-                        </label>
-                        <div className="form-text">
-                           Marque esta casilla si el aumento debe aplicarse también al cálculo de la
-                           Compensacion Anual
-                        </div>
-                     </div>
+                     <label
+                        className="form-label"
+                        htmlFor="fecha_efectiva"
+                     >
+                        Fecha Efectiva <span className="text-danger">*</span>
+                     </label>
+                     <input
+                        type="date"
+                        className="form-control"
+                        id="fecha_efectiva"
+                        name="fecha_efectiva"
+                        value={formData.fecha_efectiva}
+                        onChange={handleChange}
+                        required
+                     />
                   </div>
                </div>
+               
                {/* Botones de acción */}
                <div className="d-flex gap-2 mt-4">
                   <button
@@ -544,7 +605,7 @@ export const CrearAumento = () => {
                      className="btn btn-primary"
                   >
                      <i className="fas fa-save me-2"></i>
-                     Crear Aumento
+                     Crear Aumento Salarial
                   </button>
                </div>
             </form>

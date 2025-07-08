@@ -8,19 +8,21 @@ import { TarjetaRow } from "../../../../components/TarjetaRow/TarjetaRow";
 import { Button, Stack, FormControl, InputLabel, Select, MenuItem, Alert } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { useDataTable } from "../../../../../hooks/getDataTableConfig";
+
 // Constantes para los textos
 const TEXTOS = {
-   titulo: "Listado de Aumentos",
-   subtitulo: "Tabla que muestra todos los aumentos disponibles.",
-   crearEmpresa: "Crear Aumento",
+   titulo: "Listado de Aumentos Salariales",
+   subtitulo: "Tabla que muestra todos los aumentos salariales disponibles.",
+   crearEmpresa: "Crear Aumento Salarial",
    filtrarPorEstado: "Filtrar por Estado",
    sinPermiso: "Sin permisos para acceder a esta funcionalidad",
 };
 
 const OPCIONES_ESTADO = [
-   { value: "En proceso", label: "En Proceso" },
+   { value: "Todos", label: "Todos los Estados" },
+   { value: "Pendiente", label: "Pendiente" },
+   { value: "Aprobado", label: "Aprobado" },
    { value: "Aplicado", label: "Aplicado" },
-   { value: "Procesado", label: "Procesado" },
    { value: "Cancelado", label: "Cancelado" },
 ];
 
@@ -40,53 +42,93 @@ const obtenerColumnasTabla = () => [
       searchPanes: { show: true },
    },
    {
-      data: "nombre_usuario_creador",
-      title: "Creador",
+      data: "tipo_ajuste_aumento_gestor",
+      title: "Tipo de Ajuste",
       searchPanes: { show: true },
+      render: function(data, type, row) {
+         if (type === 'display') {
+            if (data === 'Fijo') {
+               return '<span style="color: blue; font-weight: bold;">Fijo (₡)</span>';
+            } else if (data === 'Porcentual') {
+               return '<span style="color: green; font-weight: bold;">Porcentual (%)</span>';
+            } else {
+               return data;
+            }
+         }
+         return data;
+      }
    },
    {
-      data: "nombre_empresa",
-      title: "Empresa",
-      searchPanes: { show: true },
+      data: "monto_aumento_gestor",
+      title: "Monto del Aumento",
+      searchPanes: { show: false },
+      render: function(data, type, row) {
+         if (type === 'display') {
+            const tipoAjuste = row.tipo_ajuste_aumento_gestor;
+            const simbolo = tipoAjuste === 'Fijo' ? '₡' : '%';
+            return `<span style="font-weight: bold;">${simbolo}${parseFloat(data).toLocaleString('es-CR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>`;
+         }
+         return data;
+      }
    },
+   {
+      data: "remuneracion_actual_aumento_gestor",
+      title: "Remuneración Actual",
+      searchPanes: { show: false },
+      render: function(data, type, row) {
+         if (type === 'display') {
+            return `<span style="font-weight: bold;">₡${parseFloat(data).toLocaleString('es-CR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>`;
+         }
+         return data;
+      }
+   },
+   {
+      data: "remuneracion_nueva_aumento_gestor",
+      title: "Remuneración Nueva",
+      searchPanes: { show: false },
+      render: function(data, type, row) {
+         if (type === 'display') {
+            return `<span style="color: green; font-weight: bold;">₡${parseFloat(data).toLocaleString('es-CR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>`;
+         }
+         return data;
+      }
+   },
+   {
+      data: "fecha_efectiva_aumento_gestor",
+      title: "Fecha Efectiva",
+      searchPanes: { show: false },
+      render: function(data, type, row) {
+         if (type === 'display' && data) {
+            const fecha = new Date(data);
+            return fecha.toLocaleDateString('es-CR');
+         }
+         return data;
+      }
+   },
+
    {
       data: "estado_planilla_aumento_gestor",
-      title: "Proceso acción",
-      searchPanes: { show: true },
-   },
-   {
-      data: "aplica_aguinaldo_aumento_gestor",
-      title: "Compensación Anual",
+      title: "Estado Planilla",
       searchPanes: { show: true },
       render: function(data, type, row) {
          if (type === 'display') {
-            if (data === 1 || data === '1') {
-               return '<span style="color: green; font-weight: bold;">Si</span>';
-            } else if (data === 0 || data === '0') {
-               return '<span style="color: red; font-weight: bold;">No</span>';
-            } else {
-               return data; // Mostrar el valor original si no es 0 o 1
-            }
+            const colores = {
+               'Pendiente': 'orange',
+               'Aprobado': 'blue',
+               'Aplicado': 'green',
+               'Cancelado': 'red'
+            };
+            const color = colores[data] || 'gray';
+            return `<span style="color: ${color}; font-weight: bold;">${data}</span>`;
          }
-         return data; // Para otros tipos de renderizado (sort, filter, etc.)
+         return data;
       }
    },
+
    {
-      data: "estado_aumento_gestor",
-      title: "Estado Aumento",
+      data: "nombre_usuario_creador",
+      title: "Creado por",
       searchPanes: { show: true },
-      render: function(data, type, row) {
-         if (type === 'display') {
-            if (data === 1 || data === '1') {
-               return '<span style="color: green; font-weight: bold;">Activo</span>';
-            } else if (data === 0 || data === '0') {
-               return '<span style="color: red; font-weight: bold;">Inactivo</span>';
-            } else {
-               return data; // Mostrar el valor original si no es 0 o 1
-            }
-         }
-         return data; // Para otros tipos de renderizado (sort, filter, etc.)
-      }
    },
 ];
 
@@ -101,14 +143,18 @@ const formatearDatosFila = (datosFila) => ({
    planilla_id_aumento_gestor: datosFila.planilla_id_aumento_gestor,
    empleado_id_aumento_gestor: datosFila.empleado_id_aumento_gestor,
    remuneracion_actual_aumento_gestor: datosFila.remuneracion_actual_aumento_gestor,
+   tipo_ajuste_aumento_gestor: datosFila.tipo_ajuste_aumento_gestor,
    monto_aumento_gestor: datosFila.monto_aumento_gestor,
    remuneracion_nueva_aumento_gestor: datosFila.remuneracion_nueva_aumento_gestor,
-   aplica_aguinaldo_aumento_gestor: datosFila.aplica_aguinaldo_aumento_gestor,
-   estado_aumento_gestor: datosFila.estado_aumento_gestor,
+   fecha_efectiva_aumento_gestor: datosFila.fecha_efectiva_aumento_gestor,
    usuario_id_aumento_gestor: datosFila.usuario_id_aumento_gestor,
    estado_planilla_aumento_gestor: datosFila.estado_planilla_aumento_gestor,
    fecha_creacion_aumento_gestor: datosFila.fecha_creacion_aumento_gestor,
    fecha_modificacion_aumento_gestor: datosFila.fecha_modificacion_aumento_gestor,
+   nombre_empleado: datosFila.nombre_empleado,
+   codigo_planilla: datosFila.codigo_planilla,
+   nombre_usuario_creador: datosFila.nombre_usuario_creador,
+   nombre_empresa: datosFila.nombre_empresa,
 });
 
 /**
@@ -136,12 +182,12 @@ const crearConfiguracionTabla = (usuario) => ({
       },
    },
    columnsLayout: "columns-2", // Diseño de columnas en la tabla.
-   columnsFilter: [0, 1,2,3,4,5,6], // Índices de columnas que se pueden filtrar.
+   columnsFilter: [0,1,2,7,8], // Índices de columnas que se pueden filtrar (Nombre del Socio, Código de Planilla, Tipo de Ajuste, Estado Planilla, Creado por).
    columns: obtenerColumnasTabla(), // Definición de columnas.
 });
 
 /**
- * Navega a la página de creación de una nueva planilla.
+ * Navega a la página de creación de un nuevo aumento salarial.
  * @param {Function} navigate - Función de navegación de React Router.
  */
 const navegarCrearAumento = (navigate) => {
@@ -149,8 +195,8 @@ const navegarCrearAumento = (navigate) => {
 };
 
 /**
- * Componente principal que muestra la lista de aumento.
- * @returns {JSX.Element} Componente de lista de aumento.
+ * Componente principal que muestra la lista de aumentos salariales.
+ * @returns {JSX.Element} Componente de lista de aumentos salariales.
  */
 export const AumentosLista = () => {
    // Obtener el usuario autenticado desde Redux.
@@ -175,14 +221,14 @@ export const AumentosLista = () => {
    const [openEdit, setOpenEdit] = useState(false);
 
    // Estado para manejar la selección del estado
-   const [estadoSeleccionado, setEstadoSeleccionado] = useState("En proceso");
+   const [estadoSeleccionado, setEstadoSeleccionado] = useState("Todos");
 
    // Limpiar localStorage al cargar el componente
    useEffect(() => {
       localStorage.removeItem("selectedAumento");
    }, []);
 
-   // Manejar la selección de planilla para editar
+   // Manejar la selección de aumento para editar
    useEffect(() => {
       if (selected) {
          manejarClicFila(selected);
@@ -196,7 +242,7 @@ export const AumentosLista = () => {
     * @param {Object} datosFila - Datos de la fila seleccionada.
     */
    const manejarClicFila = (datosFila) => {
-      // Formatear todos los datos de la planilla usando la función formatearDatosFila
+      // Formatear todos los datos del aumento usando la función formatearDatosFila
       const datosFormateados = formatearDatosFila(datosFila);
 
       // Almacena todos los datos formateados en el almacenamiento local
@@ -205,7 +251,7 @@ export const AumentosLista = () => {
       // Verificar que se guardó correctamente
       const datosGuardados = localStorage.getItem("selectedAumento");
 
-      // Navega a la página de edición de planilla
+      // Navega a la página de edición de aumento
       navigate("/acciones/aumentos/editar");
    };
 
@@ -217,7 +263,7 @@ export const AumentosLista = () => {
             ...crearConfiguracionTabla(user).transaccion,
             data: {
                empresaAplica: true,
-               estados: estadoSeleccionado,
+               estados: estadoSeleccionado === "Todos" ? undefined : estadoSeleccionado,
             },
          },
       }),
@@ -243,7 +289,7 @@ export const AumentosLista = () => {
    );
 
    /**
-    * Recarga la tabla después de agregar o actualizar una cuenta.
+    * Recarga la tabla después de agregar o actualizar un aumento.
     */
    const recargarTabla = () => {
       if (tableInstanceRef.current) {
@@ -264,8 +310,9 @@ export const AumentosLista = () => {
                   message={message}
                />
             )}
-                 {/* Botones para crear */}
-                 <Stack
+            
+            {/* Botones para crear */}
+            <Stack
                direction="row"
                spacing={2}
                sx={{
@@ -309,10 +356,9 @@ export const AumentosLista = () => {
                severity="info"
                sx={{ mb: 2 }}
             >
-               Mostrando planillas en estado:{" "}
+               Mostrando aumentos salariales en estado:{" "}
                {OPCIONES_ESTADO.find((op) => op.value === estadoSeleccionado)?.label || "Todos"}
             </Alert>
-       
 
             {/* Contenedor de la tabla */}
             <div className="table-responsive">
