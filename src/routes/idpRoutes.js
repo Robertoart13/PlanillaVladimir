@@ -161,6 +161,15 @@ import Gestor_Deducciones_Crear from "../modules/GestorPlanilla/04-Gestor_Deducc
 import Gestor_Deducciones_Listar from "../modules/GestorPlanilla/04-Gestor_Deducciones/Gestor_Deducciones_Lista.js";
 import Gestor_Deducciones_Editar from "../modules/GestorPlanilla/04-Gestor_Deducciones/Gestor_Deducciones_Editar.js";
 
+/**
+ * ====================================================================================================================================
+ * Importación de módulos que tengan solo que ver con el gestor de vacaciones
+ * ====================================================================================================================================
+ */
+import Gestor_Vacaciones_Crear from "../modules/GestorPlanilla/05-Gestor_Vacaciones/Gestor_Vacaciones_Crear.js";
+import Gestor_Vacaciones_Listar from "../modules/GestorPlanilla/05-Gestor_Vacaciones/Gestor_Vacaciones_Lista.js";
+import Gestor_Vacaciones_Editar from "../modules/GestorPlanilla/05-Gestor_Vacaciones/Gestor_Vacaciones_Editar.js";
+
 
 
 
@@ -783,6 +792,36 @@ function getModulesConfig() {
             },
             {
                path: "gestor/planilla/deducciones/editar", // Ruta para editar rebajo a compensación
+               method: "editarTransaccion", // Método que se ejecutará
+               isAuthRequired: true, // Requiere autenticación
+            },
+         ],
+      },
+      {
+         category: "Gestor", // Nombre del módulo
+         model: {
+            ...Gestor_Vacaciones_Crear,
+            ...Gestor_Vacaciones_Listar,
+            ...Gestor_Vacaciones_Editar,
+            }, // Combinamos ambos modelos
+         routes: [
+            {
+               path: "gestor/vacaciones/crear", // Ruta para crear vacaciones
+               method: "crearTransaccion", // Método que se ejecutará
+               isAuthRequired: true, // Requiere autenticación
+            },
+            {
+               path: "gestor/vacaciones/lista", // Ruta para listar vacaciones
+               method: "obtenerListaCompleta", // Método que se ejecutará
+               isAuthRequired: true, // Requiere autenticación
+            },
+            {
+               path: "gestor/vacaciones/obtener", // Ruta para obtener una vacación específica
+               method: "obtenerRegistroPorId", // Método que se ejecutará
+               isAuthRequired: true, // Requiere autenticación
+            },
+            {
+               path: "gestor/vacaciones/editar", // Ruta para editar vacaciones
                method: "editarTransaccion", // Método que se ejecutará
                isAuthRequired: true, // Requiere autenticación
             },
