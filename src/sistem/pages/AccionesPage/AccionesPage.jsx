@@ -11,6 +11,7 @@ import { BonificacionesLista } from "../../views/AccionesViews/Bonificaciones/Li
 import { CrearDeduccion } from "../../views/AccionesViews/Deducciones/Crear/CrearDeduccion";
 import { DeduccionesLista } from "../../views/AccionesViews/Deducciones/Lista/DeduccionesLista";
 import { CrearHoraExtra } from "../../views/AccionesViews/Horas-extra/Crear/CrearHoraExtra";
+import { EditarHoraExtra } from "../../views/AccionesViews/Horas-extra/Editar/EditarHoraExtra";
 import { HorasExtraLista } from "../../views/AccionesViews/Horas-extra/Lista/HorasExtraLista";
 import { CrearVacaciones } from "../../views/AccionesViews/Vacaciones/Crear/CrearVacaciones";
 import { VacacionesLista } from "../../views/AccionesViews/Vacaciones/Lista/VacacionesLista";
@@ -45,6 +46,14 @@ export const AccionesPage = () => {
                               <div className="row align-items-center">
                                  {accion2 === "lista" && <HorasExtraLista />}
                                  {accion2 === "crear" && <CrearHoraExtra />}
+                                 {accion2 === "editar" && <EditarHoraExtra />}
+                              </div>
+                           )}
+                           {accion === "horas-extra" && (
+                              <div className="row align-items-center">
+                                 {accion2 === "lista" && <HorasExtraLista />}
+                                 {accion2 === "crear" && <CrearHoraExtra />}
+                                 {accion2 === "editar" && <EditarHoraExtra />}
                               </div>
                            )}
                            {accion === "rebajo-compensacion" && (

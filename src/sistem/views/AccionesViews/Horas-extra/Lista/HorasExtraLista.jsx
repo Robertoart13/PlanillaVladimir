@@ -19,10 +19,10 @@ const TEXTOS = {
 };
 
 const OPCIONES_ESTADO = [
-   { value: "En proceso", label: "En Proceso" },
-   { value: "Aplicado", label: "Aplicado" },
-   { value: "Procesado", label: "Procesado" },
-   { value: "Cancelado", label: "Cancelado" },
+   { value: "Pendiente", label: "Pendiente" },
+   { value: "Aplicada", label: "Aplicada" },
+   { value: "Procesada", label: "Procesada" },
+   { value: "Cancelada", label: "Cancelada" },
 ];
 
    /**
@@ -41,6 +41,41 @@ const OPCIONES_ESTADO = [
          searchPanes: { show: true },
       },
       {
+         data: "tipo_compensacion_extra_gestor",
+         title: "Tipo de Compensación",
+         searchPanes: { show: true },
+      },
+      {
+         data: "cantidad_horas_gestor",
+         title: "Horas",
+         searchPanes: { show: true },
+      },
+      {
+         data: "monto_compensacion_calculado_gestor",
+         title: "Monto Calculado",
+         searchPanes: { show: true },
+         render: function(data, type, row) {
+            if (type === 'display') {
+               return new Intl.NumberFormat('es-CR', {
+                  style: 'currency',
+                  currency: 'CRC'
+               }).format(data);
+            }
+            return data;
+         }
+      },
+      {
+         data: "fecha_compensacion_gestor",
+         title: "Fecha",
+         searchPanes: { show: true },
+         render: function(data, type, row) {
+            if (type === 'display' && data) {
+               return new Date(data).toLocaleDateString('es-CR');
+            }
+            return data;
+         }
+      },
+      {
          data: "nombre_usuario_creador",
          title: "Creador",
          searchPanes: { show: true },
@@ -51,12 +86,7 @@ const OPCIONES_ESTADO = [
          searchPanes: { show: true },
       },
       {
-         data: "estado_planilla_compensacion_gestor",
-         title: "Proceso acción",
-         searchPanes: { show: true },
-      },
-      {
-         data: "aplica_aguinaldo_compensacion_gestor",
+         data: "aplica_en_compensacion_anual_gestor",
          title: "Compensación Anual",
          searchPanes: { show: true },
          render: function(data, type, row) {
@@ -73,18 +103,18 @@ const OPCIONES_ESTADO = [
          }
       },
       {
-         data: "estado_compensacion_gestor",
+         data: "estado_compensacion_extra_gestor",
          title: "Estado",
          searchPanes: { show: true },
          render: function(data, type, row) {
             if (type === 'display') {
-               if (data === 1 || data === '1') {
-                  return '<span style="color: green; font-weight: bold;">Activo</span>';
-               } else if (data === 0 || data === '0') {
-                  return '<span style="color: red; font-weight: bold;">Inactivo</span>';
-               } else {
-                  return data; // Mostrar el valor original si no es 0 o 1
-               }
+               const estados = {
+                  'Pendiente': '<span style="color: orange; font-weight: bold;">Pendiente</span>',
+                  'Aplicada': '<span style="color: blue; font-weight: bold;">Aplicada</span>',
+                  'Procesada': '<span style="color: green; font-weight: bold;">Procesada</span>',
+                  'Cancelada': '<span style="color: red; font-weight: bold;">Cancelada</span>'
+               };
+               return estados[data] || data;
             }
             return data; // Para otros tipos de renderizado (sort, filter, etc.)
          }
@@ -97,18 +127,22 @@ const OPCIONES_ESTADO = [
     * @returns {Object} Datos formateados de la fila.
     */
    const formatearDatosFila = (datosFila) => ({
-      id_compensacion_gestor: datosFila.id_compensacion_gestor,
-      empresa_id_compensacion_gestor: datosFila.empresa_id_compensacion_gestor,
-      planilla_id_compensacion_gestor: datosFila.planilla_id_compensacion_gestor,
-      empleado_id_compensacion_gestor: datosFila.empleado_id_compensacion_gestor,
-      monto_compensacion_gestor: datosFila.monto_compensacion_gestor,
+      id_compensacion_extra_gestor: datosFila.id_compensacion_extra_gestor,
+      empresa_id_compensacion_extra_gestor: datosFila.empresa_id_compensacion_extra_gestor,
+      planilla_id_compensacion_extra_gestor: datosFila.planilla_id_compensacion_extra_gestor,
+      empleado_id_compensacion_extra_gestor: datosFila.empleado_id_compensacion_extra_gestor,
+      remuneracion_actual_gestor: datosFila.remuneracion_actual_gestor,
+      tipo_jornada_gestor: datosFila.tipo_jornada_gestor,
+      tipo_compensacion_extra_gestor: datosFila.tipo_compensacion_extra_gestor,
+      cantidad_horas_gestor: datosFila.cantidad_horas_gestor,
+      fecha_compensacion_gestor: datosFila.fecha_compensacion_gestor,
+      monto_compensacion_calculado_gestor: datosFila.monto_compensacion_calculado_gestor,
       motivo_compensacion_gestor: datosFila.motivo_compensacion_gestor,
-      aplica_aguinaldo_compensacion_gestor: datosFila.aplica_aguinaldo_compensacion_gestor,
-      estado_compensacion_gestor: datosFila.estado_compensacion_gestor,
-      estado_planilla_compensacion_gestor: datosFila.estado_planilla_compensacion_gestor,
-      usuario_id_compensacion_gestor: datosFila.usuario_id_compensacion_gestor,
-      fecha_creacion_compensacion_gestor: datosFila.fecha_creacion_compensacion_gestor,
-      fecha_modificacion_compensacion_gestor: datosFila.fecha_modificacion_compensacion_gestor,
+      aplica_en_compensacion_anual_gestor: datosFila.aplica_en_compensacion_anual_gestor,
+      estado_compensacion_extra_gestor: datosFila.estado_compensacion_extra_gestor,
+      usuario_id_compensacion_extra_gestor: datosFila.usuario_id_compensacion_extra_gestor,
+      fecha_creacion_compensacion_extra_gestor: datosFila.fecha_creacion_compensacion_extra_gestor,
+      fecha_modificacion_compensacion_extra_gestor: datosFila.fecha_modificacion_compensacion_extra_gestor,
       // Campos de JOIN
       nombre_empleado: datosFila.nombre_empleado,
       codigo_planilla: datosFila.codigo_planilla,
@@ -180,7 +214,7 @@ export const HorasExtraLista = () => {
    const [openEdit, setOpenEdit] = useState(false);
 
    // Estado para manejar la selección del estado
-   const [estadoSeleccionado, setEstadoSeleccionado] = useState("En proceso");
+   const [estadoSeleccionado, setEstadoSeleccionado] = useState("Pendiente");
 
    // Limpiar localStorage al cargar el componente
    useEffect(() => {
@@ -210,8 +244,8 @@ export const HorasExtraLista = () => {
       // Verificar que se guardó correctamente
       const datosGuardados = localStorage.getItem("selectedHorasExtra");
 
-      // Navega a la página de edición de planilla
-      navigate("/acciones/compensacion-extra/editar"); 
+      // Navega a la página de edición de compensación extra
+      navigate("/acciones/horas-extra/editar"); 
    };
 
    // Configuración de la tabla usando useMemo para optimizar el rendimiento.

@@ -209,7 +209,6 @@ export const formOptions = {
    tipoPlanilla: [
       { value: "mensual", label: "Mensual" },
       { value: "quincenal", label: "Quincenal" },
-      { value: "bisemanal", label: "Bisemanal" },
       { value: "semanal", label: "Semanal" },
    ],
 };
