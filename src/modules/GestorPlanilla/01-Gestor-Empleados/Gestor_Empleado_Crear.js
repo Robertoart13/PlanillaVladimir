@@ -32,8 +32,8 @@ const QUERIES = {
         vacaciones_acumuladas_empleado_gestor, aguinaldo_acumulado_empleado_gestor,
         cesantia_acumulada_empleado_gestor, ministerio_hacienda_empleado_gestor,
         rt_ins_empleado_gestor, ccss_empleado_gestor, moneda_pago_empleado_gestor,
-        tipo_planilla_empleado_gestor, estado_empleado_gestor
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        tipo_planilla_empleado_gestor, estado_empleado_gestor, montoAsegurado_gestor_empelado
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?)
    `,
    
    UPDATE_NUMERO_SOCIO: `
@@ -68,7 +68,7 @@ const crearNuevoRegistroBd = async (datos,id_empresa, id_usuario, database) => {
       datos.numero_ins, datos.numero_hacienda, datos.cuenta_bancaria_1,
       datos.cuenta_bancaria_2 || null, datos.vacaciones_acumuladas,
       datos.aguinaldo_acumulado, datos.cesantia_acumulada, datos.ministerio_hacienda,
-      datos.rt_ins, datos.ccss, datos.moneda_pago, datos.tipo_planilla, 1
+      datos.rt_ins, datos.ccss, datos.moneda_pago, datos.tipo_planilla, 1, datos.monto_asegurado || 0
    ];
 
    return await realizarConsulta(QUERIES.INSERT_EMPLEADO, params, database);

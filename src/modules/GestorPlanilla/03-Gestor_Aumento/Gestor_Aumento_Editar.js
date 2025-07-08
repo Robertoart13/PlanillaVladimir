@@ -32,12 +32,12 @@ const QUERIES = {
       planilla_id_aumento_gestor=?,
       empleado_id_aumento_gestor=?,
       remuneracion_actual_aumento_gestor=?,
+      tipo_ajuste_aumento_gestor=?,
       monto_aumento_gestor=?,
       remuneracion_nueva_aumento_gestor=?,
-      aplica_aguinaldo_aumento_gestor=?,
-      estado_aumento_gestor=?,
+      fecha_efectiva_aumento_gestor=?,
       estado_planilla_aumento_gestor=?
-      WHERE id_aumento_gestor   = ?;    
+      WHERE id_aumento_gestor = ?;    
    `,
    
 };
@@ -61,12 +61,12 @@ const editarRegistroBd =async (datos, empresa_id, database) => {
          empresa_id,
          datos.planilla,
          datos.empleado,
-         datos.Remuneracion_Actual,
+         datos.remuneracion_actual,
+         datos.tipo_ajuste,
          datos.monto_aumento,
-         datos.Remuneracion_Nueva,
-         datos.aplica_aguinaldo ? 1 : 0,
-         datos.estado === "Activo" ? 1 : 0,
-         datos.estado === "Activo" && datos.estado_procesado === "En proceso" ? datos.estado_procesado : "Cancelado",
+         datos.remuneracion_nueva,
+         datos.fecha_efectiva,
+         datos.estado_planilla_aumento_gestor || 'Pendiente',
          datos.id_aumento_gestor,
       ],
       database,

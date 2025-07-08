@@ -48,7 +48,8 @@ const QUERIES = {
         ccss_empleado_gestor = ?,
         moneda_pago_empleado_gestor = ?,
         tipo_planilla_empleado_gestor = ?,
-        estado_empleado_gestor = ?
+        estado_empleado_gestor = ?,
+        montoAsegurado_gestor_empelado = ?
     WHERE id_empleado_gestor = ?
    `,
 };
@@ -73,7 +74,7 @@ const ERROR_MESSAGES = {
  * @returns {Promise<Object>} Resultado de la operación
  */
 const actualizarRegistroBd = async (datos, id_empleado_gestor, id_empresa, id_usuario, database) => {
-
+   console.log(datos);
    const params = [
       datos.nombre_completo, datos.correo, datos.telefono, datos.cedula,
       datos.salario_base, datos.tipo_contrato, datos.departamento, datos.puesto,
@@ -83,7 +84,7 @@ const actualizarRegistroBd = async (datos, id_empleado_gestor, id_empresa, id_us
       datos.cuenta_bancaria_2 || null, datos.vacaciones_acumuladas,
       datos.aguinaldo_acumulado, datos.cesantia_acumulada, datos.ministerio_hacienda,
       datos.rt_ins, datos.ccss, datos.moneda_pago, datos.tipo_planilla,
-      datos.estado_empleado_gestor,
+      datos.estado_empleado_gestor, datos.monto_asegurado || 0,
       id_empleado_gestor
    ];
 

@@ -31,20 +31,22 @@ const QUERIES = {
       planilla_id_aumento_gestor,
       empleado_id_aumento_gestor,
       remuneracion_actual_aumento_gestor,
+      tipo_ajuste_aumento_gestor,
       monto_aumento_gestor,
       remuneracion_nueva_aumento_gestor,
-      aplica_aguinaldo_aumento_gestor,
-      estado_aumento_gestor,
+      fecha_efectiva_aumento_gestor,
+      estado_planilla_aumento_gestor,
       usuario_id_aumento_gestor
    ) VALUES (
          ?,                -- ID de empresa (debe existir en empresas_tbl)
          ?,                -- ID de planilla (debe existir en planilla_tbl)
          ?,                -- ID de empleado (debe existir en gestor_empleado_tbl)
          ?,                -- Remuneración actual
+         ?,                -- Tipo de ajuste (Fijo o Porcentual)
          ?,                -- Monto del aumento
          ?,                -- Nueva remuneración
-         ?,                -- Aplica para aguinaldo
-         ?,                 -- Estado: 1 = Activo
+         ?,                -- Fecha efectiva del aumento
+         ?,                -- Estado del aumento (Pendiente por defecto)
          ?                 -- ID de usuario
 );
 `,
@@ -73,11 +75,12 @@ const crearNuevoRegistroBd = async (datos, usuario_id, empresa_id, database) => 
          empresa_id,
          datos.planilla,
          datos.empleado,
-         datos.Remuneracion_Actual,
+         datos.remuneracion_actual,
+         datos.tipo_ajuste,
          datos.monto_aumento,
-         datos.Remuneracion_Nueva,
-         datos.aplica_aguinaldo ? 1 : 0,
-         datos.estado === "Activo" ? 1 : 0,
+         datos.remuneracion_nueva,
+         datos.fecha_efectiva,
+         'Pendiente', // Estado inicial por defecto
          usuario_id,
       ],
       database,

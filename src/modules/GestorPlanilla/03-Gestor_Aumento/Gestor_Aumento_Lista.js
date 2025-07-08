@@ -43,12 +43,8 @@ const QUERIES = {
       gestor_empleado_tbl em ON ga.empleado_id_aumento_gestor = em.id_empleado_gestor
    WHERE 
       ga.empresa_id_aumento_gestor = ?
-      AND ga.estado_planilla_aumento_gestor = ?
-      AND (
-         (ga.estado_planilla_aumento_gestor IN ('En proceso', 'Aplicado') AND ga.estado_aumento_gestor = 1)
-         OR 
-         (ga.estado_planilla_aumento_gestor IN ('Procesado', 'Cancelado') AND ga.estado_aumento_gestor = 0)
-      )
+      AND (? IS NULL OR ga.estado_planilla_aumento_gestor = ?)
+      ORDER BY ga.fecha_creacion_aumento_gestor DESC
       `,
 };
 
@@ -66,7 +62,7 @@ const QUERIES = {
  */
 const obtenerTodosDatos = async (estados, id_empresa, database) => {
    try {
-      return await realizarConsulta(QUERIES.QUERIES_SELECT, [id_empresa, estados], database);
+      return await realizarConsulta(QUERIES.QUERIES_SELECT, [id_empresa, estados, estados], database);
    } catch (error) {
       return manejarError(
          error,
