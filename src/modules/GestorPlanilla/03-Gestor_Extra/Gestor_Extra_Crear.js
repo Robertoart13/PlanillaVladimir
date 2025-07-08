@@ -1,13 +1,12 @@
 /**
  * ====================================================================================================================================
- * @fileoverview Módulo para la creación de registros en el sistema de
+ * @fileoverview Módulo para la creación de compensaciones extra en el sistema de gestión
  * @requires ../../mysql2-promise/mysql2-promise
  * @requires ../../hooks/realizarValidacionesIniciales
  * @requires ../../hooks/crearRespuestaExitosa
- * @requires ../../hooks/verificarPermisosUsuario
  * @requires ../../hooks/crearRespuestaErrorCrear
  *
- * Este módulo proporciona las funcionalidades necesarias para crear nuevos registros
+ * Este módulo proporciona las funcionalidades necesarias para crear nuevas compensaciones extra
  * en la base de datos, con validación de permisos y manejo estructurado de errores.
  * ====================================================================================================================================
  */
@@ -16,7 +15,6 @@ import { realizarConsulta, manejarError } from "../../../mysql2-promise/mysql2-p
 import { realizarValidacionesIniciales } from "../../../hooks/realizarValidacionesIniciales.js";
 import { crearRespuestaExitosa } from "../../../hooks/crearRespuestaExitosa.js";
 import { crearRespuestaErrorCrear } from "../../../hooks/crearRespuestaErrorCrear.js";
-import bcrypt from "bcryptjs";
 
 /**
  * ====================================================================================================================================
@@ -26,53 +24,69 @@ import bcrypt from "bcryptjs";
  */
 const QUERIES = {
    QUERIES_INSERT: `
-   INSERT INTO gestor_compensacion_tbl ( 
-         empresa_id_compensacion_gestor,
-         planilla_id_compensacion_gestor,
-         empleado_id_compensacion_gestor,
-         monto_compensacion_gestor,
+   INSERT INTO gestor_compensacion_extra_tbl ( 
+         empresa_id_compensacion_extra_gestor,
+         planilla_id_compensacion_extra_gestor,
+         empleado_id_compensacion_extra_gestor,
+         remuneracion_actual_gestor,
+         tipo_jornada_gestor,
+         tipo_compensacion_extra_gestor,
+         cantidad_horas_gestor,
+         fecha_compensacion_gestor,
+         monto_compensacion_calculado_gestor,
          motivo_compensacion_gestor,
-         aplica_aguinaldo_compensacion_gestor,
-         estado_compensacion_gestor,
-         usuario_id_compensacion_gestor
+         aplica_en_compensacion_anual_gestor,
+         estado_compensacion_extra_gestor,
+         usuario_id_compensacion_extra_gestor
    ) VALUES (
           ?,                                 -- ID de la empresa (debe existir en empresas_tbl)
          ?,                                  -- ID de la planilla (debe existir en planilla_tbl)
          ?,                                 -- ID del empleado (debe existir en gestor_empleado_tbl)
-         ?,                            -- Monto de la compensación extra
-         ?, -- Motivo de la compensación
-         ?,                                  -- Aplica para aguinaldo (1 = Sí, 0 = No)
-         ?,                                  -- Estado del registro (1 = Activo, 0 = Inactivo)
-         ?                                   -- ID del usuario que creó el registro
+         ?,                                 -- Remuneración actual del empleado
+         ?,                                 -- Tipo de jornada (Mensual, Quincenal, Semanal)
+         ?,                                 -- Tipo de compensación extra
+         ?,                                 -- Cantidad de horas trabajadas
+         ?,                                 -- Fecha de la compensación
+         ?,                                 -- Monto calculado de la compensación
+         ?,                                 -- Motivo de la compensación (opcional)
+         ?,                                 -- Aplica en compensación anual (1 = Sí, 0 = No)
+         ?,                                 -- Estado de la compensación (Pendiente por defecto)
+         ?                                  -- ID del usuario que creó el registro
 );
 `,
 }; 
 
 /**
  * ====================================================================================================================================
- * Inserta un nuevo registro en la base de datos.
+ * Inserta un nuevo registro de compensación extra en la base de datos.
  *
  * Esta función ejecuta la consulta SQL para crear un nuevo registro de compensación extra
  * con los parámetros proporcionados. Utiliza consultas preparadas para prevenir inyecciones SQL.
  *
- * @param {Object|string} database - Objeto de conexión a la base de datos o nombre de la base de datos.
- * @returns {Promise<Object>} Resultado de la operación de inserción con datos del registro creado.
+ * @param {Object} datos - Datos de la compensación extra a crear
+ * @param {number} usuario_id - ID del usuario que crea el registro
+ * @param {number} empresa_id - ID de la empresa
+ * @param {Object} database - Conexión a la base de datos
+ * @returns {Promise<Object>} Resultado de la operación de inserción
  * @throws {Error} Si ocurre un error durante la inserción en la base de datos.
  * ====================================================================================================================================
  */
 const crearNuevoRegistroBd = async (datos, usuario_id, empresa_id, database) => {
-
-
    const result = await realizarConsulta(
       QUERIES.QUERIES_INSERT,
       [
          empresa_id,
          datos.planilla,
          datos.empleado,
+         datos.Remuneracion_Actual,
+         datos.tipo_planilla_emepleado,
+         datos.tipo_compensacion_extra,
+         datos.cantidad_horas,
+         datos.fecha_compensacion,
          datos.compensacion_extra,
-         datos.motivo_compensacion,
+         datos.motivo_compensacion || null,
          datos.aplica_aguinaldo ? 1 : 0,
-         datos.estado === "Activo" ? 1 : 0,
+         'Pendiente', // Estado inicial por defecto
          usuario_id,
       ],
       database,
@@ -100,9 +114,9 @@ const esCreacionExitosa = (resultado) => {
 
 /**
  * ====================================================================================================================================
- * Crea un nuevo registro en el sistema, validando previamente el acceso del usuario.
+ * Crea un nuevo registro de compensación extra en el sistema, validando previamente el acceso del usuario.
  *
- * Esta función principal gestiona el proceso completo de creación de un registro:
+ * Esta función principal gestiona el proceso completo de creación de una compensación extra:
  * 1. Valida los datos de entrada y los permisos del usuario
  * 2. Crea el nuevo registro en la base de datos
  * 3. Verifica que la operación haya sido exitosa
@@ -116,7 +130,7 @@ const esCreacionExitosa = (resultado) => {
  * @param {Object} res.transaccion.acceso - Información sobre los permisos de acceso.
  * @param {string} res.transaccion.acceso.permiso - Código del permiso requerido.
  * @param {string} res.transaccion.acceso.details - Detalles sobre el acceso requerido.
- * @param {Object} res.transaccion.movimiento - Datos del registro a crear.
+ * @param {Object} res.transaccion.data - Datos de la compensación extra a crear.
  * @param {Object} res.database - Conexión a la base de datos.
  * @returns {Promise<Object>} Resultado de la operación de creación, con datos del registro o mensajes de error.
  * ====================================================================================================================================
@@ -136,20 +150,20 @@ const crearTransaccion = async (req, res) => {
 
       // 4. Verificar si la creación fue exitosa.
       if (!esCreacionExitosa(resultado)) {
-         return crearRespuestaErrorCrear(`Error al crear el registro: ${resultado.error}`);
+         return crearRespuestaErrorCrear(`Error al crear la compensación extra: ${resultado.error}`);
       }
 
       // 5. Si la creación fue exitosa, retorna una respuesta exitosa.
       return crearRespuestaExitosa(resultado.datos);
    } catch (error) {
-      return manejarError(error, 500, "Error al crear el registro: ", error.message);
+      return manejarError(error, 500, "Error al crear la compensación extra: ", error.message);
    }
 };
 
 /**
  * ====================================================================================================================================
  * Exportación del módulo que contiene los métodos disponibles para crear registros.
- * Este módulo expone la funcionalidad de creación de nuevos registros.
+ * Este módulo expone la funcionalidad de creación de nuevas compensaciones extra.
  * ====================================================================================================================================
  */
 const Gestor_Extra_Crear = { 

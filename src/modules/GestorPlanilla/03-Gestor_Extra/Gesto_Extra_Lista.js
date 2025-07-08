@@ -1,12 +1,12 @@
 /**
  * ====================================================================================================================================
- * @fileoverview Módulo para listar registros en el sistema
+ * @fileoverview Módulo para listar compensaciones extra en el sistema
  * @requires ../../mysql2-promise/mysql2-promise
  * @requires ../../hooks/realizarValidacionesIniciales
  * @requires ../../hooks/crearRespuestaExitosa
  * @requires ../../hooks/verificarPermisosUsuario
  *
- * Este módulo proporciona funcionalidades para consultar y listar los registros
+ * Este módulo proporciona funcionalidades para consultar y listar las compensaciones extra
  * disponibles en el sistema, con validaciones de permisos y manejo de errores.
  * ====================================================================================================================================
  */
@@ -23,44 +23,41 @@ import { crearRespuestaErrorCrear } from "../../../hooks/crearRespuestaErrorCrea
  * ====================================================================================================================================
  */
 const QUERIES = {
-   // Consulta SQL para obtener todos los registros de la tabla
+   // Consulta SQL para obtener todos los registros de compensaciones extra
    QUERIES_SELECT: `
   SELECT 
-      gc.*,  -- Todos los campos del registro de compensación
+      gce.*,  -- Todos los campos del registro de compensación extra
       e.nombre_comercial_empresa AS nombre_empresa,
       p.planilla_codigo AS codigo_planilla,
       u.nombre_usuario AS nombre_usuario_creador,
       em.nombre_completo_empleado_gestor AS nombre_empleado
    FROM 
-      gestor_compensacion_tbl gc
+      gestor_compensacion_extra_tbl gce
    INNER JOIN 
-      empresas_tbl e ON gc.empresa_id_compensacion_gestor = e.id_empresa
+      empresas_tbl e ON gce.empresa_id_compensacion_extra_gestor = e.id_empresa
    INNER JOIN 
-      planilla_tbl p ON gc.planilla_id_compensacion_gestor = p.planilla_id
+      planilla_tbl p ON gce.planilla_id_compensacion_extra_gestor = p.planilla_id
    INNER JOIN 
-      usuarios_tbl u ON gc.usuario_id_compensacion_gestor = u.id_usuario
+      usuarios_tbl u ON gce.usuario_id_compensacion_extra_gestor = u.id_usuario
    INNER JOIN 
-      gestor_empleado_tbl em ON gc.empleado_id_compensacion_gestor = em.id_empleado_gestor
+      gestor_empleado_tbl em ON gce.empleado_id_compensacion_extra_gestor = em.id_empleado_gestor
    WHERE 
-      gc.empresa_id_compensacion_gestor = ?   -- ← parámetro: ID empresa
-      AND gc.estado_planilla_compensacion_gestor = ?  -- ← parámetro: estado planilla
-      AND (
-         (gc.estado_planilla_compensacion_gestor IN ('En proceso', 'Aplicado') AND gc.estado_compensacion_gestor = 1)
-         OR
-         (gc.estado_planilla_compensacion_gestor IN ('Procesado', 'Cancelado') AND gc.estado_compensacion_gestor = 0)
-      );
-
+      gce.empresa_id_compensacion_extra_gestor = ?   -- ← parámetro: ID empresa
+      AND gce.estado_compensacion_extra_gestor = ?  -- ← parámetro: estado compensación
+      ORDER BY gce.fecha_creacion_compensacion_extra_gestor DESC
       `,
 };
 
 /**
  * ====================================================================================================================================
- * Realiza una consulta a la base de datos para obtener todos los registros.
+ * Realiza una consulta a la base de datos para obtener todos los registros de compensaciones extra.
  *
  * Esta función ejecuta una consulta SQL definida en el objeto `QUERIES`, la cual extrae todos
- * los registros almacenados en la base de datos sin aplicar filtros.
+ * los registros almacenados en la base de datos según los filtros aplicados.
  *
- * @param {Object|string} database - Objeto de conexión a la base de datos o nombre de la base de datos.
+ * @param {string} estados - Estado de las compensaciones a filtrar
+ * @param {number} id_empresa - ID de la empresa
+ * @param {Object} database - Conexión a la base de datos
  * @returns {Promise<Object>} - Promesa que retorna el resultado de la consulta con todos los registros
  * @throws {Error} Si ocurre un error durante la consulta a la base de datos.
  * ====================================================================================================================================
@@ -80,14 +77,12 @@ const obtenerTodosDatos = async (estados, id_empresa, database) => {
 
 /**
  * ====================================================================================================================================
- * Verifica si la edición del registro fue exitosa.
+ * Verifica si la consulta fue exitosa.
  *
- * Esta función evalúa el resultado de la operación de actualización para determinar
- * si se realizó correctamente, verificando las filas afectadas y el código de estado.
+ * Esta función evalúa el resultado de la operación de consulta para determinar
+ * si se realizó correctamente, verificando el código de estado.
  *
  * @param {Object} resultado - Resultado de la operación en la base de datos.
- * @param {Object} [resultado.datos] - Datos retornados por la actualización.
- * @param {number} [resultado.datos.affectedRows] - Número de filas afectadas por la actualización.
  * @param {number} [resultado.status] - Código de estado de la operación.
  * @returns {boolean} - `true` si la operación fue exitosa, `false` en caso contrario.
  * ====================================================================================================================================
@@ -98,7 +93,7 @@ const esConsultarExitosa = (resultado) => {
 
 /**
  * ====================================================================================================================================
- * Obtiene la lista completa de registros, validando previamente los permisos del usuario.
+ * Obtiene la lista completa de compensaciones extra, validando previamente los permisos del usuario.
  *
  * Este método realiza los siguientes pasos:
  * 1. Valida los datos de la solicitud.
@@ -130,9 +125,9 @@ const obtenerListaCompleta = async (req, res) => {
          res.transaccion.user.id_empresa,
          res?.database);
 
-      // 4. Verificar si la edición fue exitosa.
+      // 4. Verificar si la consulta fue exitosa.
       if (!esConsultarExitosa(resultado)) {
-         return crearRespuestaErrorCrear(`Error al cargar el registro: ${resultado.error}`);
+         return crearRespuestaErrorCrear(`Error al cargar las compensaciones extra: ${resultado.error}`);
       }
 
       // 4. Si la consulta es exitosa, se retornan los datos obtenidos en una respuesta exitosa.

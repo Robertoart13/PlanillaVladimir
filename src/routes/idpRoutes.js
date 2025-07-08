@@ -149,6 +149,7 @@ import Gestor_Bono_Editar from "../modules/GestorPlanilla/03-Gestor_Bono/Gestor_
  */
 import Gestor_Extra_Crear from "../modules/GestorPlanilla/03-Gestor_Extra/Gestor_Extra_Crear.js";
 import Gestor_Extra_Listar from "../modules/GestorPlanilla/03-Gestor_Extra/Gesto_Extra_Lista.js";
+import Gestor_Extra_Editar from "../modules/GestorPlanilla/03-Gestor_Extra/Gestor_Extra_Editar.js";
 
 
 
@@ -727,16 +728,22 @@ function getModulesConfig() {
          model: {
             ...Gestor_Extra_Crear,
             ...Gestor_Extra_Listar,
+            ...Gestor_Extra_Editar,
             }, // Combinamos ambos modelos
          routes: [
             {
-               path: "gestor/planilla/compensaciones/crear", // Ruta para la lista de planilla
+               path: "gestor/planilla/compensaciones/crear", // Ruta para crear compensación extra
                method: "crearTransaccion", // Método que se ejecutará
                isAuthRequired: true, // Requiere autenticación
             },
             {
-               path: "gestor/planilla/compensaciones/lista", // Ruta para la lista de planilla
+               path: "gestor/planilla/compensaciones/lista", // Ruta para listar compensaciones extra
                method: "obtenerListaCompleta", // Método que se ejecutará
+               isAuthRequired: true, // Requiere autenticación
+            },
+            {
+               path: "gestor/planilla/compensaciones/editar", // Ruta para editar compensación extra
+               method: "editarTransaccion", // Método que se ejecutará
                isAuthRequired: true, // Requiere autenticación
             },
          ],
