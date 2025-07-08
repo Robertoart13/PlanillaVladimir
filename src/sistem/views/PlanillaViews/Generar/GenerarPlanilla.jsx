@@ -71,7 +71,7 @@ const generarDatosSubtabla = (planillaData) => {
          empleado.aumentos.forEach(aumento => {
             detalles.push({
                categoria: "Aumento",
-               tipoAccion: "Ingreso",
+               tipoAccion: "Aumento",
                monto: aumento.monto_aumento_gestor || "0",
                tipo: "+",
                estado: aumento.estado_planilla_aumento_gestor || "Pendiente"
@@ -85,9 +85,9 @@ const generarDatosSubtabla = (planillaData) => {
             detalles.push({
                categoria: "Rebajo Compensación",
                tipoAccion: "Deducción",
-               monto: rebajo.monto_rebajo_compensacion || "0",
+               monto: rebajo.monto_rebajo_calculado || "0",
                tipo: "-",
-               estado: rebajo.estado_rebajo_compensacion || "Pendiente"
+               estado: rebajo.estado_rebajo || "Pendiente"
             });
          });
       }
@@ -98,9 +98,9 @@ const generarDatosSubtabla = (planillaData) => {
             detalles.push({
                categoria: "Horas Extras",
                tipoAccion: "Ingreso",
-               monto: horaExtra.monto_horas_extras_gestor || "0",
+               monto: horaExtra.monto_compensacion_calculado_gestor || "0",
                tipo: "+",
-               estado: horaExtra.estado_horas_extras_gestor || "Pendiente"
+               estado: horaExtra.estado_compensacion_extra_gestor || "Pendiente"
             });
          });
       }
