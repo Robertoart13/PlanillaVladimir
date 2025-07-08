@@ -58,19 +58,19 @@ const QUERIES = {
       REBAJOS_COMPENSACION: `
       SELECT *
       FROM gestor_rebajo_compensacion_tbl
-      WHERE planilla_id_rebajo_compensacion = ?
-        AND empresa_id_rebajo_compensacion = ?
-        AND empleado_id_rebajo_compensacion = ?
-        AND activo_rebajo_compensacion = 1;
+      WHERE planilla_id_rebajo = ?
+        AND empresa_id_rebajo = ?
+        AND empleado_id_rebajo = ?
+        AND estado_rebajo = "Pendiente";
       `,
       // Consulta para obtener horas extras del empleado
       HORAS_EXTRAS: `
       SELECT *
-      FROM gestor_horas_extras_tbl
-      WHERE planilla_id_horas_extras_gestor = ?
-        AND empresa_id_horas_extras_gestor = ?
-        AND empleado_id_horas_extras_gestor = ?
-        AND activo_horas_extras_gestor = 1;
+      FROM gestor_compensacion_extra_tbl
+      WHERE planilla_id_compensacion_extra_gestor = ?
+        AND empresa_id_compensacion_extra_gestor = ?
+        AND empleado_id_compensacion_extra_gestor = ?
+        AND estado_compensacion_extra_gestor = "Pendiente";
       `,
       // Consulta para obtener compensación por métrica del empleado
       COMPENSACION_METRICA: `
@@ -79,7 +79,7 @@ const QUERIES = {
       WHERE planilla_id_compensacion_metrica_gestor = ?
         AND empresa_id_compensacion_metrica_gestor = ?
         AND empleado_id_compensacion_metrica_gestor = ?
-        AND activo_compensacion_metrica_gestor = 1;
+        AND estado_compensacion_metrica_gestor = "Pendiente";
       `,
 };
 
