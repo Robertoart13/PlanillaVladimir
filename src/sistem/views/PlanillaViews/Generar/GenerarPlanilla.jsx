@@ -1,4 +1,6 @@
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useCallback, useEffect } from "react";
+import { useDispatch } from "react-redux";
+import { fetchData_api } from "../../../../store/fetchData_api/fetchData_api_Thunks";
 
 
 /**
@@ -550,17 +552,82 @@ export const PayrollGenerator = () => {
    const [rows] = useState(MOCK_ROWS);
    
    // Debug: Verificar los datos
-   console.log("MOCK_ROWS:", MOCK_ROWS);
    const [selectedRows, setSelectedRows] = useState([]); // Sin selección por defecto
    const [expandedRows, setExpandedRows] = useState([]); // Filas expandidas
    const [pageSize, setPageSize] = useState(PAGE_SIZES[0]);
    const [currentPage, setCurrentPage] = useState(1);
 
    const [empresaSeleccionada] = useState("1");
-   const [planillaSeleccionada, setPlanillaSeleccionada] = useState("1");
+   const [planillaSeleccionada, setPlanillaSeleccionada] = useState("");
+
+   // Estados para la API
+   const [planillaData, setPlanillaData] = useState(null);
+   const [planillasList, setPlanillasList] = useState([]); // Lista de planillas desde API
+   const [loading, setLoading] = useState(false);
+   const [loadingPlanillas, setLoadingPlanillas] = useState(false);
+   const [error, setError] = useState(null);
+
+   // Hook de Redux
+   const dispatch = useDispatch();
+
+   // useEffect para cargar datos de la API al montar el componente
+   useEffect(() => {
+      const cargarDatosPlanilla = async () => {
+         try {
+            setLoading(true);
+            setError(null);
+            
+            const response = await dispatch(fetchData_api(null, "gestor/planilla/gestor"));
+            
+ 
+            
+            if (response.success && response.data.array?.length > 0) {
+               setPlanillaData(response.data.array);
+               console.log("Datos de planilla cargados exitosamente:", response.data.array);
+            } else {
+               console.error("Error en la respuesta de la API:", response);
+               setError("Error al cargar los datos de la planilla");
+            }
+         } catch (error) {
+            console.error("Error al cargar datos de planilla:", error);
+            setError("Error de conexión al cargar los datos");
+         } finally {
+            setLoading(false);
+         }
+      };
+
+      cargarDatosPlanilla();
+   }, [dispatch]);
+
+   // useEffect para cargar la lista de planillas
+   useEffect(() => {
+      const cargarListaPlanillas = async () => {
+         try {
+            setLoadingPlanillas(true);
+            setError(null);
+            
+            const response = await dispatch(fetchData_api(null, "gestor/planillas/listas"));
+            
+            if (response.success && response.data.array?.length > 0) {  
+               setPlanillasList(response.data.array || []);
+               console.log("Lista de planillas cargada exitosamente:", response.data.array);
+            } else {
+               console.error("Error en la respuesta de lista de planillas:", response);
+               setError("Error al cargar la lista de planillas");
+            }
+         } catch (error) {
+            console.error("Error al cargar lista de planillas:", error);
+            setError("Error de conexión al cargar la lista de planillas");
+         } finally {
+            setLoadingPlanillas(false);
+         }
+      };
+
+      cargarListaPlanillas();
+   }, [dispatch]);
 
    // Obtener el estado de la planilla seleccionada
-   const selectedPlanilla = MOCK_PLANILLAS.find(
+   const selectedPlanilla = planillasList.find(
       (p) => String(p.planilla_id) === String(planillaSeleccionada),
    );
    const planillaEstado = selectedPlanilla?.planilla_estado;
@@ -655,6 +722,44 @@ export const PayrollGenerator = () => {
                <div className="card shadow-sm">
                   <div className="card-body">
                   
+                     {/* Indicador de carga y errores */}
+                     {loading && (
+                        <div className="alert alert-info text-center">
+                           <i className="fas fa-spinner fa-spin me-2"></i>
+                           Cargando datos de planilla...
+                        </div>
+                     )}
+
+                     {loadingPlanillas && (
+                        <div className="alert alert-info text-center">
+                           <i className="fas fa-spinner fa-spin me-2"></i>
+                           Cargando lista de planillas...
+                        </div>
+                     )}
+
+                     {error && (
+                        <div className="alert alert-danger text-center">
+                           <i className="fas fa-exclamation-triangle me-2"></i>
+                           {error}
+                        </div>
+                     )}
+
+                     {/* Información de datos cargados */}
+                     {planillaData && !loading && (
+                        <div className="alert alert-success text-center">
+                           <i className="fas fa-check-circle me-2"></i>
+                           Datos de planilla cargados exitosamente
+                        </div>
+                     )}
+
+                     {/* Información de lista de planillas cargada */}
+                     {planillasList.length > 0 && !loadingPlanillas && (
+                        <div className="alert alert-success text-center">
+                           <i className="fas fa-check-circle me-2"></i>
+                           Lista de planillas cargada exitosamente ({planillasList.length} planillas disponibles)
+                        </div>
+                     )}
+
                      {/* Select de tipo de planilla */}
                      <div className="mb-3">
                         <label
@@ -668,16 +773,23 @@ export const PayrollGenerator = () => {
                            id={planillaSelectId}
                            value={planillaSeleccionada}
                            onChange={handlePlanillaChange}
+                           disabled={loadingPlanillas}
                         >
                            <option value="">Seleccione un tipo de planilla</option>
-                           {MOCK_PLANILLAS.map((planilla) => (
-                              <option
-                                 key={planilla.planilla_id}
-                                 value={planilla.planilla_id}
-                              >
-                                 {planilla.planilla_codigo}
+                           {planillasList.length > 0 ? (
+                              planillasList.map((planilla) => (
+                                 <option
+                                    key={planilla.planilla_id}
+                                    value={planilla.planilla_id}
+                                 >
+                                    {planilla.planilla_codigo} - {planilla.planilla_tipo} ({planilla.planilla_estado})
+                                 </option>
+                              ))
+                           ) : (
+                              <option value="" disabled>
+                                 {loadingPlanillas ? "Cargando planillas..." : "No hay planillas disponibles"}
                               </option>
-                           ))}
+                           )}
                         </select>
                      </div>
 
