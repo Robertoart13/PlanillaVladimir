@@ -294,7 +294,7 @@ CREATE TABLE `gestor_aumento_tbl` (
 
 LOCK TABLES `gestor_aumento_tbl` WRITE;
 /*!40000 ALTER TABLE `gestor_aumento_tbl` DISABLE KEYS */;
-INSERT INTO `gestor_aumento_tbl` VALUES (1,17,36,40,1361008.00,'Fijo',80000.00,1441008.00,'2025-07-10','Pendiente',2,'2025-07-08 17:27:45','2025-07-08 17:27:45'),(2,17,36,36,200000.00,'Porcentual',0.99,201980.00,'2025-07-31','Pendiente',2,'2025-07-08 17:39:41','2025-07-08 17:41:35'),(3,13,29,38,500000.00,'Fijo',50000.00,550000.00,'2025-07-08','Pendiente',4,'2025-07-08 18:36:58','2025-07-08 18:36:58');
+INSERT INTO `gestor_aumento_tbl` VALUES (1,17,36,40,1361008.00,'Fijo',80000.00,1441008.00,'2025-07-10','Pendiente',2,'2025-07-08 17:27:45','2025-07-08 17:27:45'),(2,17,36,36,200000.00,'Porcentual',0.99,201980.00,'2025-07-31','Pendiente',2,'2025-07-08 17:39:41','2025-07-08 17:41:35'),(3,13,29,38,500000.00,'Fijo',100000.00,600000.00,'2025-07-07','Pendiente',4,'2025-07-08 18:36:58','2025-07-08 21:09:28');
 /*!40000 ALTER TABLE `gestor_aumento_tbl` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -370,7 +370,7 @@ CREATE TABLE `gestor_compensacion_metrica_tbl` (
   CONSTRAINT `fk_compensacion_metrica_empleado` FOREIGN KEY (`empleado_id_compensacion_metrica_gestor`) REFERENCES `gestor_empleado_tbl` (`id_empleado_gestor`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `fk_compensacion_metrica_empresa` FOREIGN KEY (`empresa_id_compensacion_metrica_gestor`) REFERENCES `empresas_tbl` (`id_empresa`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `fk_compensacion_metrica_planilla` FOREIGN KEY (`planilla_id_compensacion_metrica_gestor`) REFERENCES `planilla_tbl` (`planilla_id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Compensación por métrica adaptada a ley Costa Rica';
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Compensación por métrica adaptada a ley Costa Rica';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -379,7 +379,7 @@ CREATE TABLE `gestor_compensacion_metrica_tbl` (
 
 LOCK TABLES `gestor_compensacion_metrica_tbl` WRITE;
 /*!40000 ALTER TABLE `gestor_compensacion_metrica_tbl` DISABLE KEYS */;
-INSERT INTO `gestor_compensacion_metrica_tbl` VALUES (1,17,36,40,'asistencia_perfecta',1500.00,'-- no es obligatorio','2025-07-08',1,'Pendiente',2,'2025-07-08 18:33:25','2025-07-08 18:33:25'),(2,13,29,38,'cumplimiento_metas',100000.00,'-- no es obligatorio','2025-07-08',0,'Pendiente',4,'2025-07-08 18:41:05','2025-07-08 18:41:05');
+INSERT INTO `gestor_compensacion_metrica_tbl` VALUES (1,17,36,40,'asistencia_perfecta',1500.00,'-- no es obligatorio','2025-07-08',1,'Pendiente',2,'2025-07-08 18:33:25','2025-07-08 18:33:25'),(2,13,29,38,'cumplimiento_metas',100000.00,'-- no es obligatorio','2025-07-08',0,'Pendiente',4,'2025-07-08 18:41:05','2025-07-08 18:41:05'),(3,13,38,46,'puntualidad',150000.00,'atentos','2025-07-08',0,'Pendiente',4,'2025-07-08 21:07:39','2025-07-08 21:07:39');
 /*!40000 ALTER TABLE `gestor_compensacion_metrica_tbl` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -423,6 +423,7 @@ CREATE TABLE `gestor_empleado_tbl` (
   `montoAsegurado_gestor_empelado` varchar(45) DEFAULT '0',
   `fecha_creacion_empleado_gestor` timestamp NOT NULL DEFAULT current_timestamp() COMMENT 'Fecha de creación del registro',
   `fecha_modificacion_empleado_gestor` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp() COMMENT 'Fecha de última modificación',
+  `dias_vacaciones_anuales` int(11) NOT NULL DEFAULT 12 COMMENT 'Días de vacaciones que acumula el empleado por año',
   PRIMARY KEY (`id_empleado_gestor`),
   UNIQUE KEY `numero_asegurado_empleado_gestor` (`numero_asegurado_empleado_gestor`),
   UNIQUE KEY `numero_ins_empleado_gestor` (`numero_ins_empleado_gestor`),
@@ -431,7 +432,7 @@ CREATE TABLE `gestor_empleado_tbl` (
   UNIQUE KEY `unique_cedula_empleado_gestor` (`cedula_empleado_gestor`),
   KEY `idx_id_empresa` (`id_empresa`),
   CONSTRAINT `fk_empresa_empleado` FOREIGN KEY (`id_empresa`) REFERENCES `empresas_tbl` (`id_empresa`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=47 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Tabla que almacena la información de los empleados gestionados';
+) ENGINE=InnoDB AUTO_INCREMENT=50 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Tabla que almacena la información de los empleados gestionados';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -440,8 +441,36 @@ CREATE TABLE `gestor_empleado_tbl` (
 
 LOCK TABLES `gestor_empleado_tbl` WRITE;
 /*!40000 ALTER TABLE `gestor_empleado_tbl` DISABLE KEYS */;
-INSERT INTO `gestor_empleado_tbl` VALUES (33,'GT33RDT6QL','Katrina Bou Mansour Blonval','kmboumansour@gmail.com','88325933','186202559322','200000','indefinido','servicio_cliente','director','15',17,'2025-07-09',NULL,'tiempo_completo','186202559322','186202559322','186202559322','186202559322','186202559322','0186202559322','0186202559322','0186202559322',0,1,0,'dolares','quincenal',1,'0','2025-07-06 18:28:46','2025-07-06 18:28:46'),(36,'GT366BRQ89','Katrina Prueba ','kmboumansour2@gmail.com','88325933','1862025593220000','200000','indefinido','operaciones','contador','15',17,'2025-07-11',NULL,'medio_tiempo','000000000000012224','000000000000012224','000000000000012224','186202559322','186202559322','0186202559322','0186202559322','0186202559322',1,0,0,'colones','quincenal',1,'0','2025-07-06 18:30:00','2025-07-06 18:31:01'),(37,'GT37G1HZEL','roberto prueba','andres.felipe.campos.rojas@yahoo.com','88325933','11112','11112','plazo_fijo','it','asistente','15',17,'2025-07-02',NULL,'freelance','11112','11112','11112','11112','11112','011112','011112','011112',1,0,0,'colones','bisemanal',1,'0','2025-07-06 20:01:29','2025-07-06 20:01:29'),(38,'GT38I1UW1Y','Pablo','kapra1978@gmail.com','72093397','123456890','500000','por_servicios_profesionales','administracion','gerente','16',13,'2025-06-04',NULL,'tiempo_completo','123456890','43425435345','2213543654734','CR2000034234324500542',NULL,'4','203000','875000',1,1,0,'colones','quincenal',1,'0','2025-07-07 00:08:31','2025-07-07 00:08:31'),(39,'GT39J03NRK','cralos','vladimirmorac@gmail.com','72927723','109600143','1000000','indefinido','produccion','coordinador','4',13,'2025-07-01',NULL,'tiempo_completo','123','1234','12356','',NULL,'0','0','0',1,1,1,'colones','semanal',1,'0','2025-07-07 22:53:50','2025-07-08 10:50:36'),(40,'GT40EQNJMV','RONALD BOLANOS','rzunigaa419@ulacit.ed.cr','87515938','C87145144','1361008','indefinido','administracion','administrador','2',17,'2025-07-10',NULL,'tiempo_completo','1313','1313','11111111111','CR28979820885475210000','CR22174578350005617000','1','1','1',0,0,1,'colones','quincenal',1,'19552025','2025-07-08 16:23:02','2025-07-08 16:33:18'),(46,'GT46BJDS9Y','Narel Cedeño Fernández ','vla@acuamic.com','72927723','1096','1000000','indefinido','administracion','gerente','4',13,'2025-07-01',NULL,'tiempo_completo','12351','123451','12356515','CR12656566635',NULL,'5','50000','200000',0,0,0,'colones_y_dolares','quincenal',1,'0','2025-07-08 19:00:43','2025-07-08 19:00:43');
+INSERT INTO `gestor_empleado_tbl` VALUES (33,'GT33RDT6QL','Katrina Bou Mansour Blonval','kmboumansour@gmail.com','88325933','186202559322','200000','indefinido','servicio_cliente','director','15',17,'2025-07-09',NULL,'tiempo_completo','186202559322','186202559322','186202559322','186202559322','186202559322','0186202559322','0186202559322','0186202559322',0,1,0,'dolares','quincenal',1,'0','2025-07-06 18:28:46','2025-07-06 18:28:46',12),(36,'GT366BRQ89','Katrina Prueba ','kmboumansour2@gmail.com','88325933','1862025593220000','200000','indefinido','operaciones','contador','15',17,'2025-07-11',NULL,'medio_tiempo','000000000000012224','000000000000012224','000000000000012224','186202559322','186202559322','0186202559322','0186202559322','0186202559322',1,0,0,'colones','quincenal',1,'0','2025-07-06 18:30:00','2025-07-06 18:31:01',12),(37,'GT37G1HZEL','roberto prueba','andres.felipe.campos.rojas@yahoo.com','88325933','11112','11112','plazo_fijo','it','asistente','15',17,'2025-07-02',NULL,'freelance','11112','11112','11112','11112','11112','011112','011112','011112',1,0,0,'colones','bisemanal',1,'0','2025-07-06 20:01:29','2025-07-06 20:01:29',12),(38,'GT38I1UW1Y','Pablo','kapra1978@gmail.com','72093397','123456890','500000','por_servicios_profesionales','administracion','gerente','16',13,'2025-06-04',NULL,'tiempo_completo','123456890','43425435345','2213543654734','CR2000034234324500542',NULL,'4','203000','875000',1,1,0,'colones','quincenal',1,'0','2025-07-07 00:08:31','2025-07-07 00:08:31',12),(39,'GT39J03NRK','cralos','vladimirmorac@gmail.com','72927723','109600143','1000000','indefinido','produccion','coordinador','4',13,'2025-07-01',NULL,'tiempo_completo','123','1234','12356','',NULL,'0','0','0',1,1,1,'colones','semanal',1,'0','2025-07-07 22:53:50','2025-07-08 10:50:36',12),(40,'GT40EQNJMV','RONALD BOLANOS','rzunigaa419@ulacit.ed.cr','87515938','C87145144','1361008','indefinido','administracion','administrador','2',17,'2025-07-10',NULL,'tiempo_completo','1313','1313','11111111111','CR28979820885475210000','CR22174578350005617000','1','1','1',0,0,1,'colones','quincenal',1,'19552025','2025-07-08 16:23:02','2025-07-08 16:33:18',12),(46,'GT46BJDS9Y','Narel Cedeño Fernández ','vla@acuamic.com','72927723','1096','1000000','indefinido','administracion','gerente','4',13,'2025-07-01',NULL,'tiempo_completo','12351','123451','12356515','CR12656566635',NULL,'5','50000','200000',0,0,0,'colones_y_dolares','quincenal',1,'0','2025-07-08 19:00:43','2025-07-08 19:00:43',12),(47,'GT47IVT3BS','Jorge Luis Rojas Chaves','rzunigaa4191111@ulacit.ed.cr','87515938','J56931806','350000','plazo_fijo','administracion','administrador','2',17,'2025-07-08',NULL,'tiempo_completo','123457','123457','123457','123457','123457','9','123457','123457',0,0,1,'colones','mensual',1,'3400','2025-07-08 20:53:49','2025-07-08 20:53:49',12),(48,'GT48LV4EVF','nuevo emeplado','rzuniga1111a419@ulacit.ed.cr','212112','H53224644','12121212','plazo_fijo','legal','coordinador','2',17,'2025-07-19',NULL,'medio_tiempo','1111111111111111111','1111111111111111111','1111111111111111111','1111111111111111111','1111111111111111111','8','12','2',0,0,1,'colones','quincenal',1,'111','2025-07-08 20:57:23','2025-07-08 20:57:23',12),(49,'GT496K0UOA','Andrés Felipe Campos Rojas','rzunig111aa419@ulacit.ed.cr','1','1','1','indefinido','servicio_cliente','supervisor','2',17,'2025-07-08',NULL,'freelance','1','1','1','1','1','4','1','1',0,0,0,'colones','quincenal',1,'0','2025-07-08 20:59:00','2025-07-08 20:59:00',12);
 /*!40000 ALTER TABLE `gestor_empleado_tbl` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `gestor_provision_vacaciones`
+--
+
+DROP TABLE IF EXISTS `gestor_provision_vacaciones`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `gestor_provision_vacaciones` (
+  `id_provision_vacaciones` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT 'ID único de la provisión',
+  `empleado_id_provision` int(10) unsigned NOT NULL COMMENT 'FK a gestor_empleado_tbl',
+  `periodo_provision` date NOT NULL COMMENT 'Primer día del mes de la provisión (ej: 2025‑07‑01)',
+  `monto_provision` decimal(15,2) NOT NULL COMMENT 'Cantidad provisionada para ese mes',
+  `fecha_registro_provision` timestamp NOT NULL DEFAULT current_timestamp() COMMENT 'Fecha de cálculo',
+  PRIMARY KEY (`id_provision_vacaciones`),
+  UNIQUE KEY `uq_prov` (`empleado_id_provision`,`periodo_provision`),
+  CONSTRAINT `fk_provision_empleado` FOREIGN KEY (`empleado_id_provision`) REFERENCES `gestor_empleado_tbl` (`id_empleado_gestor`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Provisión mensual de vacaciones por empleado';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `gestor_provision_vacaciones`
+--
+
+LOCK TABLES `gestor_provision_vacaciones` WRITE;
+/*!40000 ALTER TABLE `gestor_provision_vacaciones` DISABLE KEYS */;
+/*!40000 ALTER TABLE `gestor_provision_vacaciones` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -477,7 +506,7 @@ CREATE TABLE `gestor_rebajo_compensacion_tbl` (
   CONSTRAINT `fk_rebajo_empleado` FOREIGN KEY (`empleado_id_rebajo`) REFERENCES `gestor_empleado_tbl` (`id_empleado_gestor`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `fk_rebajo_empresa` FOREIGN KEY (`empresa_id_rebajo`) REFERENCES `empresas_tbl` (`id_empresa`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `fk_rebajo_planilla` FOREIGN KEY (`planilla_id_rebajo`) REFERENCES `planilla_tbl` (`planilla_id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Rebajos a compensación con cálculos automáticos';
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Rebajos a compensación con cálculos automáticos';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -486,7 +515,45 @@ CREATE TABLE `gestor_rebajo_compensacion_tbl` (
 
 LOCK TABLES `gestor_rebajo_compensacion_tbl` WRITE;
 /*!40000 ALTER TABLE `gestor_rebajo_compensacion_tbl` DISABLE KEYS */;
+INSERT INTO `gestor_rebajo_compensacion_tbl` VALUES (1,17,36,37,'incapacidades_no_autorizadas','mensual',NULL,50.00,NULL,200000.00,333333.33,'11111','2025-07-08',0,'Pendiente',2,'2025-07-08 19:50:25','2025-07-08 20:08:46');
 /*!40000 ALTER TABLE `gestor_rebajo_compensacion_tbl` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `gestor_vacaciones_tbl`
+--
+
+DROP TABLE IF EXISTS `gestor_vacaciones_tbl`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `gestor_vacaciones_tbl` (
+  `id_vacacion_vacaciones_gestor` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT 'ID único del registro de vacaciones',
+  `empresa_id_vacaciones_gestor` int(10) unsigned NOT NULL COMMENT 'ID empresa (FK)',
+  `empleado_id_vacaciones_gestor` int(10) unsigned NOT NULL COMMENT 'ID empleado (FK)',
+  `fecha_inicio_vacaciones_gestor` date NOT NULL COMMENT 'Fecha de inicio de vacaciones',
+  `dias_vacaciones_vacaciones_gestor` decimal(5,2) NOT NULL COMMENT 'Cantidad de días de vacaciones',
+  `motivo_vacaciones_gestor` text DEFAULT NULL COMMENT 'Motivo u observaciones',
+  `estado_vacaciones_gestor` enum('Pendiente','Aprobado','Aplicado','Cancelado') NOT NULL DEFAULT 'Pendiente' COMMENT 'Estado del registro',
+  `activo_vacaciones_gestor` tinyint(1) NOT NULL DEFAULT 1 COMMENT 'Estado lógico: 1=Activo, 0=Inactivo',
+  `usuario_id_vacaciones_gestor` int(11) NOT NULL COMMENT 'Usuario que registró',
+  `fecha_creacion_vacaciones_gestor` timestamp NOT NULL DEFAULT current_timestamp(),
+  `fecha_modificacion_vacaciones_gestor` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id_vacacion_vacaciones_gestor`),
+  KEY `fk_vacaciones_empresa` (`empresa_id_vacaciones_gestor`),
+  KEY `fk_vacaciones_empleado` (`empleado_id_vacaciones_gestor`),
+  CONSTRAINT `fk_vacaciones_empleado` FOREIGN KEY (`empleado_id_vacaciones_gestor`) REFERENCES `gestor_empleado_tbl` (`id_empleado_gestor`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_vacaciones_empresa` FOREIGN KEY (`empresa_id_vacaciones_gestor`) REFERENCES `empresas_tbl` (`id_empresa`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Registro de períodos de vacaciones por empleado';
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `gestor_vacaciones_tbl`
+--
+
+LOCK TABLES `gestor_vacaciones_tbl` WRITE;
+/*!40000 ALTER TABLE `gestor_vacaciones_tbl` DISABLE KEYS */;
+INSERT INTO `gestor_vacaciones_tbl` VALUES (1,17,40,'2025-07-26',70.00,'sdsd','Aprobado',1,2,'2025-07-08 20:36:12','2025-07-08 20:38:02'),(2,17,33,'2025-07-26',8.00,'qq','Aprobado',0,2,'2025-07-08 20:41:45','2025-07-08 20:41:45'),(3,17,48,'2025-07-08',8.00,NULL,'Aplicado',1,2,'2025-07-08 20:57:23','2025-07-08 20:57:23'),(4,17,49,'2025-07-08',4.00,NULL,'Aplicado',1,2,'2025-07-08 20:59:00','2025-07-08 20:59:00'),(5,13,46,'2025-07-08',2.00,'atentos','Aprobado',0,4,'2025-07-08 21:04:02','2025-07-08 21:04:02');
+/*!40000 ALTER TABLE `gestor_vacaciones_tbl` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -689,14 +756,6 @@ LOCK TABLES `usuarios_tbl` WRITE;
 INSERT INTO `usuarios_tbl` VALUES (1,'Ahmed Navarro Soto','ahmed.n_29@hotmail.com','$2b$10$qvXm7NKst02gknYF/Kbqnu.k3QjplWGu02rwF1yS5GNphDDQdh9PG','admin',1,0,1,13,'2025-05-18 18:51:28','2025-06-28 08:29:32'),(2,'Roberto Zuniga Altamirano','carlosroart13@gmail.com','$2b$10$qvXm7NKst02gknYF/Kbqnu.k3QjplWGu02rwF1yS5GNphDDQdh9PG','admin',1,0,1,17,'2025-05-18 18:51:28','2025-07-06 02:34:01'),(4,'Vladimir Mora','vla@gt3cr.com','$2b$10$t/v1M6KkkX9EuUo3likfyO.C72nIEQeeZZXXQB5Y.kaau55IC3Xvq','admin',1,0,1,13,'2025-05-18 18:51:28','2025-06-28 08:29:32'),(14,'José Ignacio','jmc@gmail.com','$2b$10$lzL5YmBl8O5J.WBxjpUqp.XbKPQVkjtzcztkoaBYHkk.f6Tp0vLca','usuario',1,0,0,13,'2025-05-28 14:03:06','2025-07-06 22:28:42'),(15,'Katrina Bou Mansour','kmboumansour@gmail.com','$2b$10$qvXm7NKst02gknYF/Kbqnu.k3QjplWGu02rwF1yS5GNphDDQdh9PG','usuario',1,0,1,17,'2025-05-18 18:51:28','2025-07-06 02:34:01'),(16,'Pablo K','Kapra1978@gmail.com','$2b$10$2DTWyAjnTRacqOzE/H97UOsjSEvqT92cfSHeuiH/vyRD5F9CQl0KK','admin',1,0,1,13,'2025-07-06 23:58:51','2025-07-06 23:59:32');
 /*!40000 ALTER TABLE `usuarios_tbl` ENABLE KEYS */;
 UNLOCK TABLES;
-
---
--- Dumping events for database 'u732776653_sistema'
---
-
---
--- Dumping routines for database 'u732776653_sistema'
---
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -707,4 +766,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2025-07-08 13:27:03
+-- Dump completed on 2025-07-08 15:40:00

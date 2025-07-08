@@ -170,6 +170,13 @@ import Gestor_Vacaciones_Crear from "../modules/GestorPlanilla/05-Gestor_Vacacio
 import Gestor_Vacaciones_Listar from "../modules/GestorPlanilla/05-Gestor_Vacaciones/Gestor_Vacaciones_Lista.js";
 import Gestor_Vacaciones_Editar from "../modules/GestorPlanilla/05-Gestor_Vacaciones/Gestor_Vacaciones_Editar.js";
 
+/**
+ * ====================================================================================================================================
+ * Importación de módulos que tengan solo que ver con el gestor de planilla no de Natual 
+
+ * ====================================================================================================================================
+ */
+import Gestor_Planilla_Gestor from "../modules/GestorPlanilla/06-Planilla_gestor/06-Planilla_gestor.js";
 
 
 
@@ -803,6 +810,7 @@ function getModulesConfig() {
             ...Gestor_Vacaciones_Crear,
             ...Gestor_Vacaciones_Listar,
             ...Gestor_Vacaciones_Editar,
+            ...Gestor_Planilla_Gestor,
             }, // Combinamos ambos modelos
          routes: [
             {
@@ -823,6 +831,11 @@ function getModulesConfig() {
             {
                path: "gestor/vacaciones/editar", // Ruta para editar vacaciones
                method: "editarTransaccion", // Método que se ejecutará
+               isAuthRequired: true, // Requiere autenticación
+            },
+            {
+               path: "gestor/planilla/gestor", // Ruta para obtener todos los empleados de la empresa
+               method: "obtenerTodosDatos", // Método que se ejecutará
                isAuthRequired: true, // Requiere autenticación
             },
          ],
