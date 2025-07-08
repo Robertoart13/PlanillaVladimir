@@ -253,7 +253,7 @@ export const NavBar = ({ isSidebarOpen, isMobile }) => {
 
                                 <li className="pc-item">
                                     <NavLink
-                                       to="/acciones/dias-uso-personal/lista"
+                                       to="/acciones/vacaciones/lista"
                                        className="pc-link"
                                     >
                                        <span className="pc-micon">

@@ -15,6 +15,7 @@ import { CrearHoraExtra } from "../../views/AccionesViews/Horas-extra/Crear/Crea
 import { EditarHoraExtra } from "../../views/AccionesViews/Horas-extra/Editar/EditarHoraExtra";
 import { HorasExtraLista } from "../../views/AccionesViews/Horas-extra/Lista/HorasExtraLista";
 import { CrearVacaciones } from "../../views/AccionesViews/Vacaciones/Crear/CrearVacaciones";
+import { EditarVacaciones } from "../../views/AccionesViews/Vacaciones/Editar/EditarVacaciones";
 import { VacacionesLista } from "../../views/AccionesViews/Vacaciones/Lista/VacacionesLista";
 
 /**
@@ -71,10 +72,11 @@ export const AccionesPage = () => {
                                  {accion2 === "editar" && <EditarBonificaciones />}
                               </div>
                            )}
-                           {accion === "dias-uso-personal" && (
+                           {accion === "vacaciones" && (
                               <div className="row align-items-center">
                                  {accion2 === "lista" && <VacacionesLista />}
                                  {accion2 === "crear" && <CrearVacaciones />}
+                                 {accion2 === "editar" && <EditarVacaciones />}
                               </div>
                            )}
                            </div>

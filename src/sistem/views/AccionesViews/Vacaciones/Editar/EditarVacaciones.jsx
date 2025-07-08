@@ -80,7 +80,7 @@ function useEmpleados(dispatch) {
    return { empleadoOptions, empleadoData, isLoading, fetchEmpleados };
 }
 
-export const CrearVacaciones = () => {
+export const EditarVacaciones = () => {
    const dispatch = useDispatch();
    const navigate = useNavigate();
 
@@ -94,11 +94,13 @@ export const CrearVacaciones = () => {
 
    // Estados de selección y formulario
    const [formData, setFormData] = useState({
-      empleado: "",
-      fecha_inicio_vacaciones: "",
-      dias_vacaciones: "",
-      motivo_vacaciones: "",
-      estado: "Activo",
+      id_vacacion_vacaciones_gestor: "",
+      empleado_id_vacaciones_gestor: "",
+      fecha_inicio_vacaciones_gestor: "",
+      dias_vacaciones_vacaciones_gestor: "",
+      motivo_vacaciones_gestor: "",
+      estado_vacaciones_gestor: "Pendiente",
+      activo_vacaciones_gestor: 1,
    });
    const [selectedEmpleadoData, setSelectedEmpleadoData] = useState(null);
 
@@ -112,6 +114,37 @@ export const CrearVacaciones = () => {
       setError(false);
    }, []);
 
+   // Cargar datos desde localStorage al montar
+   useEffect(() => {
+      const vacacionData = localStorage.getItem('vacacionParaEditar');
+      if (vacacionData) {
+         try {
+            const parsedData = JSON.parse(vacacionData);
+            // Formatear la fecha para el input date
+            const fechaInicio = parsedData.fecha_inicio_vacaciones_gestor 
+               ? new Date(parsedData.fecha_inicio_vacaciones_gestor).toISOString().split('T')[0]
+               : "";
+               
+            setFormData({
+               id_vacacion_vacaciones_gestor: parsedData.id_vacacion_vacaciones_gestor || "",
+               empleado_id_vacaciones_gestor: parsedData.empleado_id_vacaciones_gestor || "",
+               fecha_inicio_vacaciones_gestor: fechaInicio,
+               dias_vacaciones_vacaciones_gestor: parsedData.dias_vacaciones_vacaciones_gestor || "",
+               motivo_vacaciones_gestor: parsedData.motivo_vacaciones_gestor || "",
+               estado_vacaciones_gestor: "Aprobado", // Siempre Aprobado
+               activo_vacaciones_gestor: parsedData.activo_vacaciones_gestor || 1,
+            });
+         } catch (error) {
+            console.error("Error al parsear datos de localStorage:", error);
+            setError(true);
+            setMessage("Error al cargar los datos de la vacación");
+         }
+      } else {
+         setError(true);
+         setMessage("No se encontraron datos para editar");
+      }
+   }, []);
+
    // Cargar empleados al montar
    useEffect(() => {
       fetchEmpleados();
@@ -119,14 +152,13 @@ export const CrearVacaciones = () => {
 
    // Cuando cambia el empleado, buscar datos
    useEffect(() => {
-      if (formData.empleado) {
-         const empleadoObj = findById(empleadoData, formData.empleado, "id_empleado_gestor");
+      if (formData.empleado_id_vacaciones_gestor) {
+         const empleadoObj = findById(empleadoData, formData.empleado_id_vacaciones_gestor, "id_empleado_gestor");
          setSelectedEmpleadoData(empleadoObj);
       } else {
          setSelectedEmpleadoData(null);
       }
-      // eslint-disable-next-line
-   }, [formData.empleado, empleadoData]);
+   }, [formData.empleado_id_vacaciones_gestor, empleadoData]);
 
    /**
     * Maneja el cambio de cualquier input del formulario.
@@ -147,19 +179,19 @@ export const CrearVacaciones = () => {
       if (!selectedEmpleadoData) return;
 
       // Validaciones
-      if (!formData.empleado) {
+      if (!formData.empleado_id_vacaciones_gestor) {
          setError(true);
          setMessage("Debe seleccionar un socio.");
          return;
       }
 
-      if (!formData.fecha_inicio_vacaciones) {
+      if (!formData.fecha_inicio_vacaciones_gestor) {
          setError(true);
          setMessage("La fecha de inicio es obligatoria.");
          return;
       }
 
-      if (!formData.dias_vacaciones || isNaN(formData.dias_vacaciones) || Number(formData.dias_vacaciones) <= 0) {
+      if (!formData.dias_vacaciones_vacaciones_gestor || isNaN(formData.dias_vacaciones_vacaciones_gestor) || Number(formData.dias_vacaciones_vacaciones_gestor) <= 0) {
          setError(true);
          setMessage("La cantidad de días es obligatoria y debe ser mayor a cero.");
          return;
@@ -167,8 +199,9 @@ export const CrearVacaciones = () => {
 
       const nombre = selectedEmpleadoData.nombre_completo_empleado_gestor;
       const socio = selectedEmpleadoData.numero_socio_empleado_gestor;
-      const fechaInicio = formData.fecha_inicio_vacaciones;
-      const diasVacaciones = formData.dias_vacaciones;
+      const fechaInicio = formData.fecha_inicio_vacaciones_gestor;
+      const diasVacaciones = formData.dias_vacaciones_vacaciones_gestor;
+      const estado = formData.estado_vacaciones_gestor;
 
       // HTML mejorado y centrado para el swal
       let htmlMsg = `
@@ -185,15 +218,18 @@ export const CrearVacaciones = () => {
         <div style="font-size:1.1em; margin-bottom:6px;">
           <b>Días de Vacaciones:</b> <span style="font-weight:500; color:blue;">${diasVacaciones}</span>
         </div>
+        <div style="font-size:1.1em; margin-bottom:6px;">
+          <b>Estado:</b> <span style="font-weight:500; color:green;">${estado}</span>
+        </div>
       </div>
     `;
 
       const result = await Swal.fire({
-         title: "¿Está seguro de crear este registro de vacaciones?",
+         title: "¿Está seguro de actualizar este registro de vacaciones?",
          html: htmlMsg,
          icon: "question",
          showCancelButton: true,
-         confirmButtonText: "Sí, crear vacaciones",
+         confirmButtonText: "Sí, actualizar vacaciones",
          cancelButtonText: "Cancelar",
          focusCancel: true,
          customClass: {
@@ -205,7 +241,7 @@ export const CrearVacaciones = () => {
       
       if (result.isConfirmed) {
          Swal.fire({
-            title: "Creando registro de vacaciones",
+            title: "Actualizando registro de vacaciones",
             text: "Por favor espere...",
             allowOutsideClick: false,
             didOpen: () => {
@@ -216,28 +252,29 @@ export const CrearVacaciones = () => {
          // Siempre establecer el estado como "Aprobado"
       const datosEnviar = {
          ...formData,
-         estado: "Aprobado"
+         estado_vacaciones_gestor: "Aprobado"
       };
       
-      const response = await dispatch(fetchData_api(datosEnviar, "gestor/vacaciones/crear"));
+      const response = await dispatch(fetchData_api(datosEnviar, "gestor/vacaciones/editar"));
 
          if (response.success) {
             setError(false);
 
             Swal.fire({
-               title: "Vacaciones creadas exitosamente",
-               text: "El registro de vacaciones ha sido creado correctamente",
+               title: "Vacaciones actualizadas exitosamente",
+               text: "El registro de vacaciones ha sido actualizado correctamente",
                icon: "success",
                confirmButtonText: "Aceptar",
             }).then(() => {
+               localStorage.removeItem('vacacionParaEditar');
                navigate("/acciones/vacaciones/lista");
             });
          } else {
-            const errorMessage = response.message || "Error al crear el registro de vacaciones";
+            const errorMessage = response.message || "Error al actualizar el registro de vacaciones";
             setError(true);
             setMessage(errorMessage);
             Swal.fire({
-               title: "Error al crear las vacaciones",
+               title: "Error al actualizar las vacaciones",
                text: errorMessage,
                icon: "error",
                confirmButtonText: "Aceptar",
@@ -249,9 +286,9 @@ export const CrearVacaciones = () => {
    return (
       <div className="card">
          <div className="card-header">
-            <h5>Crear Registro de Vacaciones</h5>
+            <h5>Editar Registro de Vacaciones</h5>
             <p className="text-muted">
-               Complete el formulario para registrar las vacaciones de un socio.
+               Modifique los datos del registro de vacaciones seleccionado.
             </p>
          </div>
          <div className="card-body">
@@ -303,21 +340,21 @@ export const CrearVacaciones = () => {
                      <input
                         className="form-check-input"
                         type="checkbox"
-                        id="estado"
-                        name="estado"
-                        checked={formData.estado === "Activo"}
+                        id="activo_vacaciones_gestor"
+                        name="activo_vacaciones_gestor"
+                        checked={formData.activo_vacaciones_gestor === 1}
                         onChange={(e) =>
                            setFormData((prev) => ({
                               ...prev,
-                              estado: e.target.checked ? "Activo" : "Inactivo",
+                              activo_vacaciones_gestor: e.target.checked ? 1 : 0,
                            }))
                         }
                      />
                      <label
                         className="form-check-label"
-                        htmlFor="estado"
+                        htmlFor="activo_vacaciones_gestor"
                      >
-                        {formData.estado === "Activo" ? "Activo" : "Inactivo"}
+                        {formData.activo_vacaciones_gestor === 1 ? "Activo" : "Inactivo"}
                      </label>
                   </div>
                </div>
@@ -327,15 +364,15 @@ export const CrearVacaciones = () => {
                   <div className="col-md-6 mb-3">
                      <label
                         className="form-label"
-                        htmlFor="empleado"
+                        htmlFor="empleado_id_vacaciones_gestor"
                      >
                         Socio <span className="text-danger">*</span>
                      </label>
                      <select
                         className="form-select"
-                        id="empleado"
-                        name="empleado"
-                        value={formData.empleado}
+                        id="empleado_id_vacaciones_gestor"
+                        name="empleado_id_vacaciones_gestor"
+                        value={formData.empleado_id_vacaciones_gestor}
                         onChange={handleChange}
                         required
                         disabled={isLoadingEmpleados}
@@ -360,16 +397,16 @@ export const CrearVacaciones = () => {
                   <div className="col-md-6 mb-3">
                      <label
                         className="form-label"
-                        htmlFor="fecha_inicio_vacaciones"
+                        htmlFor="fecha_inicio_vacaciones_gestor"
                      >
                         Fecha de Inicio <span className="text-danger">*</span>
                      </label>
                      <input
                         type="date"
                         className="form-control"
-                        id="fecha_inicio_vacaciones"
-                        name="fecha_inicio_vacaciones"
-                        value={formData.fecha_inicio_vacaciones || ""}
+                        id="fecha_inicio_vacaciones_gestor"
+                        name="fecha_inicio_vacaciones_gestor"
+                        value={formData.fecha_inicio_vacaciones_gestor || ""}
                         onChange={handleChange}
                         required
                      />
@@ -379,16 +416,16 @@ export const CrearVacaciones = () => {
                   <div className="col-md-6 mb-3">
                      <label
                         className="form-label"
-                        htmlFor="dias_vacaciones"
+                        htmlFor="dias_vacaciones_vacaciones_gestor"
                      >
                         Días de Vacaciones <span className="text-danger">*</span>
                      </label>
                      <input
                         type="number"
                         className="form-control"
-                        id="dias_vacaciones"
-                        name="dias_vacaciones"
-                        value={formData.dias_vacaciones}
+                        id="dias_vacaciones_vacaciones_gestor"
+                        name="dias_vacaciones_vacaciones_gestor"
+                        value={formData.dias_vacaciones_vacaciones_gestor}
                         onChange={handleChange}
                         placeholder="0"
                         step="0.5"
@@ -397,19 +434,21 @@ export const CrearVacaciones = () => {
                      />
                   </div>
                   
+
+                  
                   {/* Motivo */}
                   <div className="col-md-12 mb-3">
                      <label
                         className="form-label"
-                        htmlFor="motivo_vacaciones"
+                        htmlFor="motivo_vacaciones_gestor"
                      >
                         Motivo u Observaciones
                      </label>
                      <textarea
                         className="form-control"
-                        id="motivo_vacaciones"
-                        name="motivo_vacaciones"
-                        value={formData.motivo_vacaciones}
+                        id="motivo_vacaciones_gestor"
+                        name="motivo_vacaciones_gestor"
+                        value={formData.motivo_vacaciones_gestor}
                         onChange={handleChange}
                         rows="3"
                         placeholder="Ingrese el motivo o observaciones de las vacaciones..."
@@ -424,11 +463,22 @@ export const CrearVacaciones = () => {
                      className="btn btn-primary"
                   >
                      <i className="fas fa-save me-2"></i>
-                     Crear Registro de Vacaciones
+                     Actualizar Vacaciones
+                  </button>
+                  <button
+                     type="button"
+                     className="btn btn-secondary"
+                     onClick={() => {
+                        localStorage.removeItem('vacacionParaEditar');
+                        navigate("/acciones/vacaciones/lista");
+                     }}
+                  >
+                     <i className="fas fa-times me-2"></i>
+                     Cancelar
                   </button>
                </div>
             </form>
          </div>
       </div>
    );
-};
+}; 
