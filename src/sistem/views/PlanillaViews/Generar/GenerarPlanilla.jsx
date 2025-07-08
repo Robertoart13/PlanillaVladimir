@@ -206,35 +206,30 @@ const TableSkeleton = ({ count = 5, columns = PAYROLL_COLUMNS }) => {
  * @returns {JSX.Element} Tabla de detalles
  */
 const SubTable = ({ columns, data, employeeName }) => {
-   if (!data || data.length === 0) {
-      return (
-         <div className="text-center py-3 text-muted">
-            No hay datos disponibles para {employeeName}
-         </div>
-      );
-   }
-
    return (
-      <div className="subtable-container" style={{ marginLeft: 20, marginRight: 20 }}>
-         <div className="card border-0" style={{ borderRadius: "0px" }}>
-            <h6 className="mb-3 mt-3 p-2">
-               Detalles de Acciones de personal: {employeeName}
-            </h6>
-            <div className="card-body p-0">
+      <div className="employee-details-block mb-4">
+         <div className="details-header">
+            <i className="fas fa-user me-2"></i>
+            Detalles de Acciones de personal: <b>{employeeName}</b>
+         </div>
+         <div className="details-table-wrapper">
+            {(!data || data.length === 0) ? (
+               <div className="text-center py-3 text-muted">
+                  No hay datos disponibles para {employeeName}
+               </div>
+            ) : (
                <div className="table-responsive">
                   <table className="table table-sm table-bordered mb-0">
-                     <thead className="table-secondary">
+                     <thead>
                         <tr>
                            {columns.map((col) => (
                               <th
                                  key={col.key}
                                  style={{
                                     ...col.style,
-                                    fontSize: "0.85rem",
+                                    fontSize: "0.95rem",
                                     padding: "8px 12px",
                                     textAlign: "center",
-                                    background: "#e9ecef",
-                                    borderBottom: "2px solid #adb5bd",
                                  }}
                               >
                                  {col.label}
@@ -244,38 +239,31 @@ const SubTable = ({ columns, data, employeeName }) => {
                      </thead>
                      <tbody>
                         {data.map((row, idx) => (
-                           <tr key={idx} style={{ fontSize: "0.85rem" }}>
+                           <tr key={idx} style={{ fontSize: "0.93rem" }}>
                               {columns.map((col) => (
                                  <td
                                     key={col.key}
                                     style={{
                                        padding: "8px 12px",
-                                       borderRight: "1px solid #dee2e6",
-                                       borderLeft: "1px solid #dee2e6",
-                                       background: idx % 2 !== 0 ? "#f8f9fa" : undefined,
                                        textAlign: col.key === "estado" || col.key === "tipo" ? "center" : col.type === "number" ? "right" : "left",
                                     }}
                                  >
                                     {col.key === "tipo" ? (
                                        <span
-                                          className={`badge bg-light-${
-                                             row[col.key] === "+" ? "success" : "danger"
-                                          }`}
-                                          style={{ fontSize: "0.75rem" }}
+                                          className={`badge bg-light-${row[col.key] === "+" ? "success" : "danger"}`}
+                                          style={{ fontSize: "0.80rem" }}
                                        >
                                           {row[col.key]}
                                        </span>
                                     ) : col.key === "estado" ? (
                                        <span
-                                          className={`badge bg-light-${
-                                             row[col.key] === "Pendiente" ? "warning" : "success"
-                                          }`}
-                                          style={{ fontSize: "0.75rem" }}
+                                          className={`badge bg-light-${row[col.key] === "Pendiente" ? "warning" : "success"}`}
+                                          style={{ fontSize: "0.80rem" }}
                                        >
                                           {row[col.key]}
                                        </span>
                                     ) : col.key === "monto" ? (
-                                       <span>${row[col.key]}</span>
+                                       <span style={{ fontWeight: 500, color: "#2d3748" }}>${row[col.key]}</span>
                                     ) : (
                                        row[col.key]
                                     )}
@@ -286,7 +274,7 @@ const SubTable = ({ columns, data, employeeName }) => {
                      </tbody>
                   </table>
                </div>
-            </div>
+            )}
          </div>
       </div>
    );
@@ -309,6 +297,7 @@ const PayrollTable = ({
    onRowToggle,
    subtableData,
    isLoading = false,
+   pageSize = 5,
 }) => {
    return (
       <table
@@ -767,6 +756,45 @@ export const PayrollGenerator = () => {
                .skeleton-row td {
                   border: 1px solid #dee2e6 !important;
                }
+               .employee-details-block {
+                  background: #fff;
+                  border: 1.5px solid #e3e6f0;
+                  border-radius: 8px;
+                  box-shadow: 0 2px 8px rgba(44,62,80,0.04);
+                  margin: 12px 0 24px 0;
+                  padding: 0 0 12px 0;
+                  transition: box-shadow 0.2s;
+               }
+               .employee-details-block:hover {
+                  box-shadow: 0 4px 16px rgba(44,62,80,0.10);
+               }
+               .details-header {
+                  background: #f1f3f6;
+                  border-bottom: 1.5px solid #e3e6f0;
+                  font-size: 1.08rem;
+                  font-weight: 600;
+                  color: #2d3748;
+                  padding: 10px 18px;
+                  border-radius: 8px 8px 0 0;
+                  display: flex;
+                  align-items: center;
+               }
+               .details-table-wrapper {
+                  padding: 10px 18px 0 18px;
+               }
+               .details-table-wrapper table {
+                  font-size: 0.95rem;
+               }
+               .details-table-wrapper th, .details-table-wrapper td {
+                  padding: 6px 10px !important;
+               }
+               .details-table-wrapper th {
+                  background: #f8fafc;
+                  color: #495057;
+               }
+               .details-table-wrapper td {
+                  background: #fff;
+               }
             `}
          </style>
 
@@ -859,6 +887,7 @@ export const PayrollGenerator = () => {
                                        onRowToggle={handleRowToggle}
                                        subtableData={generarDatosSubtabla(planillaData)}
                                        isLoading={loading}
+                                       pageSize={pageSize}
                                     />
                                  </div>
                               </div>
