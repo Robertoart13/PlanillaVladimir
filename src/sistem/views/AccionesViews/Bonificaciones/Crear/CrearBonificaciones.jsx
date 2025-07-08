@@ -75,10 +75,12 @@ export const CrearBonificaciones = () => {
   const [formData, setFormData] = useState({
     planilla: "",
     empleado: "",
+    tipo_compensacion_metrica: "productividad",
     monto_bonificacion: "",
     motivo_compensacion: "-- no es obligatorio",
+    fecha_compensacion: new Date().toISOString().split('T')[0], // Fecha actual por defecto
     aplica_Compensacion_Anual: false,
-    estado: "Activo",
+    estado: "Pendiente",
   });
 
   // Cargar planillas al montar el componente
@@ -105,7 +107,9 @@ export const CrearBonificaciones = () => {
     return (
       formData.planilla &&
       formData.empleado &&
+      formData.tipo_compensacion_metrica &&
       formData.monto_bonificacion &&
+      formData.fecha_compensacion &&
       parseFloat(formData.monto_bonificacion) > 0
     );
   };
@@ -133,11 +137,29 @@ export const CrearBonificaciones = () => {
       return;
     }
 
+    if (!formData.tipo_compensacion_metrica) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Debe seleccionar el tipo de compensación por métrica'
+      });
+      return;
+    }
+
     if (!formData.monto_bonificacion || parseFloat(formData.monto_bonificacion) <= 0) {
       Swal.fire({
         icon: 'error',
         title: 'Error',
         text: 'El monto de compensación debe ser mayor a cero'
+      });
+      return;
+    }
+
+    if (!formData.fecha_compensacion) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Debe seleccionar la fecha de compensación'
       });
       return;
     }
@@ -156,12 +178,9 @@ export const CrearBonificaciones = () => {
 
     if (result.isConfirmed) {
       try {
-        const response = await dispatch(fetchData_api(formData, "gestor/planilla/bonificaciones/crear"));
+        const response = await dispatch(fetchData_api(formData, "gestor/planilla/compensaciones-metrica/crear"));
 
          if (response.success) {
-              // Aquí iría la llamada a la API para crear la compensación
-            // const response = await dispatch(createBonificacion(formData));
-            
             Swal.fire({
               icon: 'success',
               title: '¡Creado!',
@@ -174,10 +193,12 @@ export const CrearBonificaciones = () => {
             setFormData({
               planilla: "",
               empleado: "",
+              tipo_compensacion_metrica: "productividad",
               monto_bonificacion: "",
               motivo_compensacion: "-- no es obligatorio",
+              fecha_compensacion: new Date().toISOString().split('T')[0],
               aplica_Compensacion_Anual: false,
-              estado: "Activo",
+              estado: "Pendiente",
             });
           }else{
             Swal.fire({
@@ -186,10 +207,6 @@ export const CrearBonificaciones = () => {
               text: response.message
             });
          }
-
-        
-        
-        
       } catch (error) {
         Swal.fire({
           icon: 'error',
@@ -222,16 +239,16 @@ export const CrearBonificaciones = () => {
                 type="checkbox"
                 id="estado"
                 name="estado"
-                checked={formData.estado === "Activo"}
+                checked={formData.estado === "Pendiente"}
                 onChange={(e) => {
                   setFormData(prev => ({
                     ...prev,
-                    estado: e.target.checked ? "Activo" : "Inactivo"
+                    estado: e.target.checked ? "Pendiente" : "Cancelada"
                   }));
                 }}
               />
               <label className="form-check-label" htmlFor="estado">
-                {formData.estado === "Activo" ? "Activo" : "Inactivo"}
+                {formData.estado === "Pendiente" ? "Pendiente" : "Cancelada"}
               </label>
             </div>
           </div>
@@ -307,7 +324,53 @@ export const CrearBonificaciones = () => {
               )}
             </div>
 
-            {/* Total de Horas Extras */}
+            {/* Tipo de Compensación por Métrica */}
+            <div className="col-md-6 mb-3">
+              <label className="form-label" htmlFor="tipo_compensacion_metrica">
+                Tipo de Compensación por Métrica <span className="text-danger">*</span>
+              </label>
+              <select
+                className="form-select"
+                id="tipo_compensacion_metrica"
+                name="tipo_compensacion_metrica"
+                value={formData.tipo_compensacion_metrica}
+                onChange={handleChange}
+                required
+              >
+                <option value="productividad">Compensación por productividad</option>
+                <option value="cumplimiento_metas">Cumplimiento de metas o KPIs</option>
+                <option value="puntualidad">Bono por puntualidad</option>
+                <option value="asistencia_perfecta">Bono por asistencia perfecta</option>
+                <option value="antiguedad">Bonificación por antigüedad</option>
+                <option value="evaluacion_desempeno">Bonificación por evaluación de desempeño</option>
+                <option value="cero_accidentes">Bono por cero accidentes</option>
+                <option value="ventas">Bonificación por ventas</option>
+                <option value="capacitacion">Bono por capacitación</option>
+                <option value="permanencia">Bonificación por permanencia</option>
+                <option value="innovacion">Bonificación por innovación</option>
+              </select>
+            </div>
+
+            {/* Fecha de Compensación */}
+            <div className="col-md-6 mb-3">
+              <label className="form-label" htmlFor="fecha_compensacion">
+                Fecha de Compensación <span className="text-danger">*</span>
+              </label>
+              <input
+                type="date"
+                className="form-control"
+                id="fecha_compensacion"
+                name="fecha_compensacion"
+                value={formData.fecha_compensacion}
+                onChange={handleChange}
+                required
+              />
+              <div className="form-text">
+                Fecha en que se registra o aplica la compensación
+              </div>
+            </div>
+
+            {/* Monto de Compensacion por Metrica */}
             <div className="col-md-6 mb-3">
               <label className="form-label" htmlFor="monto_bonificacion">
                 Monto de Compensacion por Metrica <span className="text-danger">*</span>
@@ -363,11 +426,12 @@ export const CrearBonificaciones = () => {
                   checked={formData.aplica_Compensacion_Anual}
                   onChange={handleChange}
                 />
-                <label className="form-check-label" htmlFor="aplica_Compensacion Anual">
+                <label className="form-check-label" htmlFor="aplica_Compensacion_Anual">
                   ¿Aplica a la Compensacion Anual?
                 </label>
                 <div className="form-text">
-                  Marque esta casilla si el rebajo a la compensacion debe aplicarse también al cálculo de la Compensacion Anual
+                  Marque esta casilla si la compensación por métrica debe aplicarse también al cálculo de la
+                  Compensacion Anual
                 </div>
               </div>
             </div>

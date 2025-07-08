@@ -30,6 +30,25 @@ function findById(data, id, idKey) {
 }
 
 /**
+ * Valida y formatea una fecha para el input de tipo date.
+ * @param {string|Date} fecha - Fecha a validar y formatear.
+ * @returns {string} Fecha formateada en formato YYYY-MM-DD o fecha actual si es inválida.
+ */
+function formatearFechaParaInput(fecha) {
+   if (!fecha) return new Date().toISOString().split('T')[0];
+   
+   try {
+      const fechaObj = new Date(fecha);
+      if (isNaN(fechaObj.getTime())) {
+         return new Date().toISOString().split('T')[0];
+      }
+      return fechaObj.toISOString().split('T')[0];
+   } catch (error) {
+      return new Date().toISOString().split('T')[0];
+   }
+}
+
+/**
  * Hook para obtener y manejar las planillas.
  */
 function usePlanillas(dispatch) {
@@ -101,14 +120,15 @@ export const EditarBonificaciones = () => {
 
    // Estados de selección y formulario
    const [formData, setFormData] = useState({
-      id_compe_gestor: "",
+      id_compensacion_metrica_gestor: "",
       planilla: "",
       empleado: "",
+      tipo_compensacion_metrica: "productividad",
       monto_bonificacion: "",
       motivo_compensacion: "-- no es obligatorio",
+      fecha_compensacion: new Date().toISOString().split('T')[0],
       aplica_Compensacion_Anual: false,
-      estado: "Activo",
-      estado_procesado: "",
+      estado: "Pendiente",
    });
    const [selectedPlanillaData, setSelectedPlanillaData] = useState(null);
    const [selectedEmpleadoData, setSelectedEmpleadoData] = useState(null);
@@ -120,30 +140,39 @@ export const EditarBonificaciones = () => {
    const [canEdit, setCanEdit] = useState(true);
    const [isReady, setIsReady] = useState(false);
 
-   // Cargar datos de la bonificación desde localStorage al montar el componente
+   // Cargar datos de la compensación desde localStorage al montar el componente
    useEffect(() => {
       const selectedBonificacion = localStorage.getItem("selectedBonificacion");
       if (selectedBonificacion) {
          try {
             const bonificacionData = JSON.parse(selectedBonificacion);
+            
+            // Debug: mostrar los datos que llegan del localStorage
+            console.log("Datos del localStorage:", bonificacionData);
+            console.log("Fecha original:", bonificacionData.fecha_compensacion_metrica_gestor);
 
             // Mapear los datos del localStorage al formData
             const mappedData = {
-               id_compe_gestor: bonificacionData.id_compe_gestor || "",
-               planilla: bonificacionData.planilla_id_compe_gestor?.toString() || "",
-               empleado: bonificacionData.empleado_id_compe_gestor?.toString() || "",
-               monto_bonificacion: bonificacionData.monto_compe_gestor?.toString() || "",
-               motivo_compensacion: bonificacionData.motivo_compe_gestor || "-- no es obligatorio",
-               aplica_Compensacion_Anual: bonificacionData.aplica_aguinaldo_compe_gestor === 1,
-               estado: bonificacionData.estado_compe_gestor === 1 ? "Activo" : "Inactivo",
-               estado_procesado: bonificacionData.estado_planilla_compe_gestor || "",
+               id_compensacion_metrica_gestor: bonificacionData.id_compensacion_metrica_gestor || "",
+               planilla: bonificacionData.planilla_id_compensacion_metrica_gestor?.toString() || "",
+               empleado: bonificacionData.empleado_id_compensacion_metrica_gestor?.toString() || "",
+               tipo_compensacion_metrica: bonificacionData.tipo_compensacion_metrica_gestor || "productividad",
+               monto_bonificacion: bonificacionData.monto_compensacion_metrica_gestor?.toString() || "",
+               motivo_compensacion: bonificacionData.motivo_compensacion_gestor || "-- no es obligatorio",
+               fecha_compensacion: formatearFechaParaInput(bonificacionData.fecha_compensacion_metrica_gestor),
+               aplica_Compensacion_Anual: bonificacionData.aplica_en_compensacion_anual_gestor === 1,
+               estado: bonificacionData.estado_compensacion_metrica_gestor || "Pendiente",
             };
+
+            // Debug: mostrar los datos mapeados
+            console.log("Datos mapeados:", mappedData);
+            console.log("Fecha formateada:", mappedData.fecha_compensacion);
 
             setFormData(mappedData);
             setIsDataLoaded(true);
          } catch (error) {
             setError(true);
-            setMessage("Error al cargar los datos de la bonificación");
+            setMessage("Error al cargar los datos de la compensación por métrica");
          }
       } else {
          // Si no hay datos en localStorage, redirigir a la lista
@@ -185,7 +214,7 @@ export const EditarBonificaciones = () => {
             if (!puedeEditar) {
                setError(true);
                setMessage(
-                  `No se puede editar la bonificación. El estado de la planilla es "${planillaEstado}". Solo se pueden editar bonificaciones cuando la planilla está "En Proceso".`,
+                  `No se puede editar la compensación por métrica. El estado de la planilla es "${planillaEstado}". Solo se pueden editar compensaciones cuando la planilla está "En Proceso".`,
                );
             } else {
                setError(false);
@@ -210,7 +239,7 @@ export const EditarBonificaciones = () => {
             if (!puedeEditar) {
                setError(true);
                setMessage(
-                  `No se puede editar la bonificación. El estado de la planilla es "${planillaEstado}". Solo se pueden editar bonificaciones cuando la planilla está "En Proceso".`,
+                  `No se puede editar la compensación por métrica. El estado de la planilla es "${planillaEstado}". Solo se pueden editar compensaciones cuando la planilla está "En Proceso".`,
                );
             } else {
                setError(false);
@@ -273,19 +302,34 @@ export const EditarBonificaciones = () => {
       if (!canEdit) {
          setError(true);
          setMessage(
-            "No se puede editar la bonificación. El estado de la planilla no permite ediciones.",
+            "No se puede editar la compensación por métrica. El estado de la planilla no permite ediciones.",
          );
          return;
       }
 
-      // Validación de monto de la bonificación
+      // Validación de monto de la compensación
       if (
          !formData.monto_bonificacion ||
          isNaN(formData.monto_bonificacion) ||
          Number(formData.monto_bonificacion) <= 0
       ) {
          setError(true);
-         setMessage("El monto de la bonificación es obligatorio y debe ser mayor a cero.");
+         setMessage("El monto de la compensación es obligatorio y debe ser mayor a cero.");
+         return;
+      }
+
+      // Validación de fecha de compensación
+      if (!formData.fecha_compensacion) {
+         setError(true);
+         setMessage("La fecha de compensación es obligatoria.");
+         return;
+      }
+
+      // Validar que la fecha sea válida
+      const fechaFormateada = formatearFechaParaInput(formData.fecha_compensacion);
+      if (fechaFormateada !== formData.fecha_compensacion) {
+         setError(true);
+         setMessage("La fecha de compensación no es válida.");
          return;
       }
 
@@ -346,17 +390,18 @@ export const EditarBonificaciones = () => {
 
          // Preparar datos para la actualización
          const updateData = {
-            id_compe_gestor: formData.id_compe_gestor,
-            planilla_id_compe_gestor: parseInt(formData.planilla),
-            empleado_id_compe_gestor: parseInt(formData.empleado),
-            monto_compe_gestor: parseFloat(formData.monto_bonificacion),
-            motivo_compe_gestor: formData.motivo_compensacion,
-            aplica_aguinaldo_compe_gestor: formData.aplica_Compensacion_Anual ? 1 : 0,
-            estado_compe_gestor: formData.estado === "Activo" ? 1 : 0,
-            estado_procesado: formData.estado_procesado,
+            id_compensacion_metrica_gestor: formData.id_compensacion_metrica_gestor,
+            planilla_id_compensacion_metrica_gestor: parseInt(formData.planilla),
+            empleado_id_compensacion_metrica_gestor: parseInt(formData.empleado),
+            tipo_compensacion_metrica_gestor: formData.tipo_compensacion_metrica,
+            monto_compensacion_metrica_gestor: parseFloat(formData.monto_bonificacion),
+            motivo_compensacion_gestor: formData.motivo_compensacion,
+            fecha_compensacion_metrica_gestor: formData.fecha_compensacion,
+            aplica_en_compensacion_anual_gestor: formData.aplica_Compensacion_Anual ? 1 : 0,
+            estado_compensacion_metrica_gestor: formData.estado,
          };
 
-         const response = await dispatch(fetchData_api(updateData, "gestor/planilla/bonificaciones/editar"));
+         const response = await dispatch(fetchData_api(updateData, "gestor/planilla/compensaciones-metrica/editar"));
 
          if (response.success) {
             setError(false);
@@ -429,7 +474,7 @@ export const EditarBonificaciones = () => {
                                  {!canEdit && (
                                     <div className="mt-2">
                                        <strong>⚠️ No se puede editar:</strong> Solo se pueden editar
-                                       bonificaciones cuando la planilla está "En Proceso".
+                                       compensaciones cuando la planilla está "En Proceso".
                                     </div>
                                  )}
                               </div>
@@ -525,11 +570,11 @@ export const EditarBonificaciones = () => {
                               type="checkbox"
                               id="estado"
                               name="estado"
-                              checked={formData.estado === "Activo"}
+                              checked={formData.estado === "Pendiente"}
                               onChange={(e) =>
                                  setFormData((prev) => ({
                                     ...prev,
-                                    estado: e.target.checked ? "Activo" : "Inactivo",
+                                    estado: e.target.checked ? "Pendiente" : "Cancelada",
                                  }))
                               }
                               disabled={!canEdit}
@@ -538,32 +583,8 @@ export const EditarBonificaciones = () => {
                               className="form-check-label"
                               htmlFor="estado"
                            >
-                              {formData.estado === "Activo" ? "Activo" : "Inactivo"}
+                              {formData.estado === "Pendiente" ? "Pendiente" : "Cancelada"}
                            </label>
-                        </div>
-                     </div>
-
-                     {/* Estado Procesado */}
-                     <div className="row">
-                        <div className="col-md-6 mb-3">
-                           <label
-                              className="form-label"
-                              htmlFor="estado_procesado"
-                           >
-                              Estado de Procesamiento
-                           </label>
-                           <input
-                              type="text"
-                              className="form-control"
-                              id="estado_procesado"
-                              name="estado_procesado"
-                              value={formData.estado_procesado || "No procesado"}
-                              readOnly
-                              placeholder="Estado de procesamiento"
-                           />
-                           <div className="form-text">
-                              Estado actual de procesamiento de la compensación en la planilla
-                           </div>
                         </div>
                      </div>
 
@@ -632,6 +653,65 @@ export const EditarBonificaciones = () => {
                                  </option>
                               ))}
                            </select>
+                        </div>
+
+                        {/* Tipo de Compensación por Métrica */}
+                        <div className="col-md-6 mb-3">
+                           <label
+                              className="form-label"
+                              htmlFor="tipo_compensacion_metrica"
+                           >
+                              Tipo de Compensación por Métrica <span className="text-danger">*</span>
+                           </label>
+                           <select
+                              className="form-select"
+                              id="tipo_compensacion_metrica"
+                              name="tipo_compensacion_metrica"
+                              value={formData.tipo_compensacion_metrica}
+                              onChange={handleChange}
+                              required
+                              disabled={!canEdit}
+                           >
+                              <option value="productividad">Compensación por productividad</option>
+                              <option value="cumplimiento_metas">Cumplimiento de metas o KPIs</option>
+                              <option value="puntualidad">Bono por puntualidad</option>
+                              <option value="asistencia_perfecta">Bono por asistencia perfecta</option>
+                              <option value="antiguedad">Bonificación por antigüedad</option>
+                              <option value="evaluacion_desempeno">Bonificación por evaluación de desempeño</option>
+                              <option value="cero_accidentes">Bono por cero accidentes</option>
+                              <option value="ventas">Bonificación por ventas</option>
+                              <option value="capacitacion">Bono por capacitación</option>
+                              <option value="permanencia">Bonificación por permanencia</option>
+                              <option value="innovacion">Bonificación por innovación</option>
+                           </select>
+                        </div>
+
+                        {/* Fecha de Compensación */}
+                        <div className="col-md-6 mb-3">
+                           <label
+                              className="form-label"
+                              htmlFor="fecha_compensacion"
+                           >
+                              Fecha de Compensación <span className="text-danger">*</span>
+                           </label>
+                           <input
+                              type="date"
+                              className={`form-control ${!formData.fecha_compensacion ? 'is-invalid' : ''}`}
+                              id="fecha_compensacion"
+                              name="fecha_compensacion"
+                              value={formData.fecha_compensacion}
+                              onChange={handleChange}
+                              required
+                              disabled={!canEdit}
+                           />
+                           {!formData.fecha_compensacion && (
+                              <div className="invalid-feedback">
+                                 La fecha de compensación es obligatoria
+                              </div>
+                           )}
+                           <div className="form-text">
+                              Fecha en que se registra o aplica la compensación
+                           </div>
                         </div>
 
                         {/* Monto de Compensacion por Metrica */}

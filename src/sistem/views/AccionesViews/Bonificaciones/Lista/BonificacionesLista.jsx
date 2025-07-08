@@ -11,19 +11,18 @@
 
    const TEXTOS = {
       titulo: "Listado de Compensacion Metrica",
-      subtitulo: "Tabla que muestra todos los compensaciones disponibles.",      
+      subtitulo: "Tabla que muestra todos los compensaciones por métrica disponibles.",      
       crearEmpresa: "Crear Compensacion por Metrica",
       filtrarPorEstado: "Filtrar por Estado",
       sinPermiso: "Sin permisos para acceder a esta funcionalidad",
    };
 
    const OPCIONES_ESTADO = [
-      { value: "En proceso", label: "En Proceso" },
-      { value: "Aplicado", label: "Aplicado" },
-      { value: "Procesado", label: "Procesado" },
-      { value: "Cancelado", label: "Cancelado" },
+      { value: "Pendiente", label: "Pendiente" },
+      { value: "Aprobada", label: "Aprobada" },
+      { value: "Aplicada", label: "Aplicada" },
+      { value: "Cancelada", label: "Cancelada" },
    ];
-
 
    /**
     * Obtiene las columnas de la tabla con sus configuraciones.
@@ -41,6 +40,49 @@
          searchPanes: { show: true },
       },
       {
+         data: "tipo_compensacion_metrica_gestor",
+         title: "Tipo de Compensación",
+         searchPanes: { show: true },
+         render: function(data, type, row) {
+            if (type === 'display') {
+               const tipos = {
+                  'productividad': 'Productividad',
+                  'cumplimiento_metas': 'Cumplimiento de Metas',
+                  'puntualidad': 'Puntualidad',
+                  'asistencia_perfecta': 'Asistencia Perfecta',
+                  'antiguedad': 'Antigüedad',
+                  'evaluacion_desempeno': 'Evaluación de Desempeño',
+                  'cero_accidentes': 'Cero Accidentes',
+                  'ventas': 'Ventas',
+                  'capacitacion': 'Capacitación',
+                  'permanencia': 'Permanencia',
+                  'innovacion': 'Innovación'
+               };
+               return tipos[data] || data;
+            }
+            return data;
+         }
+      },
+      {
+         data: "fecha_compensacion_metrica_gestor",
+         title: "Fecha de Compensación",
+         searchPanes: { show: true },
+      },
+      {
+         data: "monto_compensacion_metrica_gestor",
+         title: "Monto",
+         searchPanes: { show: true },
+         render: function(data, type, row) {
+            if (type === 'display') {
+               return new Intl.NumberFormat('es-CR', {
+                  style: 'currency',
+                  currency: 'CRC'
+               }).format(data);
+            }
+            return data;
+         }
+      },
+      {
          data: "nombre_usuario_creador",
          title: "Creador",
          searchPanes: { show: true },
@@ -51,12 +93,7 @@
          searchPanes: { show: true },
       },
       {
-         data: "estado_planilla_compe_gestor",
-         title: "Proceso acción",
-         searchPanes: { show: true },
-      },
-      {
-         data: "aplica_aguinaldo_compe_gestor",
+         data: "aplica_en_compensacion_anual_gestor",
          title: "Compensación Anual",
          searchPanes: { show: true },
          render: function(data, type, row) {
@@ -73,18 +110,18 @@
          }
       },
       {
-         data: "estado_compe_gestor",
-         title: "Estado Aumento",
+         data: "estado_compensacion_metrica_gestor",
+         title: "Estado",
          searchPanes: { show: true },
          render: function(data, type, row) {
             if (type === 'display') {
-               if (data === 1 || data === '1') {
-                  return '<span style="color: green; font-weight: bold;">Activo</span>';
-               } else if (data === 0 || data === '0') {
-                  return '<span style="color: red; font-weight: bold;">Inactivo</span>';
-               } else {
-                  return data; // Mostrar el valor original si no es 0 o 1
-               }
+               const estados = {
+                  'Pendiente': '<span style="color: orange; font-weight: bold;">Pendiente</span>',
+                  'Aprobada': '<span style="color: blue; font-weight: bold;">Aprobada</span>',
+                  'Aplicada': '<span style="color: green; font-weight: bold;">Aplicada</span>',
+                  'Cancelada': '<span style="color: red; font-weight: bold;">Cancelada</span>'
+               };
+               return estados[data] || data;
             }
             return data; // Para otros tipos de renderizado (sort, filter, etc.)
          }
@@ -97,18 +134,19 @@
     * @returns {Object} Datos formateados de la fila.
     */
    const formatearDatosFila = (datosFila) => ({
-      id_compe_gestor: datosFila.id_compe_gestor,
-      empresa_id_compe_gestor: datosFila.empresa_id_compe_gestor,
-      planilla_id_compe_gestor: datosFila.planilla_id_compe_gestor,
-      empleado_id_compe_gestor: datosFila.empleado_id_compe_gestor,
-      monto_compe_gestor: datosFila.monto_compe_gestor,
-      motivo_compe_gestor: datosFila.motivo_compe_gestor,
-      aplica_aguinaldo_compe_gestor: datosFila.aplica_aguinaldo_compe_gestor,
-      estado_compe_gestor: datosFila.estado_compe_gestor,
-      estado_planilla_compe_gestor: datosFila.estado_planilla_compe_gestor,
-      usuario_id_compe_gestor: datosFila.usuario_id_compe_gestor,
-      fecha_creacion_compe_gestor: datosFila.fecha_creacion_compe_gestor,
-      fecha_modificacion_compe_gestor: datosFila.fecha_modificacion_compe_gestor,
+      id_compensacion_metrica_gestor: datosFila.id_compensacion_metrica_gestor,
+      empresa_id_compensacion_metrica_gestor: datosFila.empresa_id_compensacion_metrica_gestor,
+      planilla_id_compensacion_metrica_gestor: datosFila.planilla_id_compensacion_metrica_gestor,
+      empleado_id_compensacion_metrica_gestor: datosFila.empleado_id_compensacion_metrica_gestor,
+      tipo_compensacion_metrica_gestor: datosFila.tipo_compensacion_metrica_gestor,
+      monto_compensacion_metrica_gestor: datosFila.monto_compensacion_metrica_gestor,
+      motivo_compensacion_gestor: datosFila.motivo_compensacion_gestor,
+      fecha_compensacion_metrica_gestor: datosFila.fecha_compensacion_metrica_gestor,
+      aplica_en_compensacion_anual_gestor: datosFila.aplica_en_compensacion_anual_gestor,
+      estado_compensacion_metrica_gestor: datosFila.estado_compensacion_metrica_gestor,
+      usuario_id_compensacion_metrica_gestor: datosFila.usuario_id_compensacion_metrica_gestor,
+      fecha_creacion_compensacion_metrica_gestor: datosFila.fecha_creacion_compensacion_metrica_gestor,
+      fecha_modificacion_compensacion_metrica_gestor: datosFila.fecha_modificacion_compensacion_metrica_gestor,
    });
 
    /**
@@ -117,7 +155,7 @@
     * @returns {Object} Configuración de la tabla.
     */
    const crearConfiguracionTabla = (usuario) => ({
-      urlEndpoint: "gestor/planilla/bonificaciones/lista", // API endpoint para obtener los datos.
+      urlEndpoint: "gestor/planilla/compensaciones-metrica/lista", // API endpoint para obtener los datos.
       requestType: "POST", // Método HTTP para la solicitud.
       transaccion: {
          user: {
@@ -136,12 +174,12 @@
          },
       },
       columnsLayout: "columns-2", // Diseño de columnas en la tabla.
-      columnsFilter: [0, 1,2,3,4,5,6], // Índices de columnas que se pueden filtrar.
+      columnsFilter: [0, 1, 2, 3, 4, 5, 6, 7, 8], // Índices de columnas que se pueden filtrar.
       columns: obtenerColumnasTabla(), // Definición de columnas.
    });
 
    /**
-    * Navega a la página de creación de una nueva planilla.
+    * Navega a la página de creación de una nueva compensación por métrica.
     * @param {Function} navigate - Función de navegación de React Router.
     */
    const navegarCrearBonificaciones = (navigate) => {
@@ -149,8 +187,8 @@
    };
 
    /**
-    * Componente principal que muestra la lista de Rebajo a Compensacion.     
-    * @returns {JSX.Element} Componente de lista de Rebajo a Compensacion.
+    * Componente principal que muestra la lista de compensaciones por métrica.     
+    * @returns {JSX.Element} Componente de lista de compensaciones por métrica.
     */
    export const BonificacionesLista = () => {
    // Obtener el usuario autenticado desde Redux.
@@ -175,14 +213,14 @@
    const [openEdit, setOpenEdit] = useState(false);
 
    // Estado para manejar la selección del estado
-   const [estadoSeleccionado, setEstadoSeleccionado] = useState("En proceso");
+   const [estadoSeleccionado, setEstadoSeleccionado] = useState("Pendiente");
 
    // Limpiar localStorage al cargar el componente
    useEffect(() => {
-      localStorage.removeItem("selectedAumento");
+      localStorage.removeItem("selectedBonificacion");
    }, []);
 
-   // Manejar la selección de planilla para editar
+   // Manejar la selección de compensación para editar
    useEffect(() => {
       if (selected) {
          manejarClicFila(selected);
@@ -196,7 +234,7 @@
     * @param {Object} datosFila - Datos de la fila seleccionada.
     */
    const manejarClicFila = (datosFila) => {
-      // Formatear todos los datos de la planilla usando la función formatearDatosFila
+      // Formatear todos los datos de la compensación usando la función formatearDatosFila
       const datosFormateados = formatearDatosFila(datosFila);
 
       // Almacena todos los datos formateados en el almacenamiento local
@@ -205,7 +243,7 @@
       // Verificar que se guardó correctamente
       const datosGuardados = localStorage.getItem("selectedBonificacion");
 
-      // Navega a la página de edición de planilla
+      // Navega a la página de edición de compensación
       navigate("/acciones/compensacion-metrica/editar");
    };
 
@@ -313,7 +351,7 @@
                   severity="info"
                   sx={{ mb: 2 }}
                >
-                  Mostrando planillas en estado:{" "}
+                  Mostrando compensaciones por métrica en estado:{" "}
                   {OPCIONES_ESTADO.find((op) => op.value === estadoSeleccionado)?.label || "Todos"}
                </Alert>
          
