@@ -2,14 +2,13 @@ import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { fetchData_api } from "../../../../store/fetchData_api/fetchData_api_Thunks";
 
-
 /**
  * =========================
  * CONSTANTS & CONFIGURATION    
  * =========================
-*/
+ */
 
-/** Payroll table column definitions */
+/** Configuración de columnas para la tabla principal de planilla */
 const PAYROLL_COLUMNS = [
    { key: "nombre", label: "Nombre Socio", style: { minWidth: 180 } },
    { key: "cedula", label: "Cédula", style: { minWidth: 100 } },
@@ -21,7 +20,7 @@ const PAYROLL_COLUMNS = [
    { key: "estado", label: "Estado" },
 ];
 
-/** Subtable column definitions */
+/** Configuración de columnas para la tabla de detalles */
 const SUBTABLE_COLUMNS = [
    { key: "categoria", label: "Categoria", style: { minWidth: 150 } },
    { key: "tipoAccion", label: "Tipo de Accion", style: { minWidth: 100 } },
@@ -30,117 +29,133 @@ const SUBTABLE_COLUMNS = [
    { key: "estado", label: "Estado", style: { minWidth: 200 } },
 ];
 
+/** Opciones de tamaño de página para la paginación */
 const PAGE_SIZES = [5, 10, 30, 60, 80, 100];
 
-const MOCK_PLANILLAS = [
-   { planilla_id: "1", planilla_codigo: "PLAN-001", planilla_estado: "En Proceso" },
-   { planilla_id: "2", planilla_codigo: "PLAN-002", planilla_estado: "Activa" },
-   { planilla_id: "3", planilla_codigo: "PLAN-003", planilla_estado: "Procesada" },
-];
+/**
+ * Función para transformar los datos de la API al formato de la tabla
+ * @param {Array} planillaData - Datos de la API
+ * @returns {Array} Datos transformados para la tabla
+ */
+const transformarDatosPlanilla = (planillaData) => {
+   if (!planillaData || !Array.isArray(planillaData)) return [];
+   
+   return planillaData.map(empleado => ({
+      nombre: empleado.nombre_completo_empleado_gestor,
+      cedula: empleado.cedula_empleado_gestor,
+      compensacion_base: empleado.salario_base_empleado_gestor,
+      devengado: "0", // Por el momento en cero
+      cargas_sociales: "0", // Por el momento en cero
+      monto_neto: "0", // Por el momento en cero
+      accion: "",
+      estado: "Pendiente", // Siempre pendiente
+   }));
+};
 
-const MOCK_ROWS = [
-   {
-      nombre: "Juan Pérez",
-      cedula: "123456789",
-      compensacion_base: "12345",
-      devengado: "1",
-      cargas_sociales: "50000.00",
-      monto_neto: "750.00",
-      accion: "",
-      estado: "Verificado",
-   },
-   {
-      nombre: "María García",
-      cedula: "987654321",
-      compensacion_base: "67890",
-      devengado: "1",
-      cargas_sociales: "45000.00",
-      monto_neto: "675.00",
-      accion: "",
-      estado: "Verificado",
-   },
-   {
-      nombre: "Carlos López",
-      cedula: "456789123",
-      compensacion_base: "11111",
-      devengado: "1",
-      cargas_sociales: "60000.00",
-      monto_neto: "900.00",
-      accion: "",
-      estado: "Pendiente",
-   },
-];
-
-// Mock data for subtables
-const MOCK_SUBTABLE_DATA = {
-   "123456789": [
-      { categoria: "Salario Base", tipoAccion: "Ingreso", monto: "50000.00", tipo: "+", estado: "Pendiente" },
-      { categoria: "Horas Extra", tipoAccion: "Ingreso", monto: "15000.00", tipo: "+", estado: "Pendiente" },
-      { categoria: "ISR", tipoAccion: "Deducción", monto: "-8000.00", tipo: "-", estado: "Pendiente" },
-      { categoria: "Seguro Social", tipoAccion: "Deducción", monto: "-3000.00", tipo: "-", estado: "Pendiente" },
-   ],
-   "987654321": [
-      { categoria: "Salario Base", tipoAccion: "Ingreso", monto: "45000.00", tipo: "+", estado: "Pendiente" },
-      { categoria: "Bonificación", tipoAccion: "Ingreso", monto: "5000.00", tipo: "+", estado: "Pendiente" },
-      { categoria: "ISR", tipoAccion: "Deducción", monto: "-7000.00", tipo: "-", estado: "Pendiente" },
-      { categoria: "Seguro Social", tipoAccion: "Deducción", monto: "-2700.00", tipo: "-", estado: "Pendiente" },
-   ],
-   "456789123": [
-      { categoria: "Salario Base", tipoAccion: "Ingreso", monto: "60000.00", tipo: "+", estado: "Pendiente" },
-      { categoria: "Vacaciones", tipoAccion: "Ingreso", monto: "5000.00", tipo: "+", estado: "Pendiente" },
-      { categoria: "ISR", tipoAccion: "Deducción", monto: "-10000.00", tipo: "-", estado: "Pendiente" },
-      { categoria: "Seguro Social", tipoAccion: "Deducción", monto: "-3600.00", tipo: "-", estado: "Pendiente" },
-   ],
+/**
+ * Función para generar datos de subtabla basados en los arrays de la API
+ * @param {Array} planillaData - Datos de la API
+ * @returns {Object} Datos de subtabla organizados por cédula
+ */
+const generarDatosSubtabla = (planillaData) => {
+   if (!planillaData || !Array.isArray(planillaData)) return {};
+   
+   const subtableData = {};
+   
+   planillaData.forEach(empleado => {
+      const cedula = empleado.cedula_empleado_gestor;
+      const detalles = [];
+      
+      // Agregar aumentos
+      if (empleado.aumentos && Array.isArray(empleado.aumentos)) {
+         empleado.aumentos.forEach(aumento => {
+            detalles.push({
+               categoria: "Aumento",
+               tipoAccion: "Ingreso",
+               monto: aumento.monto_aumento_gestor || "0",
+               tipo: "+",
+               estado: aumento.estado_planilla_aumento_gestor || "Pendiente"
+            });
+         });
+      }
+      
+      // Agregar rebajos a compensación
+      if (empleado.rebajos_compensacion && Array.isArray(empleado.rebajos_compensacion)) {
+         empleado.rebajos_compensacion.forEach(rebajo => {
+            detalles.push({
+               categoria: "Rebajo Compensación",
+               tipoAccion: "Deducción",
+               monto: rebajo.monto_rebajo_compensacion || "0",
+               tipo: "-",
+               estado: rebajo.estado_rebajo_compensacion || "Pendiente"
+            });
+         });
+      }
+      
+      // Agregar horas extras
+      if (empleado.horas_extras && Array.isArray(empleado.horas_extras)) {
+         empleado.horas_extras.forEach(horaExtra => {
+            detalles.push({
+               categoria: "Horas Extras",
+               tipoAccion: "Ingreso",
+               monto: horaExtra.monto_horas_extras_gestor || "0",
+               tipo: "+",
+               estado: horaExtra.estado_horas_extras_gestor || "Pendiente"
+            });
+         });
+      }
+      
+      // Agregar compensación por métrica
+      if (empleado.compensacion_metrica && Array.isArray(empleado.compensacion_metrica)) {
+         empleado.compensacion_metrica.forEach(compensacion => {
+            detalles.push({
+               categoria: "Compensación Métrica",
+               tipoAccion: "Ingreso",
+               monto: compensacion.monto_compensacion_metrica_gestor || "0",
+               tipo: "+",
+               estado: compensacion.estado_compensacion_metrica_gestor || "Pendiente"
+            });
+         });
+      }
+      
+      subtableData[cedula] = detalles;
+   });
+   
+   return subtableData;
 };
 
 /**
  * ================
- * STYLE FUNCTIONS
+ * UTILITY FUNCTIONS
  * ================ 
  */
 
 /**
- * Devuelve el estilo para las celdas de la tabla.
- * @param {object} col - Definición de la columna.
- * @param {boolean} isSelected - Si la fila está seleccionada.
- * @param {number} idx - Índice de la fila.
- * @returns {object} Objeto de estilo CSS.
+ * Genera el estilo para las celdas de la tabla principal
+ * @param {Object} col - Definición de la columna
+ * @param {boolean} isSelected - Indica si la fila está seleccionada
+ * @param {number} idx - Índice de la fila
+ * @returns {Object} Objeto de estilos CSS
  */
-function getTableCellStyle(col, isSelected, idx) {
-   return {
-      ...col.style,
-      borderRight: "1px solid #dee2e6",
-      borderLeft: "1px solid #dee2e6",
-      background: !isSelected && idx % 2 !== 0 ? "#f8f9fa" : undefined,
-   };
-}
+const getTableCellStyle = (col, isSelected, idx) => ({
+   ...col.style,
+   borderRight: "1px solid #dee2e6",
+   borderLeft: "1px solid #dee2e6",
+   background: !isSelected && idx % 2 !== 0 ? "#f8f9fa" : undefined,
+});
 
 /**
- * Devuelve el estilo para los encabezados de la tabla.
- * @param {object} col - Definición de la columna.
- * @returns {object} Objeto de estilo CSS.
+ * Genera el estilo para los encabezados de la tabla
+ * @param {Object} col - Definición de la columna
+ * @returns {Object} Objeto de estilos CSS
  */
-function getTableHeaderStyle(col) {
-   return {
-      ...col.style,
-      background: "#e9ecef",
-      borderBottom: "2px solid #adb5bd",
-      borderTop: "2px solid #adb5bd",
-      textAlign: "center",
-   };
-}
-
-
-
-/**
- * =========================
- * UTILITY FUNCTIONS
- * =========================
- */
-
-
-
-
+const getTableHeaderStyle = (col) => ({
+   ...col.style,
+   background: "#e9ecef",
+   borderBottom: "2px solid #adb5bd",
+   borderTop: "2px solid #adb5bd",
+   textAlign: "center",
+});
 
 /**
  * =========================
@@ -149,10 +164,48 @@ function getTableHeaderStyle(col) {
  */
 
 /**
- * SubTable
- * Tabla secundaria que muestra los detalles de cada empleado.
+ * Componente de skeleton loader para las filas de la tabla
+ * @param {number} count - Número de filas skeleton a mostrar
+ * @param {Array} columns - Definición de columnas para generar el número correcto de celdas
+ * @returns {JSX.Element} Filas skeleton
  */
-function SubTable({ columns, data, employeeName }) {
+const TableSkeleton = ({ count = 5, columns = PAYROLL_COLUMNS }) => {
+   return (
+      <>
+         {Array.from({ length: count }, (_, index) => (
+            <tr key={`skeleton-${index}`} className="skeleton-row">
+               {/* Checkbox column */}
+               <td style={{ padding: "12px 8px", textAlign: "center" }}>
+                  <div className="skeleton-text" style={{ height: "16px", width: "16px", borderRadius: "4px", margin: "0 auto" }}></div>
+               </td>
+               {/* Data columns */}
+               {columns.map((col, colIndex) => (
+                  <td key={`skeleton-col-${colIndex}`} style={{ padding: "12px 8px" }}>
+                     <div 
+                        className="skeleton-text" 
+                        style={{ 
+                           height: "16px", 
+                           width: `${Math.random() * 40 + 50}%`, 
+                           borderRadius: "4px" 
+                        }}
+                     ></div>
+                  </td>
+               ))}
+            </tr>
+         ))}
+      </>
+   );
+};
+
+/**
+ * Componente para mostrar los detalles de acciones de un empleado
+ * @param {Object} props - Propiedades del componente
+ * @param {Array} props.columns - Definición de columnas
+ * @param {Array} props.data - Datos a mostrar
+ * @param {string} props.employeeName - Nombre del empleado
+ * @returns {JSX.Element} Tabla de detalles
+ */
+const SubTable = ({ columns, data, employeeName }) => {
    if (!data || data.length === 0) {
       return (
          <div className="text-center py-3 text-muted">
@@ -163,13 +216,10 @@ function SubTable({ columns, data, employeeName }) {
 
    return (
       <div className="subtable-container" style={{ marginLeft: 20, marginRight: 20 }}>
-         <div className="card border-0" style={{borderRadius: "0px"}}>
-           
-               <h6 className="mb-3 mt-3 p-2">
-                 
-                  Detalles de Acciones de personal: {employeeName}
-               </h6>
-          
+         <div className="card border-0" style={{ borderRadius: "0px" }}>
+            <h6 className="mb-3 mt-3 p-2">
+               Detalles de Acciones de personal: {employeeName}
+            </h6>
             <div className="card-body p-0">
                <div className="table-responsive">
                   <table className="table table-sm table-bordered mb-0">
@@ -209,30 +259,24 @@ function SubTable({ columns, data, employeeName }) {
                                     {col.key === "tipo" ? (
                                        <span
                                           className={`badge bg-light-${
-                                             row[col.key] === "+" 
-                                                ? "success" 
-                                                : "danger"
+                                             row[col.key] === "+" ? "success" : "danger"
                                           }`}
                                           style={{ fontSize: "0.75rem" }}
                                        >
                                           {row[col.key]}
                                        </span>
-                                                                         ) : col.key === "estado" ? (
-                                        <span
-                                           className={`badge bg-light-${
-                                              row[col.key] === "Pendiente" 
-                                                 ? "warning" 
-                                                 : "success"
-                                           }`}
-                                           style={{ fontSize: "0.75rem" }}
-                                        >
-                                           {row[col.key]}
-                                        </span>
-                                     )  : col.key === "monto" ? (
-                                        <span>
-                                           ${row[col.key]}
-                                        </span>
-                                     ) : (
+                                    ) : col.key === "estado" ? (
+                                       <span
+                                          className={`badge bg-light-${
+                                             row[col.key] === "Pendiente" ? "warning" : "success"
+                                          }`}
+                                          style={{ fontSize: "0.75rem" }}
+                                       >
+                                          {row[col.key]}
+                                       </span>
+                                    ) : col.key === "monto" ? (
+                                       <span>${row[col.key]}</span>
+                                    ) : (
                                        row[col.key]
                                     )}
                                  </td>
@@ -246,13 +290,14 @@ function SubTable({ columns, data, employeeName }) {
          </div>
       </div>
    );
-}
+};
 
 /**
- * PayrollTable
- * Tabla principal editable con selección de filas y funcionalidad de expansión.
+ * Componente principal de la tabla de planilla con funcionalidad de selección y expansión
+ * @param {Object} props - Propiedades del componente
+ * @returns {JSX.Element} Tabla de planilla
  */
-function PayrollTable({
+const PayrollTable = ({
    columns,
    pageRows,
    selectedRows,
@@ -263,7 +308,8 @@ function PayrollTable({
    expandedRows,
    onRowToggle,
    subtableData,
-}) {
+   isLoading = false,
+}) => {
    return (
       <table
          className="table table-hover table-bordered table-striped datatable-table align-middle"
@@ -274,52 +320,48 @@ function PayrollTable({
             borderSpacing: 0,
          }}
       >
-         <thead
-            className="table-light sticky-top"
-            style={{ zIndex: 2 }}
-         >
+         <thead className="table-light sticky-top" style={{ zIndex: 2 }}>
             <tr>
                <th style={{ width: 40, textAlign: "center" }}></th>
                {columns.map((col) => (
-                  <th
-                     key={col.key}
-                     style={getTableHeaderStyle(col)}
-                  >
+                  <th key={col.key} style={getTableHeaderStyle(col)}>
                      {col.label}
                   </th>
                ))}
             </tr>
          </thead>
          <tbody>
-            {pageRows.map((row, idx) => {
-               const globalIdx = startIdx + idx;
-               const isSelected = selectedRows.includes(globalIdx);
-               const isExpanded = expandedRows.includes(globalIdx);
-               const rowDisabled = disabled || (planillaEstado === "Procesada");
-               const employeeData = subtableData[row.cedula] || [];
-               
-               return (
-                  <React.Fragment key={globalIdx}>
-                     <tr
-                        className={`${isSelected ? "fila-seleccionada" : ""} ${isExpanded ? "table-active" : ""}`}
-                        style={
-                           rowDisabled
-                              ? { pointerEvents: "none", opacity: 0.7, background: "#f5f5f5" }
-                              : { cursor: "pointer" }
-                        }
-                        onClick={() => !rowDisabled && onRowToggle(globalIdx)}
-                     >
-                        <td style={{ textAlign: "center" }} onClick={(e) => e.stopPropagation()}>
-                           <input
-                              type="checkbox"
-                              checked={isSelected}
-                              onChange={() => onCheckboxChange(idx)}
-                              aria-label={`Seleccionar fila ${globalIdx + 1}`}
-                              disabled={rowDisabled}
-                           />
-                        </td>
-                        {columns.map((col) => {
-                           return (
+            {isLoading ? (
+               <TableSkeleton count={pageSize || 5} columns={columns} />
+            ) : (
+               pageRows.map((row, idx) => {
+                  const globalIdx = startIdx + idx;
+                  const isSelected = selectedRows.includes(globalIdx);
+                  const isExpanded = expandedRows.includes(globalIdx);
+                  const rowDisabled = disabled || planillaEstado === "Procesada";
+                  const employeeData = subtableData[row.cedula] || [];
+
+                  return (
+                     <React.Fragment key={globalIdx}>
+                        <tr
+                           className={`${isSelected ? "fila-seleccionada" : ""} ${isExpanded ? "table-active" : ""}`}
+                           style={
+                              rowDisabled
+                                 ? { pointerEvents: "none", opacity: 0.7, background: "#f5f5f5" }
+                                 : { cursor: "pointer" }
+                           }
+                           onClick={() => !rowDisabled && onRowToggle(globalIdx)}
+                        >
+                           <td style={{ textAlign: "center" }} onClick={(e) => e.stopPropagation()}>
+                              <input
+                                 type="checkbox"
+                                 checked={isSelected}
+                                 onChange={() => onCheckboxChange(idx)}
+                                 aria-label={`Seleccionar fila ${globalIdx + 1}`}
+                                 disabled={rowDisabled}
+                              />
+                           </td>
+                           {columns.map((col) => (
                               <td
                                  key={col.key}
                                  style={getTableCellStyle(col, isSelected, idx)}
@@ -341,66 +383,57 @@ function PayrollTable({
                                        <i className="fas fa-eye"> Ver detalle</i>
                                     </button>
                                  ) : col.key === "estado" ? (
-                                    (() => {
-                                       console.log(`Estado para ${row.nombre}:`, row[col.key], typeof row[col.key]);
-                                       return (
-                                          <span
-                                             className={`badge bg-light-${
-                                                row[col.key] === "Verificado" 
-                                                   ? "success" 
-                                                   : "danger"
-                                             }`}
-                                          >
-                                             {row[col.key]}
-                                          </span>
-                                       );
-                                    })()
+                                    <span
+                                       className={`badge bg-light-${
+                                          row[col.key] === "Verificado" ? "success" : "danger"
+                                       }`}
+                                    >
+                                       {row[col.key]}
+                                    </span>
                                  ) : (
                                     row[col.key]
                                  )}
                               </td>
-                           );
-                        })}
-                     </tr>
-                     {isExpanded && (
-                        <tr>
-                           <td colSpan={columns.length + 1} style={{ padding: 0, border: "none" }}>
-                              <SubTable
-                                 columns={SUBTABLE_COLUMNS}
-                                 data={employeeData}
-                                 employeeName={row.nombre}
-                              />
-                           </td>
+                           ))}
                         </tr>
-                     )}
-                  </React.Fragment>
-               );
-            })}
+                        {isExpanded && (
+                           <tr>
+                              <td colSpan={columns.length + 1} style={{ padding: 0, border: "none" }}>
+                                 <SubTable
+                                    columns={SUBTABLE_COLUMNS}
+                                    data={employeeData}
+                                    employeeName={row.nombre}
+                                 />
+                              </td>
+                           </tr>
+                        )}
+                     </React.Fragment>
+                  );
+               })
+            )}
          </tbody>
       </table>
    );
-}
+};
 
 /**
- * TablePagination
- * Componente de paginación reutilizable.
+ * Componente de paginación reutilizable
+ * @param {Object} props - Propiedades del componente
+ * @returns {JSX.Element} Componente de paginación
  */
-function TablePagination({
+const TablePagination = ({
    pageSize,
    pageSizes,
    currentPage,
    totalPages,
    onPageSizeChange,
    onPageChange,
-}) {
+}) => {
    const pages = useMemo(() => {
       const arr = [];
       for (let i = 1; i <= totalPages; i++) {
          arr.push(
-            <li
-               key={i}
-               className={`dt-paging-button page-item${currentPage === i ? " active" : ""}`}
-            >
+            <li key={i} className={`dt-paging-button page-item${currentPage === i ? " active" : ""}`}>
                <button
                   className="page-link"
                   type="button"
@@ -409,7 +442,7 @@ function TablePagination({
                >
                   {i}
                </button>
-            </li>,
+            </li>
          );
       }
       return arr;
@@ -417,10 +450,7 @@ function TablePagination({
 
    return (
       <div className="d-flex justify-content-end align-items-center mt-2 mb-2">
-         <label
-            className="me-2 mb-0"
-            htmlFor="pageSizeSelect"
-         >
+         <label className="me-2 mb-0" htmlFor="pageSizeSelect">
             Filas por página:
          </label>
          <select
@@ -431,10 +461,7 @@ function TablePagination({
             style={{ width: 90 }}
          >
             {pageSizes.map((size) => (
-               <option
-                  key={size}
-                  value={size}
-               >
+               <option key={size} value={size}>
                   {size}
                </option>
             ))}
@@ -463,11 +490,7 @@ function TablePagination({
                </button>
             </li>
             {pages}
-            <li
-               className={`dt-paging-button page-item${
-                  currentPage === totalPages ? " disabled" : ""
-               }`}
-            >
+            <li className={`dt-paging-button page-item${currentPage === totalPages ? " disabled" : ""}`}>
                <button
                   className="page-link"
                   type="button"
@@ -478,11 +501,7 @@ function TablePagination({
                   ›
                </button>
             </li>
-            <li
-               className={`dt-paging-button page-item${
-                  currentPage === totalPages ? " disabled" : ""
-               }`}
-            >
+            <li className={`dt-paging-button page-item${currentPage === totalPages ? " disabled" : ""}`}>
                <button
                   className="page-link"
                   type="button"
@@ -496,73 +515,75 @@ function TablePagination({
          </ul>
       </div>
    );
-}
+};
 
 /**
  * =========================
- * HANDLERS
+ * CUSTOM HOOKS
  * =========================
  */
 
 /**
- * Maneja el cambio de selección de una fila (checkbox).
+ * Hook personalizado para manejar la selección de filas
+ * @param {Object} params - Parámetros del hook
+ * @returns {Function} Función para manejar cambios de checkbox
  */
-function useHandleCheckbox({ rows, selectedRows, startIdx, setSelectedRows }) {
+const useHandleCheckbox = ({ rows, selectedRows, startIdx, setSelectedRows }) => {
    return useCallback(
       (idx) => {
          const globalIdx = startIdx + idx;
          const isCurrentlySelected = selectedRows.includes(globalIdx);
          const shouldSelect = !isCurrentlySelected;
 
-         // Actualizar selectedRows localmente
          setSelectedRows((prev) =>
-            shouldSelect
-               ? [...prev, globalIdx]
-               : prev.filter((i) => i !== globalIdx)
+            shouldSelect ? [...prev, globalIdx] : prev.filter((i) => i !== globalIdx)
          );
       },
-      [rows, selectedRows, startIdx, setSelectedRows],
+      [rows, selectedRows, startIdx, setSelectedRows]
    );
-}
+};
 
 /**
- * Maneja la expansión/contracción de una fila.
+ * Hook personalizado para manejar la expansión de filas
+ * @param {Object} params - Parámetros del hook
+ * @returns {Function} Función para manejar toggle de filas
  */
-function useHandleRowToggle({ expandedRows, setExpandedRows }) {
+const useHandleRowToggle = ({ expandedRows, setExpandedRows }) => {
    return useCallback(
       (globalIdx) => {
          setExpandedRows((prev) =>
-            prev.includes(globalIdx)
-               ? prev.filter((i) => i !== globalIdx)
-               : [...prev, globalIdx]
+            prev.includes(globalIdx) ? prev.filter((i) => i !== globalIdx) : [...prev, globalIdx]
          );
       },
-      [expandedRows, setExpandedRows],
+      [expandedRows, setExpandedRows]
    );
-}
-
-
+};
 
 /**
- * PayrollGenerator
- * Componente principal de la vista de generación de planilla.
+ * =========================
+ * MAIN COMPONENT
+ * =========================
+ */
+
+/**
+ * Componente principal para la generación de planillas
+ * Permite seleccionar planillas, visualizar datos de empleados y gestionar la información
+ * @returns {JSX.Element} Componente de generación de planillas
  */
 export const PayrollGenerator = () => {
    // Estados principales
-   const [rows] = useState(MOCK_ROWS);
-   
-   // Debug: Verificar los datos
-   const [selectedRows, setSelectedRows] = useState([]); // Sin selección por defecto
-   const [expandedRows, setExpandedRows] = useState([]); // Filas expandidas
+   const [rows, setRows] = useState([]);
+   const [selectedRows, setSelectedRows] = useState([]);
+   const [expandedRows, setExpandedRows] = useState([]);
    const [pageSize, setPageSize] = useState(PAGE_SIZES[0]);
    const [currentPage, setCurrentPage] = useState(1);
 
-   const [empresaSeleccionada] = useState("1");
+   // Estados de configuración
    const [planillaSeleccionada, setPlanillaSeleccionada] = useState("");
 
    // Estados para la API
    const [planillaData, setPlanillaData] = useState(null);
-   const [planillasList, setPlanillasList] = useState([]); // Lista de planillas desde API
+   const [planillasList, setPlanillasList] = useState([]);
    const [loading, setLoading] = useState(false);
    const [loadingPlanillas, setLoadingPlanillas] = useState(false);
    const [error, setError] = useState(null);
@@ -570,45 +591,76 @@ export const PayrollGenerator = () => {
    // Hook de Redux
    const dispatch = useDispatch();
 
-   // useEffect para cargar datos de la API al montar el componente
+   // Obtener datos de la planilla seleccionada
+   const selectedPlanilla = planillasList.find(
+      (p) => String(p.planilla_id) === String(planillaSeleccionada)
+   );
+   const planillaEstado = selectedPlanilla?.planilla_estado;
+   const empresaSeleccionada = selectedPlanilla?.empresa_id;
+
+   // Cargar datos de planilla cuando se selecciona una
    useEffect(() => {
       const cargarDatosPlanilla = async () => {
+         if (!planillaSeleccionada || !empresaSeleccionada) {
+            setPlanillaData(null);
+            setRows([]);
+            return;
+         }
+
          try {
             setLoading(true);
             setError(null);
-            
-            const response = await dispatch(fetchData_api(null, "gestor/planilla/gestor"));
-            
- 
-            
+
+            const params = {
+               empresa_id: empresaSeleccionada,
+               planilla_id: planillaSeleccionada,
+            };
+
+            console.log("Parámetros enviados a la API:", params);
+
+            const response = await dispatch(fetchData_api(params, "gestor/planilla/gestor"));
+
             if (response.success && response.data.array?.length > 0) {
                setPlanillaData(response.data.array);
                console.log("Datos de planilla cargados exitosamente:", response.data.array);
             } else {
                console.error("Error en la respuesta de la API:", response);
                setError("Error al cargar los datos de la planilla");
+               setPlanillaData(null);
             }
          } catch (error) {
             console.error("Error al cargar datos de planilla:", error);
             setError("Error de conexión al cargar los datos");
+            setPlanillaData(null);
          } finally {
             setLoading(false);
          }
       };
 
       cargarDatosPlanilla();
-   }, [dispatch]);
+   }, [dispatch, planillaSeleccionada, empresaSeleccionada]);
 
-   // useEffect para cargar la lista de planillas
+   // Actualizar rows cuando cambien los datos de la planilla
+   useEffect(() => {
+      if (planillaData && Array.isArray(planillaData)) {
+         const datosTransformados = transformarDatosPlanilla(planillaData);
+         setRows(datosTransformados);
+         console.log("Datos transformados para la tabla:", datosTransformados);
+      } else {
+         setRows([]);
+      }
+   }, [planillaData]);
+
+   // Cargar lista de planillas disponibles
    useEffect(() => {
       const cargarListaPlanillas = async () => {
          try {
             setLoadingPlanillas(true);
             setError(null);
-            
+
             const response = await dispatch(fetchData_api(null, "gestor/planillas/listas"));
-            
-            if (response.success && response.data.array?.length > 0) {  
+
+            if (response.success && response.data.array?.length > 0) {
                setPlanillasList(response.data.array || []);
                console.log("Lista de planillas cargada exitosamente:", response.data.array);
             } else {
@@ -626,23 +678,12 @@ export const PayrollGenerator = () => {
       cargarListaPlanillas();
    }, [dispatch]);
 
-   // Obtener el estado de la planilla seleccionada
-   const selectedPlanilla = planillasList.find(
-      (p) => String(p.planilla_id) === String(planillaSeleccionada),
-   );
-   const planillaEstado = selectedPlanilla?.planilla_estado;
-
-
-
-   // Calculamos el índice inicial para la paginación
+   // Cálculos de paginación
    const startIdx = (currentPage - 1) * pageSize;
-   
-   // Derivados de los datos
    const totalPages = Math.ceil(rows.length / pageSize);
    const pageRows = rows.slice(startIdx, startIdx + pageSize);
 
-
-   // Handler para gestionar los checkboxes
+   // Handlers
    const handleCheckbox = useHandleCheckbox({
       rows,
       selectedRows,
@@ -650,83 +691,94 @@ export const PayrollGenerator = () => {
       setSelectedRows,
    });
 
-   // Handler para gestionar la expansión de filas
    const handleRowToggle = useHandleRowToggle({
       expandedRows,
       setExpandedRows,
    });
 
-   // Handler para cambiar el tamaño de página
    const handlePageSizeChange = useCallback((e) => {
       setPageSize(Number(e.target.value));
       setCurrentPage(1);
    }, []);
 
-   // Handler para cambio de página
    const handlePageChange = useCallback(
       (page) => {
          if (page >= 1 && page <= Math.ceil(rows.length / pageSize)) {
             setCurrentPage(page);
          }
       },
-      [rows.length, pageSize],
+      [rows.length, pageSize]
    );
 
-   // Handler para cambio de planilla
    const handlePlanillaChange = useCallback((e) => {
       setPlanillaSeleccionada(e.target.value);
    }, []);
 
-
-
    // IDs únicos para accesibilidad
    const planillaSelectId = "planillaSelect";
 
-   // Renderizamos la interfaz de usuario
    return (
       <div className="container-fluid">
-         {/* Estilos globales para tablas */}
+         {/* Estilos globales */}
          <style>
             {`
-                /* Efecto hover para filas de tablas */
-                .table-hover tbody tr:hover {
-                    background-color: #e2e6ea !important;
-                }
-                /* Alineación vertical para celdas */
-                .table th, .table td {
-                    vertical-align: middle !important;
-                }
-                /* Estilo para filas seleccionadas */
-                .fila-seleccionada {
-                    background-color: #b6fcb6 !important;
-                }
-                /* Estilo para filas expandidas */
-                .table-active {
-                    background-color: #e3f2fd !important;
-                    border-left: 4px solid #2196f3 !important;
-                }
-                /* Transición suave para la expansión */
-                .subtable-container {
-                    transition: all 0.3s ease-in-out;
-                }
-                /* Estilo para el botón de expansión */
-                .btn-outline-secondary:hover {
-                    background-color: #6c757d;
-                    border-color: #6c757d;
-                    color: white;
-                }
-                `}
+               .table-hover tbody tr:hover {
+                  background-color: #e2e6ea !important;
+               }
+               .table th, .table td {
+                  vertical-align: middle !important;
+               }
+               .fila-seleccionada {
+                  background-color: #b6fcb6 !important;
+               }
+               .table-active {
+                  background-color: #e3f2fd !important;
+                  border-left: 4px solid #2196f3 !important;
+               }
+               .subtable-container {
+                  transition: all 0.3s ease-in-out;
+               }
+               .btn-outline-secondary:hover {
+                  background-color: #6c757d;
+                  border-color: #6c757d;
+                  color: white;
+               }
+               
+               /* Skeleton loading animation */
+               .skeleton-text {
+                  animation: skeleton-loading 1.5s ease-in-out infinite;
+                  background: linear-gradient(90deg, #e9ecef 25%, #f8f9fa 50%, #e9ecef 75%);
+                  background-size: 200% 100%;
+               }
+               
+               @keyframes skeleton-loading {
+                  0% {
+                     background-position: 200% 0;
+                  }
+                  100% {
+                     background-position: -200% 0;
+                  }
+               }
+               
+               .skeleton-row {
+                  pointer-events: none;
+               }
+               
+               .skeleton-row td {
+                  border: 1px solid #dee2e6 !important;
+               }
+            `}
          </style>
+
          <div className="row">
             <div className="col-12">
                <div className="card shadow-sm">
                   <div className="card-body">
-                  
-                     {/* Indicador de carga y errores */}
+                     {/* Indicadores de estado */}
                      {loading && (
                         <div className="alert alert-info text-center">
                            <i className="fas fa-spinner fa-spin me-2"></i>
-                           Cargando datos de planilla...
+                           Cargando empleados de la planilla... Esto puede tomar unos segundos.
                         </div>
                      )}
 
@@ -744,7 +796,6 @@ export const PayrollGenerator = () => {
                         </div>
                      )}
 
-                     {/* Información de datos cargados */}
                      {planillaData && !loading && (
                         <div className="alert alert-success text-center">
                            <i className="fas fa-check-circle me-2"></i>
@@ -752,7 +803,6 @@ export const PayrollGenerator = () => {
                         </div>
                      )}
 
-                     {/* Información de lista de planillas cargada */}
                      {planillasList.length > 0 && !loadingPlanillas && (
                         <div className="alert alert-success text-center">
                            <i className="fas fa-check-circle me-2"></i>
@@ -760,12 +810,9 @@ export const PayrollGenerator = () => {
                         </div>
                      )}
 
-                     {/* Select de tipo de planilla */}
+                     {/* Selector de planilla */}
                      <div className="mb-3">
-                        <label
-                           htmlFor={planillaSelectId}
-                           className="form-label"
-                        >
+                        <label htmlFor={planillaSelectId} className="form-label">
                            Tipo de Planilla
                         </label>
                         <select
@@ -778,10 +825,7 @@ export const PayrollGenerator = () => {
                            <option value="">Seleccione un tipo de planilla</option>
                            {planillasList.length > 0 ? (
                               planillasList.map((planilla) => (
-                                 <option
-                                    key={planilla.planilla_id}
-                                    value={planilla.planilla_id}
-                                 >
+                                 <option key={planilla.planilla_id} value={planilla.planilla_id}>
                                     {planilla.planilla_codigo} - {planilla.planilla_tipo} ({planilla.planilla_estado})
                                  </option>
                               ))
@@ -793,17 +837,10 @@ export const PayrollGenerator = () => {
                         </select>
                      </div>
 
-
-              
-
-                     {/* Mostrar tablas */}
-                     {empresaSeleccionada && planillaSeleccionada && (
+                     {/* Tabla principal */}
+                     {empresaSeleccionada && planillaSeleccionada && selectedPlanilla && (
                         <>
-                           {/* Tabla principal de planilla */}
-                           <div
-                              className="table-responsive"
-                              style={{ overflowX: "auto" }}
-                           >
+                           <div className="table-responsive" style={{ overflowX: "auto" }}>
                               <div className="datatable-wrapper datatable-loading no-footer searchable fixed-columns">
                                  <div className="datatable-container">
                                     <PayrollTable
@@ -811,8 +848,7 @@ export const PayrollGenerator = () => {
                                        pageRows={pageRows}
                                        selectedRows={selectedRows}
                                        onCheckboxChange={
-                                          planillaEstado === "En Proceso" ||
-                                          planillaEstado === "Activa"
+                                          planillaEstado === "En Proceso" || planillaEstado === "Activa"
                                              ? handleCheckbox
                                              : () => {}
                                        }
@@ -821,7 +857,8 @@ export const PayrollGenerator = () => {
                                        planillaEstado={planillaEstado}
                                        expandedRows={expandedRows}
                                        onRowToggle={handleRowToggle}
-                                       subtableData={MOCK_SUBTABLE_DATA}
+                                       subtableData={generarDatosSubtabla(planillaData)}
+                                       isLoading={loading}
                                     />
                                  </div>
                               </div>
@@ -836,8 +873,6 @@ export const PayrollGenerator = () => {
                               onPageSizeChange={handlePageSizeChange}
                               onPageChange={handlePageChange}
                            />
-
-                      
                         </>
                      )}
                   </div>
