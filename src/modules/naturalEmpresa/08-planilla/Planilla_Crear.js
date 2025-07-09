@@ -34,7 +34,8 @@ const QUERIES = {
       planilla_estado,      -- Estado de la planilla
       planilla_fecha_inicio,-- Fecha de inicio del periodo
       planilla_fecha_fin,   -- Fecha de fin del periodo
-      planilla_creado_por   -- ID del usuario que creó la planilla
+      planilla_creado_por,  -- ID del usuario que creó la planilla
+      planilla_moneda       -- Moneda de la planilla
       ) VALUES (
       ?,        -- Código con formato PLN[YYYY]-[MES][#]
       ?,                      -- Empresa ID (debe existir en tabla empresas)   
@@ -43,7 +44,8 @@ const QUERIES = {
       ?,                      -- Estado inicial: Activa para carga de datos
       ?,                      -- Inicio del periodo: 1 de mayo
       ?,                      -- Fin del periodo: 31 de mayo
-      ?                      -- Usuario creador (referencia a tabla usuarios)
+      ?,                      -- Usuario creador (referencia a tabla usuarios)
+      ?                      -- Moneda de la planilla
       );
 `,
 };
@@ -61,7 +63,7 @@ const QUERIES = {
  * ====================================================================================================================================
  */
 const crearNuevoRegistroBd = async (datos, database) => {
-   console.log("Datos a insertar:", datos);
+
    const result = await realizarConsulta(
       QUERIES.QUERIES_INSERT,
       [
@@ -73,6 +75,7 @@ const crearNuevoRegistroBd = async (datos, database) => {
          datos.planilla_fecha_inicio,
          datos.planilla_fecha_fin,
          datos.planilla_creado_por,
+         datos.planilla_moneda,
       ],
       database,
    );

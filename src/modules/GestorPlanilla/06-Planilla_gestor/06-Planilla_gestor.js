@@ -26,18 +26,26 @@ const QUERIES = {
    // Consulta SQL para obtener todos los registros de la tabla
    TRAER_TODOS_LOS_EMPLEADOS_DE_LA_EMPRESA: `
       SELECT 
-      id_empleado_gestor,
          numero_socio_empleado_gestor,
          nombre_completo_empleado_gestor,
+         correo_empleado_gestor,
+         cedula_empleado_gestor,
          salario_base_empleado_gestor,
          tipo_contrato_empleado_gestor,
-         jornada_laboral_empleado_gestor,
-         departamento_empleado_gestor,
-         puesto_empleado_gestor,
-         correo_empleado_gestor,
-         telefono_empleado_gestor,
-         id_empresa,
-         cedula_empleado_gestor
+         supervisor_empleado_gestor,
+         fecha_ingreso_empleado_gestor,
+         fecha_salida_empleado_gestor,
+         numero_asegurado_empleado_gestor,
+         numero_ins_empleado_gestor,
+         numero_hacienda_empleado_gestor,
+         cuenta_bancaria_1_empleado_gestor,
+         ministerio_hacienda_empleado_gestor,
+         rt_ins_empleado_gestor,
+         ccss_empleado_gestor,
+         moneda_pago_empleado_gestor,
+         estado_empleado_gestor,
+         montoAsegurado_gestor_empelado,
+         tipo_planilla_empleado_gestor
       FROM gestor_empleado_tbl
       WHERE estado_empleado_gestor = 1
          AND (fecha_salida_empleado_gestor IS NULL OR fecha_salida_empleado_gestor = '')
@@ -96,6 +104,8 @@ const QUERIES = {
  * ====================================================================================================================================
  */
 const obtenerTodosDatos = async (datos, database) => {
+
+   console.log(datos);
 
    try {
       // Obtener la lista de empleados
