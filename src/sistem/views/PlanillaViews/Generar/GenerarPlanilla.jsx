@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { fetchData_api } from "../../../../store/fetchData_api/fetchData_api_Thunks";
+import { formatCurrency } from "../../../../hooks/formatCurrency";    
 
 /**
  * =========================
@@ -39,11 +40,13 @@ const PAGE_SIZES = [5, 10, 30, 60, 80, 100];
  */
 const transformarDatosPlanilla = (planillaData) => {
    if (!planillaData || !Array.isArray(planillaData)) return [];
+
+   console.log(planillaData);
    
    return planillaData.map(empleado => ({
       nombre: empleado.nombre_completo_empleado_gestor,
-      cedula: empleado.cedula_empleado_gestor,
-      compensacion_base: empleado.salario_base_empleado_gestor,
+      cedula: empleado.numero_socio_empleado_gestor,
+      compensacion_base: formatCurrency(empleado.salario_base_empleado_gestor),
       devengado: "0", // Por el momento en cero
       cargas_sociales: "0", // Por el momento en cero
       monto_neto: "0", // Por el momento en cero
@@ -63,7 +66,7 @@ const generarDatosSubtabla = (planillaData) => {
    const subtableData = {};
    
    planillaData.forEach(empleado => {
-      const cedula = empleado.cedula_empleado_gestor;
+      const cedula = empleado.numero_socio_empleado_gestor;
       const detalles = [];
       
       // Agregar aumentos
@@ -72,7 +75,7 @@ const generarDatosSubtabla = (planillaData) => {
             detalles.push({
                categoria: "Aumento",
                tipoAccion: "Aumento",
-               monto: aumento.monto_aumento_gestor || "0",
+               monto: formatCurrency(aumento.monto_aumento_gestor) || "0",
                tipo: "+",
                estado: aumento.estado_planilla_aumento_gestor || "Pendiente"
             });
@@ -605,15 +608,13 @@ export const PayrollGenerator = () => {
                planilla_id: planillaSeleccionada,
             };
 
-            console.log("Parámetros enviados a la API:", params);
+
 
             const response = await dispatch(fetchData_api(params, "gestor/planilla/gestor"));
 
             if (response.success && response.data.array?.length > 0) {
                setPlanillaData(response.data.array);
-               console.log("Datos de planilla cargados exitosamente:", response.data.array);
             } else {
-               console.error("Error en la respuesta de la API:", response);
                setError("Error al cargar los datos de la planilla");
                setPlanillaData(null);
             }
@@ -633,8 +634,7 @@ export const PayrollGenerator = () => {
    useEffect(() => {
       if (planillaData && Array.isArray(planillaData)) {
          const datosTransformados = transformarDatosPlanilla(planillaData);
-         setRows(datosTransformados);
-         console.log("Datos transformados para la tabla:", datosTransformados);
+         setRows(datosTransformados);;
       } else {
          setRows([]);
       }
@@ -651,7 +651,6 @@ export const PayrollGenerator = () => {
 
             if (response.success && response.data.array?.length > 0) {
                setPlanillasList(response.data.array || []);
-               console.log("Lista de planillas cargada exitosamente:", response.data.array);
             } else {
                console.error("Error en la respuesta de lista de planillas:", response);
                setError("Error al cargar la lista de planillas");

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useDispatch } from "react-redux";
 import { fetchData_api } from "../../../../../store/fetchData_api/fetchData_api_Thunks";
-import formatCurrency from "../../../../../hooks/formatCurrency";
+import { formatCurrency } from "../../../../../hooks/formatCurrency";
 import Swal from "sweetalert2";
 import { useNavigate, useParams } from "react-router-dom";
 
