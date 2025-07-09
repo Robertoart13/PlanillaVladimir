@@ -203,6 +203,7 @@ export const formOptions = {
    monedaPago: [
       { value: "colones", label: "Colones" },
       { value: "dolares", label: "Dólares" },
+      { value: "colones_y_dolares", label: "Colones y dólares" },
    ],
    
    tipoPlanilla: [

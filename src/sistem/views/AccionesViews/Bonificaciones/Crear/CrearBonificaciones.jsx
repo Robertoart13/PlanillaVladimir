@@ -22,19 +22,22 @@ function getOptionList(data, valueKey, labelKey) {
  */
 function usePlanillas(dispatch) {
    const [planillaOptions, setPlanillaOptions] = useState([]);
+   const [planillaData, setPlanillaData] = useState([]);
    const [isLoading, setIsLoading] = useState(false);
 
    const fetchPlanillas = useCallback(async () => {
       setIsLoading(true);
       setPlanillaOptions([]);
+      setPlanillaData([]);
       const response = await dispatch(fetchData_api(null, "gestor/planillas/listas"));
       if (response.success && response.data.array?.length > 0) {
+         setPlanillaData(response.data.array);
          setPlanillaOptions(getOptionList(response.data.array, "planilla_id", "planilla_codigo"));
       }
       setIsLoading(false);
    }, [dispatch]);
 
-   return { planillaOptions, isLoading, fetchPlanillas };
+   return { planillaOptions, planillaData, isLoading, fetchPlanillas };
 }
 
 /**
@@ -42,16 +45,35 @@ function usePlanillas(dispatch) {
  */
 function useEmpleados(dispatch) {
    const [empleadoOptions, setEmpleadoOptions] = useState([]);
+   const [empleadoData, setEmpleadoData] = useState([]);
    const [isLoading, setIsLoading] = useState(false);
 
-   const fetchEmpleados = useCallback(async () => {
+   const fetchEmpleados = useCallback(async (planillaMoneda) => {
       setIsLoading(true);
       setEmpleadoOptions([]);
+      setEmpleadoData([]);
+      
       const response = await dispatch(fetchData_api(null, "gestor/planillas/empleados/options"));
+      
       if (response.success && response.data.array?.length > 0) {
+         let empleadosFiltrados = response.data.array;
+         
+         // Filtrar empleados según la moneda de la planilla
+         if (planillaMoneda) {
+            empleadosFiltrados = response.data.array.filter(empleado => {
+               // Empleados con colones_y_dolares aparecen siempre
+               if (empleado.moneda_pago_empleado_gestor === "colones_y_dolares") {
+                  return true;
+               }
+               // Para otros empleados, mostrar solo los que coinciden con la moneda de la planilla
+               return empleado.moneda_pago_empleado_gestor === planillaMoneda;
+            });
+         }
+         
+         setEmpleadoData(empleadosFiltrados);
          setEmpleadoOptions(
             getOptionList(
-               response.data.array,
+               empleadosFiltrados,
                "id_empleado_gestor",
                "nombre_completo_empleado_gestor",
             ),
@@ -60,17 +82,22 @@ function useEmpleados(dispatch) {
       setIsLoading(false);
    }, [dispatch]);
 
-   return { empleadoOptions, isLoading, fetchEmpleados };
+   return { empleadoOptions, empleadoData, isLoading, fetchEmpleados };
 }
 
 export const CrearBonificaciones = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  
   // Hook para obtener planillas
-  const { planillaOptions, isLoading: isLoadingPlanillas, fetchPlanillas } = usePlanillas(dispatch);
+  const { planillaOptions, planillaData, isLoading: isLoadingPlanillas, fetchPlanillas } = usePlanillas(dispatch);
   
   // Hook para obtener empleados
-  const { empleadoOptions, isLoading: isLoadingEmpleados, fetchEmpleados } = useEmpleados(dispatch);
+  const { empleadoOptions, empleadoData, isLoading: isLoadingEmpleados, fetchEmpleados } = useEmpleados(dispatch);
+
+  // Estados de selección
+  const [selectedPlanillaData, setSelectedPlanillaData] = useState(null);
+  const [selectedEmpleadoData, setSelectedEmpleadoData] = useState(null);
 
   const [formData, setFormData] = useState({
     planilla: "",
@@ -88,10 +115,33 @@ export const CrearBonificaciones = () => {
     fetchPlanillas();
   }, [fetchPlanillas]);
 
-  // Cargar empleados al montar el componente
+  // Cuando cambia la planilla, buscar datos y empleados
   useEffect(() => {
-    fetchEmpleados();
-  }, [fetchEmpleados]);
+    if (formData.planilla) {
+      const planillaObj = planillaData.find(item => item.planilla_id == formData.planilla);
+      setSelectedPlanillaData(planillaObj);
+      
+      // Cargar empleados filtrados según la moneda de la planilla
+      if (planillaObj?.planilla_moneda) {
+        fetchEmpleados(planillaObj.planilla_moneda);
+      }
+      
+      setFormData((prev) => ({ ...prev, empleado: "" })); // Limpiar selección de empleado
+    } else {
+      setSelectedPlanillaData(null);
+      setFormData((prev) => ({ ...prev, empleado: "" }));
+    }
+  }, [formData.planilla, planillaData, fetchEmpleados]);
+
+  // Cuando cambia el empleado, buscar datos
+  useEffect(() => {
+    if (formData.empleado) {
+      const empleadoObj = empleadoData.find(item => item.id_empleado_gestor == formData.empleado);
+      setSelectedEmpleadoData(empleadoObj);
+    } else {
+      setSelectedEmpleadoData(null);
+    }
+  }, [formData.empleado, empleadoData]);
 
   // Manejar cambios en los inputs   
   const handleChange = (e) => {
@@ -228,6 +278,52 @@ export const CrearBonificaciones = () => {
       
       <div className="card-body">
         <form onSubmit={handleSubmit}>
+          {/* Alert for Planilla Status */}
+          {selectedPlanillaData && (
+            <div
+              className="alert alert-info mb-3"
+              role="alert"
+            >
+              <div className="d-flex align-items-center">
+                <i className="fas fa-info-circle me-2"></i>
+                <div>
+                  <strong>Estado de la Planilla:</strong>{" "}
+                  {selectedPlanillaData.planilla_estado || "No disponible"}
+                  {selectedPlanillaData.planilla_codigo && (
+                    <span className="ms-2">
+                      <strong>Código:</strong> {selectedPlanillaData.planilla_codigo}
+                    </span>
+                  )}
+                  {selectedPlanillaData.planilla_moneda && (
+                    <span className="ms-2">
+                      <strong>Moneda:</strong> {selectedPlanillaData.planilla_moneda}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+          
+          {/* Alert for Empleado Seleccionado */}
+          {selectedEmpleadoData && (
+            <div
+              className="alert alert-success mb-3"
+              role="alert"
+              style={{ background: "#c6fcf5" }}
+            >
+              <div className="d-flex align-items-center">
+                <i className="fas fa-user-edit me-2"></i>
+                <div>
+                  <strong>Socio:</strong>{" "}
+                  {selectedEmpleadoData.nombre_completo_empleado_gestor} |
+                  <strong> Cédula:</strong> {selectedEmpleadoData.cedula_empleado_gestor} |
+                  <strong> Número de Socio:</strong>{" "}
+                  {selectedEmpleadoData.numero_socio_empleado_gestor}
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Estado */}
           <div className="col-md-12 mb-3" style={{display: "flex", justifyContent: "flex-end", alignItems: "flex-end", flexDirection: "column"}}>
             <label className="form-label d-block">
@@ -294,34 +390,28 @@ export const CrearBonificaciones = () => {
               <label className="form-label" htmlFor="empleado">
                 Socio <span className="text-danger">*</span>
               </label>
-              {isLoadingEmpleados ? (
-                <div className="d-flex align-items-center">
-                  <div className="spinner-border spinner-border-sm me-2" role="status">
-                    <span className="visually-hidden">Cargando...</span>
-                  </div>
-                  <span>Cargando empleados...</span>
-                </div>
-              ) : empleadoOptions.length > 0 ? (
-                <select
-                  className="form-select"
-                  id="empleado"
-                  name="empleado"
-                  value={formData.empleado}
-                  onChange={handleChange}
-                  required
-                >
-                  <option value="">Seleccione el Socio</option>
-                  {empleadoOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              ) : (
-                <div className="alert alert-warning">
-                  No hay empleados disponibles
-                </div>
-              )}
+              <select
+                className="form-select"
+                id="empleado"
+                name="empleado"
+                value={formData.empleado}
+                onChange={handleChange}
+                required
+                disabled={!formData.planilla || isLoadingEmpleados}
+              >
+                <option value="">
+                  {!formData.planilla
+                    ? "Seleccione primero una planilla"
+                    : isLoadingEmpleados
+                    ? "Cargando empleados..."
+                    : "Seleccione el Socio"}
+                </option>
+                {empleadoOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
             </div>
 
             {/* Tipo de Compensación por Métrica */}

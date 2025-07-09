@@ -60,16 +60,32 @@ function useEmpleados(dispatch) {
    const [empleadoData, setEmpleadoData] = useState([]);
    const [isLoading, setIsLoading] = useState(false);
 
-   const fetchEmpleados = useCallback(async () => {
+   const fetchEmpleados = useCallback(async (planillaMoneda) => {
       setIsLoading(true);
       setEmpleadoOptions([]);
       setEmpleadoData([]);
+      
       const response = await dispatch(fetchData_api(null, "gestor/planillas/empleados/options"));
+      
       if (response.success && response.data.array?.length > 0) {
-         setEmpleadoData(response.data.array);
+         let empleadosFiltrados = response.data.array;
+         
+         // Filtrar empleados según la moneda de la planilla
+         if (planillaMoneda) {
+            empleadosFiltrados = response.data.array.filter(empleado => {
+               // Empleados con colones_y_dolares aparecen siempre
+               if (empleado.moneda_pago_empleado_gestor === "colones_y_dolares") {
+                  return true;
+               }
+               // Para otros empleados, mostrar solo los que coinciden con la moneda de la planilla
+               return empleado.moneda_pago_empleado_gestor === planillaMoneda;
+            });
+         }
+         
+         setEmpleadoData(empleadosFiltrados);
          setEmpleadoOptions(
             getOptionList(
-               response.data.array,
+               empleadosFiltrados,
                "id_empleado_gestor",
                "nombre_completo_empleado_gestor",
             ),
@@ -134,7 +150,12 @@ export const CrearAumento = () => {
       if (formData.planilla) {
          const planillaObj = findById(planillaData, formData.planilla, "planilla_id");
          setSelectedPlanillaData(planillaObj);
-         fetchEmpleados();
+         
+         // Cargar empleados filtrados según la moneda de la planilla
+         if (planillaObj?.planilla_moneda) {
+            fetchEmpleados(planillaObj.planilla_moneda);
+         }
+         
          setFormData((prev) => ({ ...prev, empleado: "" })); // Limpiar selección de empleado
       } else {
          setSelectedPlanillaData(null);
@@ -344,6 +365,11 @@ export const CrearAumento = () => {
                            {selectedPlanillaData.planilla_codigo && (
                               <span className="ms-2">
                                  <strong>Código:</strong> {selectedPlanillaData.planilla_codigo}
+                              </span>
+                           )}
+                           {selectedPlanillaData.planilla_moneda && (
+                              <span className="ms-2">
+                                 <strong>Moneda:</strong> {selectedPlanillaData.planilla_moneda}
                               </span>
                            )}
                         </div>

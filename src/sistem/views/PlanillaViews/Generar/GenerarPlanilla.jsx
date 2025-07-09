@@ -16,6 +16,7 @@ const PAYROLL_COLUMNS = [
    { key: "compensacion_base", label: "Compensacion Base", type: "number" },
    { key: "devengado", label: "Devengado", type: "number" },
    { key: "cargas_sociales", label: "Cargas Sociales", type: "number" },
+   { key: "monto_rtn_neto", label: "Monto de RTN Neto", type: "number", style: { minWidth: 150 } },
    { key: "monto_neto", label: "Monto Neto", type: "number", style: { minWidth: 180 } },
    { key: "accion", label: "Acciones" },
    { key: "estado", label: "Estado" },
@@ -34,30 +35,403 @@ const SUBTABLE_COLUMNS = [
 const PAGE_SIZES = [5, 10, 30, 60, 80, 100];
 
 /**
- * Función para transformar los datos de la API al formato de la tabla
+ * =========================
+ * COMPENSATION CALCULATION UTILITIES
+ * =========================
+ */
+
+/**
+ * Calcula la compensación base según el tipo de planilla del empleado
+ * @param {number} salarioBase - Salario base del empleado
+ * @param {string} tipoPlanilla - Tipo de planilla (mensual, quincenal, semanal)
+ * @returns {number} Compensación base calculada
+ */
+const calcularCompensacionBase = (salarioBase, tipoPlanilla) => {
+   if (!salarioBase || salarioBase <= 0) return 0;
+   
+   const salario = parseFloat(salarioBase);
+   
+   switch (tipoPlanilla?.toLowerCase()) {
+      case 'mensual':
+         // Para planilla mensual, se toma el salario completo
+         return salario;
+         
+      case 'quincenal':
+         // Para planilla quincenal, se divide el salario en 2
+         return salario / 2;
+         
+      case 'semanal':
+         // Para planilla semanal, se calcula según la ley costarricense
+         // 52 semanas al año / 12 meses = 4.33 semanas por mes
+         return salario * 4.33;
+         
+      default:
+         // Si no se especifica tipo, se asume mensual
+         console.warn(`Tipo de planilla no reconocido: ${tipoPlanilla}. Se asume mensual.`);
+         return salario;
+   }
+};
+
+/**
+ * Formatea la compensación base según la moneda de pago
+ * @param {number} compensacionBase - Compensación base calculada
+ * @param {string} monedaPago - Moneda de pago del empleado
+ * @param {number} salarioBase - Salario base original (para casos de doble moneda)
+ * @param {string} tipoPlanilla - Tipo de planilla del empleado
+ * @returns {string} Compensación base formateada
+ */
+const formatearCompensacionBase = (compensacionBase, monedaPago, salarioBase, tipoPlanilla) => {
+   if (!compensacionBase || compensacionBase <= 0) return "0";
+   
+   switch (monedaPago?.toLowerCase()) {
+      case 'dolares':
+         return formatCurrencyUSD(compensacionBase);
+         
+      case 'colones_y_dolares':
+         // Para doble moneda, calculamos ambas compensaciones usando el tipo de planilla correcto
+         const compensacionColones = calcularCompensacionBase(salarioBase, tipoPlanilla);
+         const compensacionDolares = calcularCompensacionBase(salarioBase, tipoPlanilla);
+         return `${formatCurrency(compensacionColones)} / ${formatCurrencyUSD(compensacionDolares)}`;
+         
+      case 'colones':
+      default:
+         return formatCurrency(compensacionBase);
+   }
+};
+
+/**
+ * Valida y obtiene los datos básicos del empleado
+ * @param {Object} empleado - Datos del empleado de la API
+ * @returns {Object|null} Datos validados o null si no son válidos
+ */
+const validarDatosEmpleado = (empleado) => {
+   if (!empleado) return null;
+   
+   const datosRequeridos = {
+      nombre: empleado.nombre_completo_empleado_gestor,
+      cedula: empleado.numero_socio_empleado_gestor,
+      salarioBase: empleado.salario_base_empleado_gestor,
+      tipoPlanilla: empleado.tipo_planilla_empleado_gestor,
+      monedaPago: empleado.moneda_pago_empleado_gestor,
+      rtIns: empleado.rt_ins_empleado_gestor, // Campo para RTN
+      ccss: empleado.ccss_empleado_gestor // Campo para CCSS
+   };
+   
+   // Validar que existan los datos requeridos
+   const datosFaltantes = Object.entries(datosRequeridos)
+      .filter(([key, value]) => {
+         // rtIns y ccss pueden ser 0 o 1, ambos son válidos
+         if (key === 'rtIns' || key === 'ccss') return false;
+         return !value;
+      })
+      .map(([key]) => key);
+   
+   if (datosFaltantes.length > 0) {
+      console.warn(`Empleado ${datosRequeridos.cedula || 'sin cédula'} - Datos faltantes:`, datosFaltantes);
+      return null;
+   }
+   
+   return datosRequeridos;
+};
+
+/**
+ * Transforma un empleado individual al formato de la tabla
+ * @param {Object} empleado - Datos del empleado de la API
+ * @returns {Object} Empleado transformado para la tabla
+ */
+const transformarEmpleado = (empleado) => {
+   // Validar datos del empleado
+   const datosEmpleado = validarDatosEmpleado(empleado);
+   if (!datosEmpleado) {
+      return null;
+   }
+   
+   // Calcular compensación base
+   const compensacionBaseCalculada = calcularCompensacionBase(
+      datosEmpleado.salarioBase,
+      datosEmpleado.tipoPlanilla
+   );
+   
+   // Formatear compensación base según moneda
+   const compensacionBaseFormateada = formatearCompensacionBase(
+      compensacionBaseCalculada,
+      datosEmpleado.monedaPago,
+      datosEmpleado.salarioBase,
+      datosEmpleado.tipoPlanilla
+   );
+   
+   // Calcular RTN neto total
+   const rtnNetoTotal = calcularRTNNetoTotal(empleado, compensacionBaseCalculada);
+   
+   // Calcular Cargas Sociales
+   const cargasSociales = calcularCargasSociales(empleado);
+   
+   return {
+      nombre: datosEmpleado.nombre,
+      cedula: datosEmpleado.cedula,
+      compensacion_base: compensacionBaseFormateada,
+      devengado: "0", // Por el momento en cero
+      cargas_sociales: cargasSociales.formateado,
+      monto_rtn_neto: rtnNetoTotal.formateado,
+      monto_neto: "0", // Por el momento en cero
+      accion: "",
+      estado: "Pendiente", // Siempre pendiente
+   };
+};
+
+/**
+ * Función principal para transformar los datos de la API al formato de la tabla
  * @param {Array} planillaData - Datos de la API
  * @returns {Array} Datos transformados para la tabla
  */
 const transformarDatosPlanilla = (planillaData) => {
-   if (!planillaData || !Array.isArray(planillaData)) return [];
+   // Validar entrada
+   if (!planillaData || !Array.isArray(planillaData)) {
+      console.warn('transformarDatosPlanilla: Datos de planilla inválidos o vacíos');
+      return [];
+   }
 
-   console.log(planillaData);
+   console.log('Datos de planilla recibidos:', planillaData);
    
-   return planillaData.map(empleado => ({
-      nombre: empleado.nombre_completo_empleado_gestor,
-      cedula: empleado.numero_socio_empleado_gestor,
-      compensacion_base:
-      empleado.moneda_pago_empleado_gestor === "dolares"
-        ? formatCurrencyUSD(empleado.salario_base_empleado_gestor)
-        : empleado.moneda_pago_empleado_gestor === "colones_y_dolares"
-        ? `${formatCurrency(empleado.salario_base_empleado_gestor)} / ${formatCurrencyUSD(empleado.salario_base_empleado_gestor)}`
-        : formatCurrency(empleado.salario_base_empleado_gestor),
-      devengado: "0", // Por el momento en cero
-      cargas_sociales: "0", // Por el momento en cero
-      monto_neto: "0", // Por el momento en cero
-      accion: "",
-      estado: "Pendiente", // Siempre pendiente
-   }));
+   // Transformar cada empleado
+   const empleadosTransformados = planillaData
+      .map(empleado => transformarEmpleado(empleado))
+      .filter(empleado => empleado !== null); // Filtrar empleados con datos inválidos
+   
+   console.log('Empleados transformados:', empleadosTransformados);
+   
+   return empleadosTransformados;
+};
+
+/**
+ * =========================
+ * RTN CALCULATION UTILITIES
+ * =========================
+ */
+
+/**
+ * Calcula el RTN neto total para un empleado basado en todos sus conceptos
+ * @param {Object} empleado - Datos del empleado de la API
+ * @param {number} compensacionBase - Compensación base calculada
+ * @returns {Object} Información del RTN neto total
+ */
+const calcularRTNNetoTotal = (empleado, compensacionBase) => {
+   const rtnInfo = calcularRTN(compensacionBase, empleado.rt_ins_empleado_gestor);
+   
+   if (!rtnInfo.aplica) {
+      return {
+         monto: 0,
+         formateado: "0",
+         aplica: false
+      };
+   }
+   
+   // Calcular RTN base sobre compensación
+   let rtnTotal = rtnInfo.monto;
+   
+   // Sumar RTN sobre aumentos si existen
+   if (empleado.aumentos && Array.isArray(empleado.aumentos)) {
+      empleado.aumentos.forEach(aumento => {
+         const montoAumento = parseFloat(aumento.monto_aumento_gestor) || 0;
+         rtnTotal += montoAumento * 0.01; // 1% sobre aumentos
+      });
+   }
+   
+   // Sumar RTN sobre horas extras si existen
+   if (empleado.horas_extras && Array.isArray(empleado.horas_extras)) {
+      empleado.horas_extras.forEach(horaExtra => {
+         const montoHoraExtra = parseFloat(horaExtra.monto_compensacion_calculado_gestor) || 0;
+         rtnTotal += montoHoraExtra * 0.01; // 1% sobre horas extras
+      });
+   }
+   
+   // Sumar RTN sobre compensación por métrica si existe
+   if (empleado.compensacion_metrica && Array.isArray(empleado.compensacion_metrica)) {
+      empleado.compensacion_metrica.forEach(compensacion => {
+         const montoCompensacion = parseFloat(compensacion.monto_compensacion_metrica_gestor) || 0;
+         rtnTotal += montoCompensacion * 0.01; // 1% sobre compensación por métrica
+      });
+   }
+   
+   // Formatear según moneda
+   let rtnFormateado = "0";
+   if (rtnTotal > 0) {
+      switch (empleado.moneda_pago_empleado_gestor?.toLowerCase()) {
+         case 'dolares':
+            rtnFormateado = formatCurrencyUSD(rtnTotal);
+            break;
+         case 'colones_y_dolares':
+            rtnFormateado = formatCurrency(rtnTotal); // RTN se aplica en colones
+            break;
+         case 'colones':
+         default:
+            rtnFormateado = formatCurrency(rtnTotal);
+            break;
+      }
+   }
+   
+   return {
+      monto: rtnTotal,
+      formateado: rtnFormateado,
+      aplica: true
+   };
+};
+
+/**
+ * Calcula las Cargas Sociales (CCSS) para un empleado
+ * @param {Object} empleado - Datos del empleado de la API
+ * @returns {Object} Información de las Cargas Sociales
+ */
+const calcularCargasSociales = (empleado) => {
+   const ccssEmpleado = parseInt(empleado.ccss_empleado_gestor) || 0;
+   
+   if (ccssEmpleado !== 1) {
+      return {
+         aplica: false,
+         monto: 0,
+         formateado: "0",
+         descripcion: "No aplica"
+      };
+   }
+   
+   const montoAsegurado = parseFloat(empleado.montoAsegurado_gestor_empelado) || 0;
+   
+   if (montoAsegurado <= 0) {
+      return {
+         aplica: true,
+         monto: 0,
+         formateado: "0",
+         descripcion: "Monto asegurado inválido"
+      };
+   }
+   
+   // Formatear según moneda
+   let ccssFormateado = "0";
+   if (montoAsegurado > 0) {
+      switch (empleado.moneda_pago_empleado_gestor?.toLowerCase()) {
+         case 'dolares':
+            ccssFormateado = formatCurrencyUSD(montoAsegurado);
+            break;
+         case 'colones_y_dolares':
+            ccssFormateado = formatCurrency(montoAsegurado); // CCSS se aplica en colones
+            break;
+         case 'colones':
+         default:
+            ccssFormateado = formatCurrency(montoAsegurado);
+            break;
+      }
+   }
+   
+   return {
+      aplica: true,
+      monto: montoAsegurado,
+      formateado: ccssFormateado,
+      descripcion: "CCSS sobre monto asegurado"
+   };
+};
+
+/**
+ * Calcula el RTN (1%) sobre la compensación base
+ * @param {number} compensacionBase - Compensación base calculada
+ * @param {number} rtInsEmpleado - Valor del campo rt_ins_empleado_gestor (0 o 1)
+ * @returns {Object} Objeto con información del RTN
+ */
+const calcularRTN = (compensacionBase, rtInsEmpleado) => {
+   const rtIns = parseInt(rtInsEmpleado) || 0;
+   
+   if (rtIns !== 1) {
+      return {
+         aplica: false,
+         monto: 0,
+         descripcion: "No aplica"
+      };
+   }
+   
+   if (!compensacionBase || compensacionBase <= 0) {
+      return {
+         aplica: true,
+         monto: 0,
+         descripcion: "Compensación base inválida"
+      };
+   }
+   
+   const montoRTN = compensacionBase * 0.01; // 1% de la compensación base
+   
+   return {
+      aplica: true,
+      monto: montoRTN,
+      descripcion: "RTN 1% sobre compensación base"
+   };
+};
+
+/**
+ * Genera el detalle de RTN para la subtabla
+ * @param {Object} rtnInfo - Información del RTN calculado
+ * @param {string} monedaPago - Moneda de pago del empleado
+ * @returns {Object|null} Detalle de RTN formateado o null si no aplica
+ */
+const generarDetalleRTN = (rtnInfo, monedaPago) => {
+   if (!rtnInfo.aplica) {
+      return {
+         categoria: "RTN",
+         tipoAccion: "Deducción",
+         monto: "0",
+         tipo: "-",
+         estado: "No aplica"
+      };
+   }
+   
+   // Formatear monto según moneda específica del empleado
+   let montoFormateado = "0";
+   if (rtnInfo.monto > 0) {
+      switch (monedaPago?.toLowerCase()) {
+         case 'dolares':
+            montoFormateado = formatCurrencyUSD(rtnInfo.monto);
+            break;
+         case 'colones_y_dolares':
+            // Para doble moneda, mostramos solo en colones (RTN se aplica en colones)
+            montoFormateado = formatCurrency(rtnInfo.monto);
+            break;
+         case 'colones':
+         default:
+            montoFormateado = formatCurrency(rtnInfo.monto);
+            break;
+      }
+   }
+   
+   return {
+      categoria: "RTN",
+      tipoAccion: "Deducción",
+      monto: montoFormateado,
+      tipo: "-",
+      estado: "Pendiente"
+   };
+};
+
+/**
+ * Genera el detalle de Cargas Sociales para la subtabla
+ * @param {Object} ccssInfo - Información de las Cargas Sociales calculadas
+ * @param {string} monedaPago - Moneda de pago del empleado
+ * @returns {Object} Detalle de CCSS formateado
+ */
+const generarDetalleCCSS = (ccssInfo, monedaPago) => {
+   if (!ccssInfo.aplica) {
+      return {
+         categoria: "Cargas Sociales",
+         tipoAccion: "Deducción",
+         monto: "0",
+         tipo: "-",
+         estado: "No aplica"
+      };
+   }
+   
+   return {
+      categoria: "Cargas Sociales",
+      tipoAccion: "Deducción",
+      monto: ccssInfo.formateado,
+      tipo: "-",
+      estado: "Pendiente"
+   };
 };
 
 /**
@@ -74,7 +448,55 @@ const generarDatosSubtabla = (planillaData) => {
       const cedula = empleado.numero_socio_empleado_gestor;
       const detalles = [];
       
-      // Agregar aumentos
+      // Calcular compensación base para RTN
+      const compensacionBase = calcularCompensacionBase(
+         empleado.salario_base_empleado_gestor,
+         empleado.tipo_planilla_empleado_gestor
+      );
+      
+      // 1. PRIMERO: Agregar horas extras
+      if (empleado.horas_extras && Array.isArray(empleado.horas_extras)) {
+         empleado.horas_extras.forEach(horaExtra => {
+            const montoHoraExtra = parseFloat(horaExtra.monto_compensacion_calculado_gestor) || 0;
+            let montoFormateado = "0";
+            
+            // Formatear según moneda del empleado
+            if (montoHoraExtra > 0) {
+               switch (empleado.moneda_pago_empleado_gestor?.toLowerCase()) {
+                  case 'dolares':
+                     montoFormateado = formatCurrencyUSD(montoHoraExtra);
+                     break;
+                  case 'colones_y_dolares':
+                     montoFormateado = formatCurrency(montoHoraExtra);
+                     break;
+                  case 'colones':
+                  default:
+                     montoFormateado = formatCurrency(montoHoraExtra);
+                     break;
+               }
+            }
+            
+            detalles.push({
+               categoria: "Horas Extras",
+               tipoAccion: "Ingreso",
+               monto: montoFormateado,
+               tipo: "+",
+               estado: horaExtra.estado_compensacion_extra_gestor || "Pendiente"
+            });
+         });
+      }
+      
+      // 2. SEGUNDO: Calcular y agregar RTN
+      const rtnInfo = calcularRTN(compensacionBase, empleado.rt_ins_empleado_gestor);
+      const detalleRTN = generarDetalleRTN(rtnInfo, empleado.moneda_pago_empleado_gestor);
+      detalles.push(detalleRTN);
+      
+      // 3. TERCERO: Calcular y agregar Cargas Sociales
+      const ccssInfo = calcularCargasSociales(empleado);
+      const detalleCCSS = generarDetalleCCSS(ccssInfo, empleado.moneda_pago_empleado_gestor);
+      detalles.push(detalleCCSS);
+      
+      // 4. CUARTO: Agregar aumentos
       if (empleado.aumentos && Array.isArray(empleado.aumentos)) {
          empleado.aumentos.forEach(aumento => {
             detalles.push({
@@ -87,7 +509,7 @@ const generarDatosSubtabla = (planillaData) => {
          });
       }
       
-      // Agregar rebajos a compensación
+      // 5. QUINTO: Agregar rebajos a compensación
       if (empleado.rebajos_compensacion && Array.isArray(empleado.rebajos_compensacion)) {
          empleado.rebajos_compensacion.forEach(rebajo => {
             detalles.push({
@@ -100,20 +522,7 @@ const generarDatosSubtabla = (planillaData) => {
          });
       }
       
-      // Agregar horas extras
-      if (empleado.horas_extras && Array.isArray(empleado.horas_extras)) {
-         empleado.horas_extras.forEach(horaExtra => {
-            detalles.push({
-               categoria: "Horas Extras",
-               tipoAccion: "Ingreso",
-               monto: horaExtra.monto_compensacion_calculado_gestor || "0",
-               tipo: "+",
-               estado: horaExtra.estado_compensacion_extra_gestor || "Pendiente"
-            });
-         });
-      }
-      
-      // Agregar compensación por métrica
+      // 6. SEXTO: Agregar compensación por métrica
       if (empleado.compensacion_metrica && Array.isArray(empleado.compensacion_metrica)) {
          empleado.compensacion_metrica.forEach(compensacion => {
             detalles.push({
@@ -271,7 +680,7 @@ const SubTable = ({ columns, data, employeeName }) => {
                                           {row[col.key]}
                                        </span>
                                     ) : col.key === "monto" ? (
-                                       <span style={{ fontWeight: 500, color: "#2d3748" }}>${row[col.key]}</span>
+                                       <span style={{ fontWeight: 500, color: "#2d3748" }}>{row[col.key]}</span>
                                     ) : (
                                        row[col.key]
                                     )}
@@ -593,10 +1002,11 @@ export const PayrollGenerator = () => {
       (p) => String(p.planilla_id) === String(planillaSeleccionada)
    );
 
-   
    const planillaEstado = selectedPlanilla?.planilla_estado;
    const empresaSeleccionada = selectedPlanilla?.empresa_id;
    const tipoPlanilla = selectedPlanilla?.planilla_tipo;
+   const planilla_moneda = selectedPlanilla?.planilla_moneda;
+
 
    // Cargar datos de planilla cuando se selecciona una
    useEffect(() => {
@@ -615,6 +1025,7 @@ export const PayrollGenerator = () => {
                empresa_id: empresaSeleccionada,
                planilla_id: planillaSeleccionada,
                tipo_planilla: tipoPlanilla,
+               planilla_moneda: planilla_moneda,
             };
 
 
