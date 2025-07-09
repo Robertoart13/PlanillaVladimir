@@ -40,6 +40,11 @@ const obtenerColumnasTabla = () => [
       searchPanes: { show: true },
    },
    {
+      data: "planilla_moneda",
+      title: "Moneda",
+      searchPanes: { show: true },
+   },
+   {
       data: "nombre_usuario",
       title: "Creado por",
       searchPanes: { show: true },

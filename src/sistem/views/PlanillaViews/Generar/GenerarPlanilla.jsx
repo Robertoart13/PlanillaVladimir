@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { fetchData_api } from "../../../../store/fetchData_api/fetchData_api_Thunks";
-import { formatCurrency } from "../../../../hooks/formatCurrency";    
+import { formatCurrency, formatCurrencyUSD } from "../../../../hooks/formatCurrency";    
 
 /**
  * =========================
@@ -46,7 +46,12 @@ const transformarDatosPlanilla = (planillaData) => {
    return planillaData.map(empleado => ({
       nombre: empleado.nombre_completo_empleado_gestor,
       cedula: empleado.numero_socio_empleado_gestor,
-      compensacion_base: formatCurrency(empleado.salario_base_empleado_gestor),
+      compensacion_base:
+      empleado.moneda_pago_empleado_gestor === "dolares"
+        ? formatCurrencyUSD(empleado.salario_base_empleado_gestor)
+        : empleado.moneda_pago_empleado_gestor === "colones_y_dolares"
+        ? `${formatCurrency(empleado.salario_base_empleado_gestor)} / ${formatCurrencyUSD(empleado.salario_base_empleado_gestor)}`
+        : formatCurrency(empleado.salario_base_empleado_gestor),
       devengado: "0", // Por el momento en cero
       cargas_sociales: "0", // Por el momento en cero
       monto_neto: "0", // Por el momento en cero
@@ -587,8 +592,11 @@ export const PayrollGenerator = () => {
    const selectedPlanilla = planillasList.find(
       (p) => String(p.planilla_id) === String(planillaSeleccionada)
    );
+
+   
    const planillaEstado = selectedPlanilla?.planilla_estado;
    const empresaSeleccionada = selectedPlanilla?.empresa_id;
+   const tipoPlanilla = selectedPlanilla?.planilla_tipo;
 
    // Cargar datos de planilla cuando se selecciona una
    useEffect(() => {
@@ -606,6 +614,7 @@ export const PayrollGenerator = () => {
             const params = {
                empresa_id: empresaSeleccionada,
                planilla_id: planillaSeleccionada,
+               tipo_planilla: tipoPlanilla,
             };
 
 

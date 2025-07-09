@@ -15,6 +15,12 @@ const estadosPlanilla = [
   "Procesada",
 ];
 
+// Opciones para monedas
+const monedas = [
+  { value: "colones", label: "Colones" },
+  { value: "dolares", label: "Dólares" },
+];
+
 // Abreviaturas para tipos de planilla
 const abreviaturasTipo = {
   Mensual: "Mens",
@@ -24,7 +30,7 @@ const abreviaturasTipo = {
 };
 
 // Función para generar consecutivo tipo PL-BT4212
-function generarConsecutivo(empresaNombre = "", planilla_tipo = "", fechaInicio = "", contador = "") {
+function generarConsecutivo(empresaNombre = "", planilla_tipo = "", fechaInicio = "", contador = "", moneda = "colones") {
   // Abreviatura de empresa (primera palabra, 3 letras)
   let empresaAbrev = "";
   if (empresaNombre) {
@@ -45,9 +51,11 @@ function generarConsecutivo(empresaNombre = "", planilla_tipo = "", fechaInicio 
     ? contador.toString().padStart(4, "0")
     : Math.random().toString(36).substr(2, 6).toUpperCase();
 
+  // Símbolo de moneda
+  const simboloMoneda = moneda === "colones" ? "₡" : "$";
+
   // Construcción del consecutivo
-  // Puedes ajustar el orden o quitar "EMP" si no es necesario
-  return `PL-${empresaAbrev}-${tipoAbrev}-${fechaFormateada}-${identificador}`;
+  return `PL${simboloMoneda}-${empresaAbrev}-${tipoAbrev}-${fechaFormateada}-${identificador}`;
 }
 
 export const CrearPlanilla = () => {
@@ -65,6 +73,7 @@ export const CrearPlanilla = () => {
     planilla_fecha_inicio: "",
     planilla_fecha_fin: "",
     planilla_creado_por: "",
+    planilla_moneda: "colones",
   });
 
   const [fechaInvalida, setFechaInvalida] = useState(false);
@@ -75,19 +84,19 @@ export const CrearPlanilla = () => {
   useEffect(() => {
     setFormData((prev) => ({
       ...prev,
-      planilla_codigo: generarConsecutivo(user?.nombre_empresa, prev.planilla_tipo, prev.planilla_fecha_inicio),
+      planilla_codigo: generarConsecutivo(user?.nombre_empresa, prev.planilla_tipo, prev.planilla_fecha_inicio, "", prev.planilla_moneda),
       empresa_id: user?.id_empresa || "",
     }));
   }, [user]);
 
-  // Actualizar consecutivo cuando cambian tipo o fecha de inicio
+  // Actualizar consecutivo cuando cambian tipo, fecha de inicio o moneda
   useEffect(() => {
     setFormData((prev) => ({
       ...prev,
-      planilla_codigo: generarConsecutivo(user?.nombre_empresa, formData.planilla_tipo, formData.planilla_fecha_inicio),
+      planilla_codigo: generarConsecutivo(user?.nombre_empresa, formData.planilla_tipo, formData.planilla_fecha_inicio, "", formData.planilla_moneda),
     }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [formData.planilla_tipo, formData.planilla_fecha_inicio, user?.nombre_empresa]);
+  }, [formData.planilla_tipo, formData.planilla_fecha_inicio, formData.planilla_moneda, user?.nombre_empresa]);
 
   // Validar fechas cada vez que cambian
   useEffect(() => {
@@ -179,7 +188,7 @@ export const CrearPlanilla = () => {
   const handleRefreshConsecutivo = () => {
     setFormData((prev) => ({
       ...prev,
-      planilla_codigo: generarConsecutivo(user?.nombre_empresa, formData.planilla_tipo, formData.planilla_fecha_inicio),
+      planilla_codigo: generarConsecutivo(user?.nombre_empresa, formData.planilla_tipo, formData.planilla_fecha_inicio, "", formData.planilla_moneda),
     }));
   };
 
@@ -242,6 +251,26 @@ export const CrearPlanilla = () => {
                 {tiposPlanilla.map((tipo) => (
                   <option key={tipo} value={tipo}>
                     {tipo}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Moneda */}
+            <div className="col-md-6 mb-3">
+              <label className="form-label" htmlFor="planilla_moneda">
+                Moneda
+              </label>
+              <select
+                className="form-select"
+                id="planilla_moneda"
+                name="planilla_moneda"
+                value={formData.planilla_moneda}
+                onChange={handleChange}
+              >
+                {monedas.map((moneda) => (
+                  <option key={moneda.value} value={moneda.value}>
+                    {moneda.label}
                   </option>
                 ))}
               </select>
