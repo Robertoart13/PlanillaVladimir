@@ -26,6 +26,7 @@ const QUERIES = {
    // Consulta SQL para obtener todos los registros de la tabla
    TRAER_TODOS_LOS_EMPLEADOS_DE_LA_EMPRESA: `
       SELECT 
+         id_empleado_gestor,
          numero_socio_empleado_gestor,
          nombre_completo_empleado_gestor,
          correo_empleado_gestor,
@@ -51,7 +52,9 @@ const QUERIES = {
          AND (fecha_salida_empleado_gestor IS NULL OR fecha_salida_empleado_gestor = '')
          AND salario_base_empleado_gestor IS NOT NULL
          AND salario_base_empleado_gestor != ''
-         AND id_empresa = ?;
+         AND id_empresa = ?
+         AND moneda_pago_empleado_gestor = ? 
+         and tipo_planilla_empleado_gestor = ?;
       `,
       // Consulta para obtener aumentos del empleado
       AUMENTOS: `
@@ -105,11 +108,9 @@ const QUERIES = {
  */
 const obtenerTodosDatos = async (datos, database) => {
 
-   console.log(datos);
-
    try {
       // Obtener la lista de empleados
-      const resultado = await realizarConsulta(QUERIES.TRAER_TODOS_LOS_EMPLEADOS_DE_LA_EMPRESA, [datos.empresa_id], database); 
+      const resultado = await realizarConsulta(QUERIES.TRAER_TODOS_LOS_EMPLEADOS_DE_LA_EMPRESA, [datos.empresa_id, datos.planilla_moneda, datos.tipo_planilla], database); 
       
       // Si hay un error en la consulta principal, retornarlo
       if (resultado?.status === 500) {
@@ -148,6 +149,9 @@ const obtenerTodosDatos = async (datos, database) => {
                      database
                   )
                ]);
+
+               console.log("datos adicionales", datos.planilla_id, datos.empresa_id, empleado);
+
 
                // Agregar los datos adicionales al empleado
                return {
