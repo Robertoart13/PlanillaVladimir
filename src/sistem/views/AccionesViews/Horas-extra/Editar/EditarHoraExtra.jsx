@@ -150,11 +150,10 @@ function useEmpleados(dispatch) {
         if (response.success && response.data.array?.length > 0) {
            setEmpleadoData(response.data.array);
            setEmpleadoOptions(
-              getOptionList(
-                 response.data.array,
-                 "id_empleado_gestor",
-                 (empleado) => `${empleado.nombre_completo_empleado_gestor} ${getMonedaSymbol(empleado.moneda_pago_empleado_gestor)}`
-              ),
+              response.data.array.map((empleado) => ({
+                value: empleado.id_empleado_gestor,
+                label: `${empleado.nombre_completo_empleado_gestor} ${getMonedaSymbol(empleado.moneda_pago_empleado_gestor)}`
+              }))
            );
         }
       } catch (error) {

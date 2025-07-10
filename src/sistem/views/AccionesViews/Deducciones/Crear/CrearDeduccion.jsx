@@ -176,11 +176,10 @@ function useEmpleados(dispatch) {
            
            setEmpleadoData(empleadosFiltrados);
            setEmpleadoOptions(
-              getOptionList(
-                 empleadosFiltrados,
-                 "id_empleado_gestor",
-                 (empleado) => `${empleado.nombre_completo_empleado_gestor} ${empleado.moneda_pago_empleado_gestor === "colones" ? "₡" : "$"}`
-              ),
+              empleadosFiltrados.map((empleado) => ({
+                value: empleado.id_empleado_gestor,
+                label: `${empleado.nombre_completo_empleado_gestor} ${empleado.moneda_pago_empleado_gestor === "colones" ? "₡" : "$"}`
+              }))
            );
         }
       } catch (error) {

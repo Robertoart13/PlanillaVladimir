@@ -1,7 +1,8 @@
 import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { fetchData_api } from "../../../../store/fetchData_api/fetchData_api_Thunks";
-import { formatCurrency, formatCurrencyUSD } from "../../../../hooks/formatCurrency";    
+import { formatCurrency, formatCurrencyUSD } from "../../../../hooks/formatCurrency";
+import ModalDetalleEmpleado from "./ModalDetalleEmpleado";    
 
 /**
  * =========================
@@ -135,6 +136,70 @@ const validarDatosEmpleado = (empleado) => {
 };
 
 /**
+ * Calcula el devengado total para un empleado
+ * @param {Object} empleado - Datos del empleado de la API
+ * @param {number} compensacionBase - Compensación base calculada
+ * @returns {Object} Información del devengado total
+ */
+const calcularDevengado = (empleado, compensacionBase) => {
+   let devengadoTotal = compensacionBase; // Empezar con compensación base
+   
+   // Sumar aumentos
+   if (empleado.aumentos && Array.isArray(empleado.aumentos)) {
+      empleado.aumentos.forEach(aumento => {
+         const montoAumento = parseFloat(aumento.monto_aumento_gestor) || 0;
+         devengadoTotal += montoAumento;
+      });
+   }
+   
+   // Sumar horas extras
+   if (empleado.horas_extras && Array.isArray(empleado.horas_extras)) {
+      empleado.horas_extras.forEach(horaExtra => {
+         const montoHoraExtra = parseFloat(horaExtra.monto_compensacion_calculado_gestor) || 0;
+         devengadoTotal += montoHoraExtra;
+      });
+   }
+   
+   // Sumar compensación por métrica
+   if (empleado.compensacion_metrica && Array.isArray(empleado.compensacion_metrica)) {
+      empleado.compensacion_metrica.forEach(compensacion => {
+         const montoCompensacion = parseFloat(compensacion.monto_compensacion_metrica_gestor) || 0;
+         devengadoTotal += montoCompensacion;
+      });
+   }
+   
+   // Restar rebajos a compensación
+   if (empleado.rebajos_compensacion && Array.isArray(empleado.rebajos_compensacion)) {
+      empleado.rebajos_compensacion.forEach(rebajo => {
+         const montoRebajo = parseFloat(rebajo.monto_rebajo_calculado) || 0;
+         devengadoTotal -= montoRebajo;
+      });
+   }
+   
+   // Formatear según moneda
+   let devengadoFormateado = "0";
+   if (devengadoTotal > 0) {
+      switch (empleado.moneda_pago_empleado_gestor?.toLowerCase()) {
+         case 'dolares':
+            devengadoFormateado = formatCurrencyUSD(devengadoTotal);
+            break;
+         case 'colones_y_dolares':
+            devengadoFormateado = formatCurrency(devengadoTotal);
+            break;
+         case 'colones':
+         default:
+            devengadoFormateado = formatCurrency(devengadoTotal);
+            break;
+      }
+   }
+   
+   return {
+      monto: devengadoTotal,
+      formateado: devengadoFormateado
+   };
+};
+
+/**
  * Transforma un empleado individual al formato de la tabla
  * @param {Object} empleado - Datos del empleado de la API
  * @returns {Object} Empleado transformado para la tabla
@@ -160,6 +225,9 @@ const transformarEmpleado = (empleado) => {
       datosEmpleado.tipoPlanilla
    );
    
+   // Calcular devengado total
+   const devengadoTotal = calcularDevengado(empleado, compensacionBaseCalculada);
+   
    // Calcular RTN neto total
    const rtnNetoTotal = calcularRTNNetoTotal(empleado, compensacionBaseCalculada);
    
@@ -170,10 +238,10 @@ const transformarEmpleado = (empleado) => {
       nombre: datosEmpleado.nombre,
       cedula: datosEmpleado.cedula,
       compensacion_base: compensacionBaseFormateada,
-      devengado: "0", // Por el momento en cero
+      devengado: devengadoTotal.formateado,
       cargas_sociales: cargasSociales.formateado,
       monto_rtn_neto: rtnNetoTotal.formateado,
-      monto_neto: "0", // Por el momento en cero
+      monto_neto: devengadoTotal.formateado, // Igual al devengado
       accion: "",
       estado: "Pendiente", // Siempre pendiente
    };
@@ -210,7 +278,7 @@ const transformarDatosPlanilla = (planillaData) => {
  */
 
 /**
- * Calcula el RTN neto total para un empleado basado en todos sus conceptos
+ * Calcula el RTN neto total para un empleado (solo sobre compensación base)
  * @param {Object} empleado - Datos del empleado de la API
  * @param {number} compensacionBase - Compensación base calculada
  * @returns {Object} Información del RTN neto total
@@ -226,32 +294,8 @@ const calcularRTNNetoTotal = (empleado, compensacionBase) => {
       };
    }
    
-   // Calcular RTN base sobre compensación
-   let rtnTotal = rtnInfo.monto;
-   
-   // Sumar RTN sobre aumentos si existen
-   if (empleado.aumentos && Array.isArray(empleado.aumentos)) {
-      empleado.aumentos.forEach(aumento => {
-         const montoAumento = parseFloat(aumento.monto_aumento_gestor) || 0;
-         rtnTotal += montoAumento * 0.01; // 1% sobre aumentos
-      });
-   }
-   
-   // Sumar RTN sobre horas extras si existen
-   if (empleado.horas_extras && Array.isArray(empleado.horas_extras)) {
-      empleado.horas_extras.forEach(horaExtra => {
-         const montoHoraExtra = parseFloat(horaExtra.monto_compensacion_calculado_gestor) || 0;
-         rtnTotal += montoHoraExtra * 0.01; // 1% sobre horas extras
-      });
-   }
-   
-   // Sumar RTN sobre compensación por métrica si existe
-   if (empleado.compensacion_metrica && Array.isArray(empleado.compensacion_metrica)) {
-      empleado.compensacion_metrica.forEach(compensacion => {
-         const montoCompensacion = parseFloat(compensacion.monto_compensacion_metrica_gestor) || 0;
-         rtnTotal += montoCompensacion * 0.01; // 1% sobre compensación por métrica
-      });
-   }
+   // RTN es solo el 1% sobre la compensación base
+   const rtnTotal = rtnInfo.monto;
    
    // Formatear según moneda
    let rtnFormateado = "0";
@@ -366,11 +410,15 @@ const calcularRTN = (compensacionBase, rtInsEmpleado) => {
 
 /**
  * Genera el detalle de RTN para la subtabla
- * @param {Object} rtnInfo - Información del RTN calculado
+ * @param {Object} empleado - Datos del empleado de la API
+ * @param {number} compensacionBase - Compensación base calculada
  * @param {string} monedaPago - Moneda de pago del empleado
- * @returns {Object|null} Detalle de RTN formateado o null si no aplica
+ * @returns {Object} Detalle de RTN formateado
  */
-const generarDetalleRTN = (rtnInfo, monedaPago) => {
+const generarDetalleRTN = (empleado, compensacionBase, monedaPago) => {
+   // Calcular RTN (solo sobre compensación base)
+   const rtnInfo = calcularRTN(compensacionBase, empleado.rt_ins_empleado_gestor);
+   
    if (!rtnInfo.aplica) {
       return {
          categoria: "RTN",
@@ -381,20 +429,23 @@ const generarDetalleRTN = (rtnInfo, monedaPago) => {
       };
    }
    
+   // RTN es solo el 1% sobre la compensación base
+   const rtnTotal = rtnInfo.monto;
+   
    // Formatear monto según moneda específica del empleado
    let montoFormateado = "0";
-   if (rtnInfo.monto > 0) {
+   if (rtnTotal > 0) {
       switch (monedaPago?.toLowerCase()) {
          case 'dolares':
-            montoFormateado = formatCurrencyUSD(rtnInfo.monto);
+            montoFormateado = formatCurrencyUSD(rtnTotal);
             break;
          case 'colones_y_dolares':
             // Para doble moneda, mostramos solo en colones (RTN se aplica en colones)
-            montoFormateado = formatCurrency(rtnInfo.monto);
+            montoFormateado = formatCurrency(rtnTotal);
             break;
          case 'colones':
          default:
-            montoFormateado = formatCurrency(rtnInfo.monto);
+            montoFormateado = formatCurrency(rtnTotal);
             break;
       }
    }
@@ -454,7 +505,39 @@ const generarDatosSubtabla = (planillaData) => {
          empleado.tipo_planilla_empleado_gestor
       );
       
-      // 1. PRIMERO: Agregar horas extras
+      // 1. PRIMERO: Agregar aumentos
+      if (empleado.aumentos && Array.isArray(empleado.aumentos)) {
+         empleado.aumentos.forEach(aumento => {
+            const montoAumento = parseFloat(aumento.monto_aumento_gestor) || 0;
+            let montoFormateado = "0";
+            
+            // Formatear según moneda del empleado
+            if (montoAumento > 0) {
+               switch (empleado.moneda_pago_empleado_gestor?.toLowerCase()) {
+                  case 'dolares':
+                     montoFormateado = formatCurrencyUSD(montoAumento);
+                     break;
+                  case 'colones_y_dolares':
+                     montoFormateado = formatCurrency(montoAumento);
+                     break;
+                  case 'colones':
+                  default:
+                     montoFormateado = formatCurrency(montoAumento);
+                     break;
+               }
+            }
+            
+            detalles.push({
+               categoria: "Aumento",
+               tipoAccion: "Aumento",
+               monto: montoFormateado,
+               tipo: "+",
+               estado: aumento.estado_planilla_aumento_gestor || "Pendiente"
+            });
+         });
+      }
+      
+      // 2. SEGUNDO: Agregar horas extras
       if (empleado.horas_extras && Array.isArray(empleado.horas_extras)) {
          empleado.horas_extras.forEach(horaExtra => {
             const montoHoraExtra = parseFloat(horaExtra.monto_compensacion_calculado_gestor) || 0;
@@ -486,54 +569,78 @@ const generarDatosSubtabla = (planillaData) => {
          });
       }
       
-      // 2. SEGUNDO: Calcular y agregar RTN
-      const rtnInfo = calcularRTN(compensacionBase, empleado.rt_ins_empleado_gestor);
-      const detalleRTN = generarDetalleRTN(rtnInfo, empleado.moneda_pago_empleado_gestor);
-      detalles.push(detalleRTN);
-      
-      // 3. TERCERO: Calcular y agregar Cargas Sociales
-      const ccssInfo = calcularCargasSociales(empleado);
-      const detalleCCSS = generarDetalleCCSS(ccssInfo, empleado.moneda_pago_empleado_gestor);
-      detalles.push(detalleCCSS);
-      
-      // 4. CUARTO: Agregar aumentos
-      if (empleado.aumentos && Array.isArray(empleado.aumentos)) {
-         empleado.aumentos.forEach(aumento => {
+      // 3. TERCERO: Agregar compensación por métrica
+      if (empleado.compensacion_metrica && Array.isArray(empleado.compensacion_metrica)) {
+         empleado.compensacion_metrica.forEach(compensacion => {
+            const montoCompensacion = parseFloat(compensacion.monto_compensacion_metrica_gestor) || 0;
+            let montoFormateado = "0";
+            
+            // Formatear según moneda del empleado
+            if (montoCompensacion > 0) {
+               switch (empleado.moneda_pago_empleado_gestor?.toLowerCase()) {
+                  case 'dolares':
+                     montoFormateado = formatCurrencyUSD(montoCompensacion);
+                     break;
+                  case 'colones_y_dolares':
+                     montoFormateado = formatCurrency(montoCompensacion);
+                     break;
+                  case 'colones':
+                  default:
+                     montoFormateado = formatCurrency(montoCompensacion);
+                     break;
+               }
+            }
+            
             detalles.push({
-               categoria: "Aumento",
-               tipoAccion: "Aumento",
-               monto: formatCurrency(aumento.monto_aumento_gestor) || "0",
+               categoria: "Compensación Métrica",
+               tipoAccion: "Ingreso",
+               monto: montoFormateado,
                tipo: "+",
-               estado: aumento.estado_planilla_aumento_gestor || "Pendiente"
+               estado: compensacion.estado_compensacion_metrica_gestor || "Pendiente"
             });
          });
       }
       
-      // 5. QUINTO: Agregar rebajos a compensación
+      // 4. CUARTO: Agregar rebajos a compensación
       if (empleado.rebajos_compensacion && Array.isArray(empleado.rebajos_compensacion)) {
          empleado.rebajos_compensacion.forEach(rebajo => {
+            const montoRebajo = parseFloat(rebajo.monto_rebajo_calculado) || 0;
+            let montoFormateado = "0";
+            
+            // Formatear según moneda del empleado
+            if (montoRebajo > 0) {
+               switch (empleado.moneda_pago_empleado_gestor?.toLowerCase()) {
+                  case 'dolares':
+                     montoFormateado = formatCurrencyUSD(montoRebajo);
+                     break;
+                  case 'colones_y_dolares':
+                     montoFormateado = formatCurrency(montoRebajo);
+                     break;
+                  case 'colones':
+                  default:
+                     montoFormateado = formatCurrency(montoRebajo);
+                     break;
+               }
+            }
+            
             detalles.push({
                categoria: "Rebajo Compensación",
                tipoAccion: "Deducción",
-               monto: rebajo.monto_rebajo_calculado || "0",
+               monto: montoFormateado,
                tipo: "-",
                estado: rebajo.estado_rebajo || "Pendiente"
             });
          });
       }
       
-      // 6. SEXTO: Agregar compensación por métrica
-      if (empleado.compensacion_metrica && Array.isArray(empleado.compensacion_metrica)) {
-         empleado.compensacion_metrica.forEach(compensacion => {
-            detalles.push({
-               categoria: "Compensación Métrica",
-               tipoAccion: "Ingreso",
-               monto: compensacion.monto_compensacion_metrica_gestor || "0",
-               tipo: "+",
-               estado: compensacion.estado_compensacion_metrica_gestor || "Pendiente"
-            });
-         });
-      }
+      // 5. QUINTO: Calcular y agregar RTN
+      const detalleRTN = generarDetalleRTN(empleado, compensacionBase, empleado.moneda_pago_empleado_gestor);
+      detalles.push(detalleRTN);
+      
+      // 6. SEXTO: Calcular y agregar Cargas Sociales
+      const ccssInfo = calcularCargasSociales(empleado);
+      const detalleCCSS = generarDetalleCCSS(ccssInfo, empleado.moneda_pago_empleado_gestor);
+      detalles.push(detalleCCSS);
       
       subtableData[cedula] = detalles;
    });
@@ -715,6 +822,7 @@ const PayrollTable = ({
    subtableData,
    isLoading = false,
    pageSize = 5,
+   onVerDetalle,
 }) => {
    return (
       <table
@@ -780,10 +888,7 @@ const PayrollTable = ({
                                  {col.key === "accion" ? (
                                     <button
                                        className="btn btn-primary btn-sm"
-                                       onClick={() => {
-                                          console.log("Ver detalle para:", row.nombre);
-                                          alert(`Ver detalle de ${row.nombre}`);
-                                       }}
+                                       onClick={(e) => { e.stopPropagation(); onVerDetalle(row); }}
                                        disabled={rowDisabled}
                                     >
                                        <i className="fas fa-eye"> Ver detalle</i>
@@ -1125,6 +1230,26 @@ export const PayrollGenerator = () => {
    // IDs únicos para accesibilidad
    const planillaSelectId = "planillaSelect";
 
+   // MODAL DETALLE EMPLEADO
+   const [modalEmpleado, setModalEmpleado] = useState({ show: false, empleado: null, calculos: null, aumentos: [], horasExtras: [], metricas: [], rebajos: [] });
+
+   // Handler para abrir el modal con los datos del empleado
+   const handleVerDetalle = (row) => {
+      // Buscar el empleado original en planillaData
+      const empleadoOriginal = planillaData?.find(e => String(e.numero_socio_empleado_gestor) === String(row.cedula));
+      setModalEmpleado({
+        show: true,
+        empleado: empleadoOriginal,
+        calculos: row,
+        aumentos: empleadoOriginal?.aumentos || [],
+        horasExtras: empleadoOriginal?.horas_extras || [],
+        metricas: empleadoOriginal?.compensacion_metrica || [],
+        rebajos: empleadoOriginal?.rebajos_compensacion || [],
+        tipoPlanillaLabel: selectedPlanilla?.planilla_tipo || "", // <--- agrega esto
+        periodoLabel: selectedPlanilla?.planilla_codigo || "",    // <--- o el campo que corresponda
+      });
+   };
+
    return (
       <div className="container-fluid">
          {/* Estilos globales */}
@@ -1307,6 +1432,8 @@ export const PayrollGenerator = () => {
                                        subtableData={generarDatosSubtabla(planillaData)}
                                        isLoading={loading}
                                        pageSize={pageSize}
+                                       // MODIFICACIÓN: Pasar el handler para ver detalle
+                                       onVerDetalle={handleVerDetalle}
                                     />
                                  </div>
                               </div>
@@ -1323,6 +1450,19 @@ export const PayrollGenerator = () => {
                            />
                         </>
                      )}
+                     {/* MODAL DETALLE EMPLEADO */}
+                     <ModalDetalleEmpleado
+                        show={modalEmpleado.show}
+                        onClose={() => setModalEmpleado({ ...modalEmpleado, show: false })}
+                        empleado={modalEmpleado.empleado}
+                        calculos={modalEmpleado.calculos}
+                        aumentos={modalEmpleado.aumentos}
+                        horasExtras={modalEmpleado.horasExtras}
+                        metricas={modalEmpleado.metricas}
+                        rebajos={modalEmpleado.rebajos}
+                        tipoPlanillaLabel={modalEmpleado.tipoPlanillaLabel}
+                        periodoLabel={modalEmpleado.periodoLabel}
+                     />
                   </div>
                </div>
             </div>
