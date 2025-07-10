@@ -139,7 +139,7 @@ const useEmployeeForm = () => {
                });
             }, 500);
             
-            return datosCopiados;
+            return { ...datosCopiados, isCopiedData: true };
          } catch (error) {
             console.error("Error al parsear datos copiados:", error);
             return getInitialFormData();
@@ -434,7 +434,7 @@ export const CrearEmpleado = () => {
             </div>
 
             {/* Alert for copied data */}
-            {formData.nombre_completo && (
+            {formData.isCopiedData && (
                <div className="alert alert-warning mb-4">
                   <div className="d-flex justify-content-between align-items-start">
                      <div className="flex-grow-1">

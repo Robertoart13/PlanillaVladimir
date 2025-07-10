@@ -141,6 +141,9 @@ export const getInitialFormData = () => ({
    
    // Employee Status
    estado_empleado_gestor: true,
+   
+   // Flag to indicate if data was copied from another employee
+   isCopiedData: false,
 });
 
 /**
