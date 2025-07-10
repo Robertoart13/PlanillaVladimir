@@ -29,6 +29,7 @@ const QUERIES = {
       gcm.*,  -- Todos los campos del registro de compensación por métrica
       e.nombre_comercial_empresa AS nombre_empresa,
       p.planilla_codigo AS codigo_planilla,
+      p.planilla_moneda AS planilla_moneda,
       u.nombre_usuario AS nombre_usuario_creador,
       em.nombre_completo_empleado_gestor AS nombre_empleado
    FROM 
