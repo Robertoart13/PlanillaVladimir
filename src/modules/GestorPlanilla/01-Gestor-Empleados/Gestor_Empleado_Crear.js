@@ -42,15 +42,15 @@ const QUERIES = {
 };
 
 /**
- * Mapeo de errores de duplicado a mensajes amigables
+ * Mapeo de mensajes de error de triggers a mensajes amigables
  */
-const ERROR_MESSAGES = {
-   numero_asegurado_empleado_gestor: "Ya existe un Socio registrado con este número de asegurado. Por favor, verifique el número e intente nuevamente.",
-   numero_ins_empleado_gestor: "Ya existe un Socio registrado con este número de INS. Por favor, verifique el número e intente nuevamente.",
-   numero_hacienda_empleado_gestor: "Ya existe un Socio registrado con este número de hacienda. Por favor, verifique el número e intente nuevamente.",
-   correo_empleado_gestor: "Ya existe un Socio registrado con este correo electrónico. Por favor, use un correo diferente.",
-   cedula_empleado_gestor: "Ya existe un Socio registrado con esta cédula. Por favor, verifique el número e intente nuevamente.",
-   default: "Ya existe un Socio con los mismos datos de identificación."
+const TRIGGER_ERROR_MAPPING = {
+   "Ya existe un empleado con este correo y moneda": "Ya existe un empleado con este correo y moneda. Por favor, use un correo diferente o cambie la moneda de pago.",
+   "Ya existe un empleado con esta cédula y moneda": "Ya existe un empleado con esta cédula y moneda. Por favor, verifique el número de cédula o cambie la moneda de pago.", 
+   "Ya existe un empleado con este número de asegurado y moneda": "Ya existe un empleado con este número de asegurado y moneda. Por favor, verifique el número o cambie la moneda de pago.",
+   "Ya existe un empleado con este número del INS y moneda": "Ya existe un empleado con este número del INS y moneda. Por favor, verifique el número o cambie la moneda de pago.",
+   "Ya existe un empleado con este número de Hacienda y moneda": "Ya existe un empleado con este número de Hacienda y moneda. Por favor, verifique el número o cambie la moneda de pago.",
+   "Ya existe un empleado con este número de socio y moneda": "Ya existe un empleado con este número de socio y moneda. Por favor, verifique el número o cambie la moneda de pago."
 };
 
 /**
@@ -71,7 +71,10 @@ const crearNuevoRegistroBd = async (datos,id_empresa, id_usuario, database) => {
       datos.rt_ins, datos.ccss, datos.moneda_pago, datos.tipo_planilla, 1, datos.monto_asegurado || 0
    ];
 
-   return await realizarConsulta(QUERIES.INSERT_EMPLEADO, params, database);
+
+   const resultado = await realizarConsulta(QUERIES.INSERT_EMPLEADO, params, database);
+   console.log(resultado);
+   return resultado;
 };
 
 /**
@@ -97,27 +100,27 @@ const esCreacionExitosa = (resultado) => {
 };
 
 /**
- * Obtiene un mensaje de error amigable para errores de duplicado
+ * Obtiene un mensaje de error amigable para errores de triggers
  * @param {string} errorMessage - Mensaje de error original
  * @returns {string} Mensaje de error amigable
  */
-const obtenerMensajeErrorDuplicado = (errorMessage) => {
-   for (const [campo, mensaje] of Object.entries(ERROR_MESSAGES)) {
-      if (errorMessage.includes(campo)) {
-         return mensaje;
+const obtenerMensajeErrorTrigger = (errorMessage) => {
+   for (const [triggerMessage, mensajeAmigable] of Object.entries(TRIGGER_ERROR_MAPPING)) {
+      if (errorMessage.includes(triggerMessage)) {
+         return mensajeAmigable;
       }
    }
-   return ERROR_MESSAGES.default;
+   return "Ya existe un empleado con los mismos datos de identificación.";
 };
 
 /**
- * Maneja errores específicos de duplicado
+ * Maneja errores específicos de triggers
  * @param {Object} resultado - Resultado de la operación
- * @returns {Object|null} Respuesta de error o null si no es error de duplicado
+ * @returns {Object|null} Respuesta de error o null si no es error de trigger
  */
-const manejarErrorDuplicado = (resultado) => {
-   if (resultado.error && resultado.error.includes('Duplicate entry')) {
-      const mensajeError = obtenerMensajeErrorDuplicado(resultado.error);
+const manejarErrorTrigger = (resultado) => {
+   if (resultado.error && (resultado.error.includes('SQLSTATE[45000]') || resultado.error.includes('Ya existen 2 empleados'))) {
+      const mensajeError = obtenerMensajeErrorTrigger(resultado.error);
       return crearRespuestaErrorCrearSinCaracteresEspeciales(mensajeError);
    }
    return null;
@@ -145,9 +148,9 @@ const crearTransaccion = async (req, res) => {
 
       // Verificar si la creación fue exitosa
       if (!esCreacionExitosa(resultado)) {
-         // Manejar errores de duplicado
-         const errorDuplicado = manejarErrorDuplicado(resultado);
-         if (errorDuplicado) return errorDuplicado;
+         // Manejar errores de triggers
+         const errorTrigger = manejarErrorTrigger(resultado);
+         if (errorTrigger) return errorTrigger;
          
          return crearRespuestaErrorCrearSinCaracteresEspeciales(`Error al crear el Socio: ${resultado.error}`);
       }
@@ -159,9 +162,9 @@ const crearTransaccion = async (req, res) => {
 
       return crearRespuestaExitosa(resultado.datos);
    } catch (error) {
-      // Manejar errores de duplicado en el catch
-      if (error.message && error.message.includes('Duplicate entry')) {
-         const mensajeError = obtenerMensajeErrorDuplicado(error.message);
+      // Manejar errores de triggers en el catch
+      if (error.message && (error.message.includes('SQLSTATE[45000]') || error.message.includes('Ya existen 2 empleados'))) {
+         const mensajeError = obtenerMensajeErrorTrigger(error.message);
          return crearRespuestaErrorCrearSinCaracteresEspeciales(mensajeError);
       }
       
