@@ -23,7 +23,7 @@ function getOptionList(data, valueKey, labelKey) {
  * @param {Array} data - Array de objetos.
  * @param {string|number} id - Valor a buscar.
  * @param {string} idKey - Clave del id.
- * @returns {Object|null}
+ * @returns {Object|null}  
  */
 function findById(data, id, idKey) {
    return Array.isArray(data) ? data.find((item) => item[idKey] == id) || null : null;
@@ -90,7 +90,7 @@ function useEmpleados(dispatch) {
             getOptionList(
                response.data.array,
                "id_empleado_gestor",
-               "nombre_completo_empleado_gestor",
+               (empleado) => `${empleado.nombre_completo_empleado_gestor} ${empleado.moneda_pago_empleado_gestor === "colones" ? "₡" : "$"}`
             ),
          );
       }

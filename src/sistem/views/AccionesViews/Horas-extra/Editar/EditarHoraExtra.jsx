@@ -151,7 +151,7 @@ function useEmpleados(dispatch) {
               getOptionList(
                  response.data.array,
                  "id_empleado_gestor",
-                 "nombre_completo_empleado_gestor",
+                 (empleado) => `${empleado.nombre_completo_empleado_gestor} ${empleado.moneda_pago_empleado_gestor === "colones" ? "₡" : "$"}`
               ),
            );
         }

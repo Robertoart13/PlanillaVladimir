@@ -9,12 +9,15 @@ import { useNavigate } from "react-router-dom";
  * Mapea un array de objetos a un array de opciones para un select.
  * @param {Array} data - Array de objetos originales.
  * @param {string} valueKey - Clave para el value.
- * @param {string} labelKey - Clave para el label.
+ * @param {string|function} labelKey - Clave para el label o función para generar el label.
  * @returns {Array<{value: string|number, label: string}>}
  */
 function getOptionList(data, valueKey, labelKey) {
    return Array.isArray(data)
-      ? data.map((item) => ({ value: item[valueKey], label: item[labelKey] }))
+      ? data.map((item) => ({ 
+          value: item[valueKey], 
+          label: typeof labelKey === 'function' ? labelKey(item) : item[labelKey] 
+        }))
       : [];
 }
 
@@ -64,35 +67,33 @@ function useEmpleados(dispatch) {
       setIsLoading(true);
       setEmpleadoOptions([]);
       setEmpleadoData([]);
-      
+    
       const response = await dispatch(fetchData_api(null, "gestor/planillas/empleados/options"));
-      
+    
       if (response.success && response.data.array?.length > 0) {
-         let empleadosFiltrados = response.data.array;
-         
-         // Filtrar empleados según la moneda de la planilla
-         if (planillaMoneda) {
-            empleadosFiltrados = response.data.array.filter(empleado => {
-               // Empleados con colones_y_dolares aparecen siempre
-               if (empleado.moneda_pago_empleado_gestor === "colones_y_dolares") {
-                  return true;
-               }
-               // Para otros empleados, mostrar solo los que coinciden con la moneda de la planilla
-               return empleado.moneda_pago_empleado_gestor === planillaMoneda;
-            });
-         }
-         
-         setEmpleadoData(empleadosFiltrados);
-         setEmpleadoOptions(
-            getOptionList(
-               empleadosFiltrados,
-               "id_empleado_gestor",
-               "nombre_completo_empleado_gestor",
-            ),
-         );
+        let empleadosFiltrados = response.data.array;
+    
+        // Filtrar empleados según la moneda de la planilla
+        if (planillaMoneda) {
+          empleadosFiltrados = empleadosFiltrados.filter(empleado => 
+            empleado.moneda_pago_empleado_gestor === "colones_y_dolares" ||
+            empleado.moneda_pago_empleado_gestor === planillaMoneda
+          );
+        }
+    
+        setEmpleadoData(empleadosFiltrados);
+        setEmpleadoOptions(
+          getOptionList(
+            empleadosFiltrados,
+            "id_empleado_gestor",
+            (empleado) => `${empleado.nombre_completo_empleado_gestor} ${empleado.moneda_pago_empleado_gestor === "colones" ? "₡" : "$"}`
+          )
+        );
       }
+    
       setIsLoading(false);
-   }, [dispatch]);
+    }, [dispatch]);
+    
 
    return { empleadoOptions, empleadoData, isLoading, fetchEmpleados };
 }
