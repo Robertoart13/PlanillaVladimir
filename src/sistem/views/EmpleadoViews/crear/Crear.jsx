@@ -1,11 +1,12 @@
 import { ErrorMessage } from "../../../components/ErrorMessage/ErrorMessage";
-import { TarjetaRow } from "../../../components/TarjetaRow/TarjetaRow";
+import { TarjetaRow } from "../../../components/TarjetaRow/TarjetaRow";       
 import { useState } from "react";
 import { Switch } from "@mui/material";
 import { fetchData_api } from "../../../../store/fetchData_api/fetchData_api_Thunks";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";   
 import swal from "sweetalert2";
+import { useEffect } from "react";
 import {
    validationUtils,
    REQUIRED_FIELDS_CONFIG,
@@ -119,7 +120,40 @@ const useEmployeeForm = () => {
    const navigate = useNavigate();
    const dispatch = useDispatch();
 
-   const [formData, setFormData] = useState(getInitialFormData());
+   const [formData, setFormData] = useState(() => {
+      // Verificar si hay datos copiados en localStorage
+      const empleadoCopiado = localStorage.getItem("empleadoParaCopiar");
+      if (empleadoCopiado) {
+         try {
+            const datosCopiados = JSON.parse(empleadoCopiado);
+            // Limpiar el localStorage después de cargar los datos
+            localStorage.removeItem("empleadoParaCopiar");
+            
+            // Mostrar mensaje informativo
+            setTimeout(() => {
+               swal.fire({
+                  title: "Datos copiados cargados",
+                  text: `Se han cargado los datos del empleado copiado. La moneda se ha cambiado automáticamente.`,
+                  icon: "info",
+                  confirmButtonText: "Entendido"
+               });
+            }, 500);
+            
+            return datosCopiados;
+         } catch (error) {
+            console.error("Error al parsear datos copiados:", error);
+            return getInitialFormData();
+         }
+      }
+      return getInitialFormData();
+   });
+
+   // Limpiar localStorage al desmontar el componente
+   useEffect(() => {
+      return () => {
+         localStorage.removeItem("empleadoParaCopiar");
+      };
+   }, []);
 
    /**
     * Handles form field changes with validation
@@ -398,6 +432,50 @@ export const CrearEmpleado = () => {
                   <strong>Campos únicos:</strong> Correo electrónico, Cédula, Número de asegurado, Número de INS, Número de hacienda.
                </p>
             </div>
+
+            {/* Alert for copied data */}
+            {formData.nombre_completo && (
+               <div className="alert alert-warning mb-4">
+                  <div className="d-flex justify-content-between align-items-start">
+                     <div className="flex-grow-1">
+                        <h6 className="alert-heading">
+                           <i className="fas fa-copy me-2"></i>
+                           Datos copiados de otro empleado
+                        </h6>
+                        <p className="mb-2">
+                           Se han cargado los datos del empleado: <strong>{formData.nombre_completo}</strong>
+                        </p>
+                        <div className="mb-2">
+                           <strong>Cambios automáticos realizados:</strong>
+                           <ul className="mb-2 mt-1">
+                              <li>Moneda cambiada a: <strong>{formData.moneda_pago === "colones" ? "Colones" : "Dólares"}</strong></li>
+                              <li>Campos únicos modificados para evitar duplicados</li>
+                           </ul>
+                        </div>
+                        <p className="mb-0">
+                           <strong>Nota:</strong> Los campos únicos han sido modificados automáticamente, pero puede ajustarlos según sea necesario antes de crear el nuevo empleado.
+                        </p>
+                     </div>
+                     <button
+                        type="button"
+                        className="btn btn-sm btn-outline-secondary"
+                        onClick={() => {
+                           setFormData(getInitialFormData());
+                           validation.clearAllErrors();
+                           swal.fire({
+                              title: "Formulario limpiado",
+                              text: "Se han limpiado todos los datos del formulario.",
+                              icon: "info",
+                              confirmButtonText: "Entendido"
+                           });
+                        }}
+                        title="Limpiar formulario"
+                     >
+                        <i className="fas fa-times"></i>
+                     </button>
+                  </div>
+               </div>
+            )}
 
             {/* Personal Information */}
             <FormSection title="Información Personal">

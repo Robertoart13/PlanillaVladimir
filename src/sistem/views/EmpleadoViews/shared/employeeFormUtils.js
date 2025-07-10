@@ -203,7 +203,6 @@ export const formOptions = {
    monedaPago: [
       { value: "colones", label: "Colones" },
       { value: "dolares", label: "Dólares" },
-      { value: "colones_y_dolares", label: "Colones y dólares" },
    ],
    
    tipoPlanilla: [
@@ -522,6 +521,11 @@ export const handleSwitchChange = (fieldName, checked, formData, setFormData, er
  * Improves error message handling for API responses
  */
 export const improveErrorMessage = (errorMessage) => {
+   // Si el mensaje ya viene del backend con el formato correcto de triggers, lo devolvemos tal como está
+   if (errorMessage.includes("Ya existen 2 empleados")) {
+      return errorMessage;
+   }
+   
    const errorMappings = {
       "número de asegurado": "El número de asegurado ya está registrado en el sistema. Por favor, verifique el número e intente nuevamente.",
       "número de INS": "El número de INS ya está registrado en el sistema. Por favor, verifique el número e intente nuevamente.",

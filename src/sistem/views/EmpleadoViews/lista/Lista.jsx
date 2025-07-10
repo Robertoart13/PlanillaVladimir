@@ -3,6 +3,7 @@ import { TarjetaRow } from "../../../components/TarjetaRow/TarjetaRow";
 import { Button, Stack, FormControl, InputLabel, Select, MenuItem } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { useRef, useState, useCallback } from "react";
+import swal from "sweetalert2";
 
 // campos importantes
 import { useSelector } from "react-redux";
@@ -39,6 +40,11 @@ const obtenerColumnasTabla = () => [
       title: "Supervisor",
       searchPanes: { show: true },
    },
+      {
+      data: "moneda_pago_empleado_gestor",
+      title: "Moneda de Pago",
+      searchPanes: { show: true },
+   },
    {
       data: "ministerio_hacienda_empleado_gestor",
       title: "Ministerio de Hacienda",
@@ -62,6 +68,13 @@ const obtenerColumnasTabla = () => [
       title: "Estado",
       searchPanes: { show: true },
       render: (data) => renderEstadoEmpleado(data),
+   },
+   {
+      data: null,
+      title: "Acciones",
+      searchable: false,
+      orderable: false,
+      render: (data, type, row) => renderAcciones(row),
    },
 ];
 
@@ -90,6 +103,24 @@ const renderEstadoEmpleado = (data) => {
       <span class="badge bg-light-${estaActivo ? "success" : "danger"}">
          ${estaActivo ? "Activo" : "Inactivo"}
       </span>
+   `;
+};
+
+/**
+ * Renderiza los botones de acciones para cada fila.
+ * @param {Object} row - Datos de la fila.
+ * @returns {string} HTML que representa los botones de acciones.
+ */
+const renderAcciones = (row) => {
+   return `
+      <div class="btn-group" role="group">
+         <button type="button" class="btn btn-sm btn-success" 
+                 onclick="window.copiarEmpleado(${JSON.stringify(row).replace(/"/g, '&quot;')})" 
+                 title="Copiar empleado con moneda diferente">
+            <i class="ph-duotone ph-copy me-1"></i>
+            Copiar
+         </button>
+      </div>
    `;
 };
 
@@ -160,6 +191,89 @@ export const EmpleadoLista = () => {
    useEffect(() => {
       localStorage.removeItem("selectedEmpleado");
    }, []);
+
+   // Función global para copiar empleado
+   useEffect(() => {
+      window.copiarEmpleado = (datosEmpleado) => {
+         // Formatear los datos del empleado para el formulario de crear
+         const datosParaCopiar = {
+            // Personal Information
+            nombre_completo: datosEmpleado.nombre_completo_empleado_gestor || "",
+            correo: datosEmpleado.correo_empleado_gestor || "",
+            telefono: datosEmpleado.telefono_empleado_gestor || "",
+            cedula: datosEmpleado.cedula_empleado_gestor || "",
+            
+            // Work Information
+            salario_base: datosEmpleado.salario_base_empleado_gestor || "",
+            tipo_contrato: datosEmpleado.tipo_contrato_empleado_gestor || "",
+            departamento: datosEmpleado.departamento_empleado_gestor || "",
+            puesto: datosEmpleado.puesto_empleado_gestor || "",
+            id_empresa: datosEmpleado.id_empresa || "",
+            fecha_ingreso: datosEmpleado.fecha_ingreso_empleado_gestor || "",
+            fecha_salida: datosEmpleado.fecha_salida_empleado_gestor || "",
+            jornada_laboral: datosEmpleado.jornada_laboral_empleado_gestor || "",
+            
+            // Identification Numbers
+            numero_asegurado: datosEmpleado.numero_asegurado_empleado_gestor || "",
+            numero_ins: datosEmpleado.numero_ins_empleado_gestor || "",
+            numero_hacienda: datosEmpleado.numero_hacienda_empleado_gestor || "",
+            
+            // Bank Accounts
+            cuenta_bancaria_1: datosEmpleado.cuenta_bancaria_1_empleado_gestor || "",
+            cuenta_bancaria_2: datosEmpleado.cuenta_bancaria_2_empleado_gestor || "",
+            
+            // Accumulated Benefits
+            vacaciones_acumuladas: datosEmpleado.vacaciones_acumuladas_empleado_gestor || "0",
+            aguinaldo_acumulado: datosEmpleado.aguinaldo_acumulado_empleado_gestor || "0",
+            cesantia_acumulada: datosEmpleado.cesantia_acumulada_empleado_gestor || "0",
+            
+            // Institution Switches
+            ministerio_hacienda: datosEmpleado.ministerio_hacienda_empleado_gestor === 1,
+            rt_ins: datosEmpleado.rt_ins_empleado_gestor === 1,
+            ccss: datosEmpleado.ccss_empleado_gestor === 1,
+            
+            // CCSS Amount
+            monto_asegurado: datosEmpleado.montoAsegurado_gestor_empelado || "",
+            
+            // Payment Configuration - SOLO cambiar moneda
+            moneda_pago: datosEmpleado.moneda_pago_empleado_gestor === "colones" ? "dolares" : "colones",
+            tipo_planilla: datosEmpleado.tipo_planilla_empleado_gestor || "",
+            
+            // Employee Status
+            estado_empleado_gestor: true,
+         };
+
+         // Guardar en localStorage
+         localStorage.setItem("empleadoParaCopiar", JSON.stringify(datosParaCopiar));
+         
+         // Mostrar mensaje de confirmación
+         swal.fire({
+            title: "Empleado copiado",
+            html: `
+               <p>Se ha copiado la información del empleado <strong>${datosEmpleado.nombre_completo_empleado_gestor}</strong>.</p>
+               <p><strong>Único cambio:</strong></p>
+               <ul style="text-align: left;">
+                  <li>Moneda cambiada a: <strong>${datosParaCopiar.moneda_pago === "colones" ? "Colones" : "Dólares"}</strong></li>
+               </ul>
+               <p><small class="text-muted">Toda la demás información se mantiene igual. Recuerde modificar los campos únicos antes de crear.</small></p>
+            `,
+            icon: "success",
+            confirmButtonText: "Ir a crear",
+            showCancelButton: true,
+            cancelButtonText: "Cancelar",
+            width: "500px"
+         }).then((result) => {
+            if (result.isConfirmed) {
+               navigate("/empleados/crear");
+            }
+         });
+      };
+
+      // Limpiar la función global al desmontar el componente
+      return () => {
+         delete window.copiarEmpleado;
+      };
+   }, [navigate]);
 
    /**
     * Maneja el cambio en el filtro de estado.
