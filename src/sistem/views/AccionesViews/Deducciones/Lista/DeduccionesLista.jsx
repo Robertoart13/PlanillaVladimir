@@ -8,22 +8,9 @@ import { TarjetaRow } from "../../../../components/TarjetaRow/TarjetaRow";
 import { Button, Stack, FormControl, InputLabel, Select, MenuItem, Alert } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { useDataTable } from "../../../../../hooks/getDataTableConfig";
+import { getMonedaSymbol } from "../../../../../hooks/formatCurrency";
 
-/**
- * Obtiene el símbolo de moneda basado en la moneda de la planilla
- * @param {string} moneda - Moneda de la planilla ('colones', 'dolares', etc.)
- * @returns {string} Símbolo de moneda
- */
-const getMonedaSymbol = (moneda) => {
-   switch (moneda?.toLowerCase()) {
-      case 'dolares':
-      case 'dólares':
-         return '$';
-      case 'colones':
-      default:
-         return '₡';
-   }
-};
+
 
 // Constantes para los textos
 const TEXTOS = {

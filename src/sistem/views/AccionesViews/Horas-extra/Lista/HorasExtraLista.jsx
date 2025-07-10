@@ -8,6 +8,7 @@ import { TarjetaRow } from "../../../../components/TarjetaRow/TarjetaRow";
 import { Button, Stack, FormControl, InputLabel, Select, MenuItem, Alert } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { useDataTable } from "../../../../../hooks/getDataTableConfig";
+import { getMonedaSymbol } from "../../../../../hooks/formatCurrency";
 
 // Constantes para los textos
 const TEXTOS = {
@@ -56,10 +57,8 @@ const OPCIONES_ESTADO = [
          searchPanes: { show: true },
          render: function(data, type, row) {
             if (type === 'display') {
-               return new Intl.NumberFormat('es-CR', {
-                  style: 'currency',
-                  currency: 'CRC'
-               }).format(data);
+               const simbolo = getMonedaSymbol(row.planilla_moneda || 'colones');
+               return `<span style="font-weight: bold;">${simbolo}${parseFloat(data).toLocaleString('es-CR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>`;
             }
             return data;
          }
