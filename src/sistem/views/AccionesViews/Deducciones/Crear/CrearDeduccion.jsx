@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useDispatch } from "react-redux";
 import { fetchData_api } from "../../../../../store/fetchData_api/fetchData_api_Thunks";
-import { formatCurrency } from "../../../../../hooks/formatCurrency";
+import { formatCurrencyByPlanilla, getMonedaSymbol } from "../../../../../hooks/formatCurrency";
 import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
+
+
 
 // Opciones para los tipos de rebajo según la documentación
 const tiposRebajo = [
@@ -492,7 +494,7 @@ export const CrearDeduccion = () => {
     const socio = selectedEmpleadoData.numero_socio_empleado_gestor;
     const tipoRebajo = tipoRebajoSeleccionado?.label || formData.tipo_rebajo;
     const fechaRebajo = formData.fecha_rebajo;
-    const montoCalculado = formatCurrency(formData.monto_rebajo_calculado);
+    const montoCalculado = formatCurrencyByPlanilla(selectedPlanillaData?.planilla_moneda, formData.monto_rebajo_calculado);
 
     // HTML mejorado y centrado para el swal
     let htmlMsg = `
@@ -765,15 +767,15 @@ export const CrearDeduccion = () => {
                 Salario Actual <span className="text-danger">*</span>
               </label>
               <div className="input-group">
-                <span className="input-group-text">₡</span>
+                <span className="input-group-text">{getMonedaSymbol(selectedPlanillaData?.planilla_moneda)}</span>
                 <input
                   type="text"
                   className="form-control"
                   id="salario_actual"
                   name="salario_actual"
-                  value={formatCurrency(formData.salario_actual || 0)}
+                  value={formatCurrencyByPlanilla(selectedPlanillaData?.planilla_moneda, formData.salario_actual || 0)}
                   readOnly
-                  placeholder="₡0.00"
+                  placeholder={`${getMonedaSymbol(selectedPlanillaData?.planilla_moneda)}0.00`}
                 />
               </div>
             </div>
@@ -843,7 +845,7 @@ export const CrearDeduccion = () => {
                   Monto Fijo <span className="text-danger">*</span>
                 </label>
                 <div className="input-group">
-                  <span className="input-group-text">₡</span>
+                  <span className="input-group-text">{getMonedaSymbol(selectedPlanillaData?.planilla_moneda)}</span>
                   <input
                     type="number"
                     className="form-control"
@@ -882,13 +884,13 @@ export const CrearDeduccion = () => {
                 Monto Calculado <span className="text-danger">*</span>
               </label>
               <div className="input-group">
-                <span className="input-group-text">₡</span>
+                <span className="input-group-text">{getMonedaSymbol(selectedPlanillaData?.planilla_moneda)}</span>
                 <input
                   type="text"
                   className="form-control"
                   id="monto_rebajo_calculado"
                   name="monto_rebajo_calculado"
-                  value={formatCurrency(formData.monto_rebajo_calculado || 0)}
+                  value={formatCurrencyByPlanilla(selectedPlanillaData?.planilla_moneda, formData.monto_rebajo_calculado || 0)}
                   readOnly
                   placeholder="Se calcula automáticamente"
                 />
@@ -966,9 +968,9 @@ export const CrearDeduccion = () => {
                           const salarioHora = salario / divisor.horas;
                           return (
                             <>
-                              <div>• Salario por hora: {formatCurrency(salarioHora)}</div>
-                              <div>• Horas rebajadas: {horas} horas</div>
-                              <div>• Cálculo: {formatCurrency(salarioHora)} × {horas} = {formatCurrency(formData.monto_rebajo_calculado)}</div>
+                                                          <div>• Salario por hora: {formatCurrencyByPlanilla(selectedPlanillaData?.planilla_moneda, salarioHora)}</div>
+                            <div>• Horas rebajadas: {horas} horas</div>
+                            <div>• Cálculo: {formatCurrencyByPlanilla(selectedPlanillaData?.planilla_moneda, salarioHora)} × {horas} = {formatCurrencyByPlanilla(selectedPlanillaData?.planilla_moneda, formData.monto_rebajo_calculado)}</div>
                             </>
                           );
                         } else if (tipoRebajoSeleccionado.campo === "dias") {
@@ -976,9 +978,9 @@ export const CrearDeduccion = () => {
                           const salarioDia = salario / divisor.dias;
                           return (
                             <>
-                              <div>• Salario por día: {formatCurrency(salarioDia)}</div>
-                              <div>• Días rebajados: {dias} días</div>
-                              <div>• Cálculo: {formatCurrency(salarioDia)} × {dias} = {formatCurrency(formData.monto_rebajo_calculado)}</div>
+                                                          <div>• Salario por día: {formatCurrencyByPlanilla(selectedPlanillaData?.planilla_moneda, salarioDia)}</div>
+                            <div>• Días rebajados: {dias} días</div>
+                            <div>• Cálculo: {formatCurrencyByPlanilla(selectedPlanillaData?.planilla_moneda, salarioDia)} × {dias} = {formatCurrencyByPlanilla(selectedPlanillaData?.planilla_moneda, formData.monto_rebajo_calculado)}</div>
                             </>
                           );
                         }

@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useDispatch } from "react-redux";
 import { fetchData_api } from "../../../../../store/fetchData_api/fetchData_api_Thunks";
-import { formatCurrency } from "../../../../../hooks/formatCurrency";
+import { formatCurrencyByPlanilla, getMonedaSymbol } from "../../../../../hooks/formatCurrency";
 import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
+
+
 
 // ============================================================================
 // FUNCIONES UTILITARIAS
@@ -151,7 +153,7 @@ function useEmpleados(dispatch) {
               getOptionList(
                  response.data.array,
                  "id_empleado_gestor",
-                 (empleado) => `${empleado.nombre_completo_empleado_gestor} ${empleado.moneda_pago_empleado_gestor === "colones" ? "₡" : "$"}`
+                 (empleado) => `${empleado.nombre_completo_empleado_gestor} ${getMonedaSymbol(empleado.moneda_pago_empleado_gestor)}`
               ),
            );
         }
@@ -203,6 +205,9 @@ export const EditarHoraExtra = () => {
 
   // Estado del empleado seleccionado
   const [selectedEmpleadoData, setSelectedEmpleadoData] = useState(null);
+  
+  // Estado de la planilla seleccionada
+  const [selectedPlanillaData, setSelectedPlanillaData] = useState(null);
 
   // ============================================================================
   // EFECTOS
@@ -290,6 +295,25 @@ export const EditarHoraExtra = () => {
       setSelectedEmpleadoData(null);
     }
   }, [formData.empleado_id_compensacion_extra_gestor, empleadoData, formData.remuneracion_actual_gestor]);
+
+  // Actualizar datos de la planilla cuando se selecciona una
+  useEffect(() => {
+    if (formData.planilla_id_compensacion_extra_gestor) {
+      // Buscar la planilla en las opciones disponibles
+      const planillaObj = planillaOptions.find(option => option.value == formData.planilla_id_compensacion_extra_gestor);
+      if (planillaObj) {
+        // Necesitamos obtener los datos completos de la planilla
+        // Por ahora, usaremos un objeto con la información básica
+        setSelectedPlanillaData({
+          planilla_id: planillaObj.value,
+          planilla_codigo: planillaObj.label,
+          planilla_moneda: "colones" // Por defecto, se puede mejorar obteniendo los datos completos
+        });
+      }
+    } else {
+      setSelectedPlanillaData(null);
+    }
+  }, [formData.planilla_id_compensacion_extra_gestor, planillaOptions]);
 
   // Calcular compensación extra automáticamente cuando cambien los campos relevantes
   useEffect(() => {
@@ -649,15 +673,15 @@ export const EditarHoraExtra = () => {
                 Remuneracion Actual
               </label>
               <div className="input-group">
-                <span className="input-group-text">₡</span>
+                <span className="input-group-text">{getMonedaSymbol(selectedPlanillaData?.planilla_moneda)}</span>
                 <input
                   type="text"
                   className="form-control"
                   id="remuneracion_actual_gestor"
                   name="remuneracion_actual_gestor"
-                  value={formatCurrency(formData.remuneracion_actual_gestor || 0)}
+                  value={formatCurrencyByPlanilla(selectedPlanillaData?.planilla_moneda, formData.remuneracion_actual_gestor || 0)}
                   readOnly
-                  placeholder="₡0.00"
+                  placeholder={`${getMonedaSymbol(selectedPlanillaData?.planilla_moneda)}0.00`}
                 />
               </div>
             </div>
@@ -758,13 +782,13 @@ export const EditarHoraExtra = () => {
                 Compensacion Extra (Calculada) <span className="text-danger">*</span>
               </label>
               <div className="input-group">
-                <span className="input-group-text">₡</span>
+                <span className="input-group-text">{getMonedaSymbol(selectedPlanillaData?.planilla_moneda)}</span>
                 <input
                   type="text"
                   className="form-control"
                   id="monto_compensacion_calculado_gestor"
                   name="monto_compensacion_calculado_gestor"
-                  value={formatCurrency(formData.monto_compensacion_calculado_gestor || 0)}
+                  value={formatCurrencyByPlanilla(selectedPlanillaData?.planilla_moneda, formData.monto_compensacion_calculado_gestor || 0)}
                   readOnly
                   placeholder="Se calcula automáticamente"
                 />
@@ -820,10 +844,10 @@ export const EditarHoraExtra = () => {
                         
                         return (
                           <>
-                            <div>• Salario por hora: {formatCurrency(salarioHora)}</div>
+                            <div>• Salario por hora: {formatCurrencyByPlanilla(selectedPlanillaData?.planilla_moneda, salarioHora)}</div>
                             <div>• Multiplicador ({formData.tipo_compensacion_extra_gestor}): {multiplicador}x</div>
                             <div>• Horas trabajadas: {formData.cantidad_horas_gestor} horas</div>
-                            <div>• Cálculo: {formatCurrency(salarioHora)} × {multiplicador} × {formData.cantidad_horas_gestor} = {formatCurrency(formData.monto_compensacion_calculado_gestor)}</div>
+                            <div>• Cálculo: {formatCurrencyByPlanilla(selectedPlanillaData?.planilla_moneda, salarioHora)} × {multiplicador} × {formData.cantidad_horas_gestor} = {formatCurrencyByPlanilla(selectedPlanillaData?.planilla_moneda, formData.monto_compensacion_calculado_gestor)}</div>
                           </>
                         );
                       } catch (error) {

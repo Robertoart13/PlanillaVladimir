@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useDispatch } from "react-redux";
 import { fetchData_api } from "../../../../../store/fetchData_api/fetchData_api_Thunks";
-import { formatCurrency } from "../../../../../hooks/formatCurrency";
+import { formatCurrencyByPlanilla, getMonedaSymbol } from "../../../../../hooks/formatCurrency";
 import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
+
+
 
 /**
  * Mapea un array de objetos a un array de opciones para un select.
@@ -281,7 +283,7 @@ export const CrearAumento = () => {
         </div>
         <div style="font-size:1.1em; margin-bottom:6px;">
           <b>Monto del Aumento:</b> <span style="font-weight:500; color:green;">
-            ${tipoAjuste === "Fijo" ? "₡" : "%"}${montoAumento}
+            ${tipoAjuste === "Fijo" ? formatCurrencyByPlanilla(selectedPlanillaData?.planilla_moneda, montoAumento) : "%" + montoAumento}
           </span>
         </div>
         <div style="font-size:1.1em; margin-bottom:6px;">
@@ -518,15 +520,15 @@ export const CrearAumento = () => {
                         Remuneración Actual <span className="text-danger">*</span>
                      </label>
                      <div className="input-group">
-                        <span className="input-group-text">₡</span>
+                        <span className="input-group-text">{getMonedaSymbol(selectedPlanillaData?.planilla_moneda)}</span>
                         <input
                            type="text"
                            className="form-control"
                            id="remuneracion_actual"
                            name="remuneracion_actual"
-                           value={formatCurrency(formData.remuneracion_actual || 0)}
+                           value={formatCurrencyByPlanilla(selectedPlanillaData?.planilla_moneda, formData.remuneracion_actual || 0)}
                            readOnly
-                           placeholder="₡0.00"
+                           placeholder={`${getMonedaSymbol(selectedPlanillaData?.planilla_moneda)}0.00`}
                         />
                      </div>
                   </div>
@@ -547,7 +549,7 @@ export const CrearAumento = () => {
                         onChange={handleChange}
                         required
                      >
-                        <option value="Fijo">Fijo (₡)</option>
+                        <option value="Fijo">Fijo ({getMonedaSymbol(selectedPlanillaData?.planilla_moneda)})</option>
                         <option value="Porcentual">Porcentual (%)</option>
                      </select>
                   </div>
@@ -562,7 +564,7 @@ export const CrearAumento = () => {
                      </label>
                      <div className="input-group">
                         <span className="input-group-text">
-                           {formData.tipo_ajuste === "Fijo" ? "₡" : "%"}
+                           {formData.tipo_ajuste === "Fijo" ? getMonedaSymbol(selectedPlanillaData?.planilla_moneda) : "%"}
                         </span>
                         <input
                            type="number"
@@ -592,13 +594,13 @@ export const CrearAumento = () => {
                         Remuneración Nueva
                      </label>
                      <div className="input-group">
-                        <span className="input-group-text">₡</span>
+                        <span className="input-group-text">{getMonedaSymbol(selectedPlanillaData?.planilla_moneda)}</span>
                         <input
                            type="text"
                            className="form-control"
                            id="remuneracion_nueva"
                            name="remuneracion_nueva"
-                           value={formatCurrency(formData.remuneracion_nueva || 0)}
+                           value={formatCurrencyByPlanilla(selectedPlanillaData?.planilla_moneda, formData.remuneracion_nueva || 0)}
                            readOnly
                            placeholder="Se calcula automáticamente"
                         />

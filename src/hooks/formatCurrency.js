@@ -27,7 +27,39 @@ const formatCurrency = (value) => {
    });
  };
 
+/**
+ * Determina qué función de formateo usar basándose en la moneda de la planilla
+ * @param {string} moneda - Moneda de la planilla ('colones', 'dolares', 'dólares', etc.)
+ * @param {number|string} value - Valor a formatear
+ * @returns {string} Valor formateado con el símbolo de moneda correspondiente
+ */
+const formatCurrencyByPlanilla = (moneda, value) => {
+   switch (moneda?.toLowerCase()) {
+      case 'dolares':
+      case 'dólares':
+         return formatCurrencyUSD(value);
+      case 'colones':
+      default:
+         return formatCurrency(value);
+   }
+};
+
+/**
+ * Obtiene el símbolo de moneda basado en la moneda de la planilla
+ * @param {string} moneda - Moneda de la planilla ('colones', 'dolares', etc.)
+ * @returns {string} Símbolo de moneda
+ */
+const getMonedaSymbol = (moneda) => {
+   switch (moneda?.toLowerCase()) {
+      case 'dolares':
+      case 'dólares':
+         return '$';
+      case 'colones':
+      default:
+         return '₡';
+   }
+};
 
  
- export { formatCurrencyUSD, formatCurrency };
+ export { formatCurrencyUSD, formatCurrency, formatCurrencyByPlanilla, getMonedaSymbol };
  

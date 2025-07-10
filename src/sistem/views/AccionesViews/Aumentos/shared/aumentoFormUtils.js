@@ -85,8 +85,37 @@ export const getInitialFormData = () => ({
 });
 
 /**
+ * Obtiene el símbolo de moneda basado en la moneda de la planilla
+ * @param {string} moneda - Moneda de la planilla ('colones', 'dolares', etc.)
+ * @returns {string} Símbolo de moneda
+ */
+export const getMonedaSymbol = (moneda) => {
+   switch (moneda?.toLowerCase()) {
+      case 'dolares':
+      case 'dólares':
+         return '$';
+      case 'colones':
+      default:
+         return '₡';
+   }
+};
+
+/**
  * Options for form select fields
  */
+export const getFormOptions = (moneda) => ({
+   tipoAjuste: [
+      { value: "Fijo", label: `Fijo (${getMonedaSymbol(moneda)})` },
+      { value: "Porcentual", label: "Porcentual (%)" },
+   ],
+   
+   estados: [
+      { value: "Activo", label: "Activo" },
+      { value: "Inactivo", label: "Inactivo" },
+   ],
+});
+
+// Mantener la versión estática para compatibilidad
 export const formOptions = {
    tipoAjuste: [
       { value: "Fijo", label: "Fijo (₡)" },

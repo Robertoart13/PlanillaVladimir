@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useDispatch } from "react-redux";
 import { fetchData_api } from "../../../../../store/fetchData_api/fetchData_api_Thunks";
-import { formatCurrency } from "../../../../../hooks/formatCurrency";
+import { formatCurrencyByPlanilla, getMonedaSymbol } from "../../../../../hooks/formatCurrency";
 import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
+
+
 
 // ============================================================================
 // FUNCIONES UTILITARIAS
@@ -168,7 +170,7 @@ function useEmpleados(dispatch) {
               getOptionList(
                  empleadosFiltrados,
                  "id_empleado_gestor",
-                 (empleado) => `${empleado.nombre_completo_empleado_gestor} ${empleado.moneda_pago_empleado_gestor === "colones" ? "₡" : "$"}`
+                 (empleado) => `${empleado.nombre_completo_empleado_gestor} ${getMonedaSymbol(empleado.moneda_pago_empleado_gestor)}`
               ),
            );
         }
@@ -667,15 +669,15 @@ export const CrearHoraExtra = () => {
                 Remuneracion Actual
               </label>
               <div className="input-group">
-                <span className="input-group-text">₡</span>
+                <span className="input-group-text">{getMonedaSymbol(selectedPlanillaData?.planilla_moneda)}</span>
                 <input
                   type="text"
                   className="form-control"
                   id="Remuneracion_Actual"
                   name="Remuneracion_Actual"
-                  value={formatCurrency(formData.Remuneracion_Actual || 0)}
+                  value={formatCurrencyByPlanilla(selectedPlanillaData?.planilla_moneda, formData.Remuneracion_Actual || 0)}
                   readOnly
-                  placeholder="₡0.00"
+                  placeholder={`${getMonedaSymbol(selectedPlanillaData?.planilla_moneda)}0.00`}
                 />
               </div>
             </div>
@@ -776,13 +778,13 @@ export const CrearHoraExtra = () => {
                 Compensacion Extra (Calculada) <span className="text-danger">*</span>
               </label>
               <div className="input-group">
-                <span className="input-group-text">₡</span>
+                <span className="input-group-text">{getMonedaSymbol(selectedPlanillaData?.planilla_moneda)}</span>
                 <input
                   type="text"
                   className="form-control"
                   id="compensacion_extra"
                   name="compensacion_extra"
-                  value={formatCurrency(formData.compensacion_extra || 0)}
+                  value={formatCurrencyByPlanilla(selectedPlanillaData?.planilla_moneda, formData.compensacion_extra || 0)}
                   readOnly
                   placeholder="Se calcula automáticamente"
                 />
@@ -838,10 +840,10 @@ export const CrearHoraExtra = () => {
                         
                         return (
                           <>
-                            <div>• Salario por hora: {formatCurrency(salarioHora)}</div>
+                            <div>• Salario por hora: {formatCurrencyByPlanilla(selectedPlanillaData?.planilla_moneda, salarioHora)}</div>
                             <div>• Multiplicador ({formData.tipo_compensacion_extra}): {multiplicador}x</div>
                             <div>• Horas trabajadas: {formData.cantidad_horas} horas</div>
-                            <div>• Cálculo: {formatCurrency(salarioHora)} × {multiplicador} × {formData.cantidad_horas} = {formatCurrency(formData.compensacion_extra)}</div>
+                            <div>• Cálculo: {formatCurrencyByPlanilla(selectedPlanillaData?.planilla_moneda, salarioHora)} × {multiplicador} × {formData.cantidad_horas} = {formatCurrencyByPlanilla(selectedPlanillaData?.planilla_moneda, formData.compensacion_extra)}</div>
                           </>
                         );
                       } catch (error) {

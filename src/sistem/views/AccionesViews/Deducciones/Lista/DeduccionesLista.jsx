@@ -9,6 +9,22 @@ import { Button, Stack, FormControl, InputLabel, Select, MenuItem, Alert } from 
 import { useNavigate } from "react-router-dom";
 import { useDataTable } from "../../../../../hooks/getDataTableConfig";
 
+/**
+ * Obtiene el símbolo de moneda basado en la moneda de la planilla
+ * @param {string} moneda - Moneda de la planilla ('colones', 'dolares', etc.)
+ * @returns {string} Símbolo de moneda
+ */
+const getMonedaSymbol = (moneda) => {
+   switch (moneda?.toLowerCase()) {
+      case 'dolares':
+      case 'dólares':
+         return '$';
+      case 'colones':
+      default:
+         return '₡';
+   }
+};
+
 // Constantes para los textos
 const TEXTOS = {
    titulo: "Listado de Rebajos a Compensación",
@@ -52,7 +68,8 @@ const obtenerColumnasTabla = () => [
       searchPanes: { show: false },
       render: function(data, type, row) {
          if (type === 'display') {
-            return `<span style="color: red; font-weight: bold;">₡${parseFloat(data).toLocaleString('es-CR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>`;
+            const simbolo = getMonedaSymbol(row.planilla_moneda || 'colones');
+            return `<span style="color: red; font-weight: bold;">${simbolo}${parseFloat(data).toLocaleString('es-CR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>`;
          }
          return data;
       }

@@ -5,6 +5,22 @@ import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
 
 /**
+ * Obtiene el símbolo de moneda basado en la moneda de la planilla
+ * @param {string} moneda - Moneda de la planilla ('colones', 'dolares', etc.)
+ * @returns {string} Símbolo de moneda
+ */
+function getMonedaSymbol(moneda) {
+   switch (moneda?.toLowerCase()) {
+      case 'dolares':
+      case 'dólares':
+         return '$';
+      case 'colones':
+      default:
+         return '₡';
+   }
+}
+
+/**
  * Mapea un array de objetos a un array de opciones para un select.
  * @param {Array} data - Array de objetos originales.
  * @param {string} valueKey - Clave para el value.
@@ -75,7 +91,7 @@ function useEmpleados(dispatch) {
             getOptionList(
                empleadosFiltrados,
                "id_empleado_gestor",
-               (empleado) => `${empleado.nombre_completo_empleado_gestor} ${empleado.moneda_pago_empleado_gestor === "colones" ? "₡" : "$"}`
+               (empleado) => `${empleado.nombre_completo_empleado_gestor} ${getMonedaSymbol(empleado.moneda_pago_empleado_gestor)}`
             ),
          );
       }
@@ -465,18 +481,21 @@ export const CrearBonificaciones = () => {
               <label className="form-label" htmlFor="monto_bonificacion">
                 Monto de Compensacion por Metrica <span className="text-danger">*</span>
               </label>
-              <input
-                type="number"
-                className={`form-control ${formData.monto_bonificacion && parseFloat(formData.monto_bonificacion) <= 0 ? 'is-invalid' : ''}`}
-                id="monto_bonificacion"
-                name="monto_bonificacion"
-                value={formData.monto_bonificacion}
-                onChange={handleChange}
-                placeholder="0.00"
-                step="0.01"
-                min="0.01"
-                required
-              />
+              <div className="input-group">
+                <span className="input-group-text">{getMonedaSymbol(selectedPlanillaData?.planilla_moneda)}</span>
+                <input
+                  type="number"
+                  className={`form-control ${formData.monto_bonificacion && parseFloat(formData.monto_bonificacion) <= 0 ? 'is-invalid' : ''}`}
+                  id="monto_bonificacion"
+                  name="monto_bonificacion"
+                  value={formData.monto_bonificacion}
+                  onChange={handleChange}
+                  placeholder="0.00"
+                  step="0.01"
+                  min="0.01"
+                  required
+                />
+              </div>
               {formData.monto_bonificacion && parseFloat(formData.monto_bonificacion) <= 0 && (
                 <div className="invalid-feedback">
                   El monto debe ser mayor a cero

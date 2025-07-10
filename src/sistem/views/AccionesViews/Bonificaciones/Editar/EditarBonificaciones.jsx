@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useDispatch } from "react-redux";
 import { fetchData_api } from "../../../../../store/fetchData_api/fetchData_api_Thunks";
-import { formatCurrency } from "../../../../../hooks/formatCurrency";
+import { formatCurrencyByPlanilla, getMonedaSymbol } from "../../../../../hooks/formatCurrency";
 import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
+
+
 
 /**
  * Mapea un array de objetos a un array de opciones para un select.
@@ -723,7 +725,7 @@ export const EditarBonificaciones = () => {
                               Monto de Compensacion por Metrica <span className="text-danger">*</span>
                            </label>
                            <div className="input-group">
-                              <span className="input-group-text">₡</span>
+                              <span className="input-group-text">{getMonedaSymbol(selectedPlanillaData?.planilla_moneda)}</span>
                               <input
                                  type="number"
                                  className={`form-control ${formData.monto_bonificacion && parseFloat(formData.monto_bonificacion) <= 0 ? 'is-invalid' : ''}`}

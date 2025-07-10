@@ -9,6 +9,22 @@ import { Button, Stack, FormControl, InputLabel, Select, MenuItem, Alert } from 
 import { useNavigate } from "react-router-dom";
 import { useDataTable } from "../../../../../hooks/getDataTableConfig";
 
+/**
+ * Obtiene el símbolo de moneda basado en la moneda de la planilla
+ * @param {string} moneda - Moneda de la planilla ('colones', 'dolares', etc.)
+ * @returns {string} Símbolo de moneda
+ */
+const getMonedaSymbol = (moneda) => {
+   switch (moneda?.toLowerCase()) {
+      case 'dolares':
+      case 'dólares':
+         return '$';
+      case 'colones':
+      default:
+         return '₡';
+   }
+};
+
 // Constantes para los textos
 const TEXTOS = {
    titulo: "Listado de Aumentos Salariales",
@@ -48,7 +64,10 @@ const obtenerColumnasTabla = () => [
       render: function(data, type, row) {
          if (type === 'display') {
             if (data === 'Fijo') {
-               return '<span style="color: blue; font-weight: bold;">Fijo (₡)</span>';
+               // Usar símbolo dinámico si tenemos acceso a la moneda de la planilla
+               const moneda = row.planilla_moneda || 'colones';
+               const simbolo = getMonedaSymbol(moneda);
+               return `<span style="color: blue; font-weight: bold;">Fijo (${simbolo})</span>`;
             } else if (data === 'Porcentual') {
                return '<span style="color: green; font-weight: bold;">Porcentual (%)</span>';
             } else {
@@ -65,7 +84,7 @@ const obtenerColumnasTabla = () => [
       render: function(data, type, row) {
          if (type === 'display') {
             const tipoAjuste = row.tipo_ajuste_aumento_gestor;
-            const simbolo = tipoAjuste === 'Fijo' ? '₡' : '%';
+            const simbolo = tipoAjuste === 'Fijo' ? getMonedaSymbol(row.planilla_moneda || 'colones') : '%';
             return `<span style="font-weight: bold;">${simbolo}${parseFloat(data).toLocaleString('es-CR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>`;
          }
          return data;
@@ -77,7 +96,8 @@ const obtenerColumnasTabla = () => [
       searchPanes: { show: false },
       render: function(data, type, row) {
          if (type === 'display') {
-            return `<span style="font-weight: bold;">₡${parseFloat(data).toLocaleString('es-CR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>`;
+            const simbolo = getMonedaSymbol(row.planilla_moneda || 'colones');
+            return `<span style="font-weight: bold;">${simbolo}${parseFloat(data).toLocaleString('es-CR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>`;
          }
          return data;
       }
@@ -88,7 +108,8 @@ const obtenerColumnasTabla = () => [
       searchPanes: { show: false },
       render: function(data, type, row) {
          if (type === 'display') {
-            return `<span style="color: green; font-weight: bold;">₡${parseFloat(data).toLocaleString('es-CR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>`;
+            const simbolo = getMonedaSymbol(row.planilla_moneda || 'colones');
+            return `<span style="color: green; font-weight: bold;">${simbolo}${parseFloat(data).toLocaleString('es-CR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>`;
          }
          return data;
       }
