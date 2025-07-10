@@ -26,35 +26,38 @@ const QUERIES = {
    // Consulta SQL para obtener todos los registros de la tabla
    TRAER_TODOS_LOS_EMPLEADOS_DE_LA_EMPRESA: `
       SELECT 
-         id_empleado_gestor,
-         numero_socio_empleado_gestor,
-         nombre_completo_empleado_gestor,
-         correo_empleado_gestor,
-         cedula_empleado_gestor,
-         salario_base_empleado_gestor,
-         tipo_contrato_empleado_gestor,
-         supervisor_empleado_gestor,
-         fecha_ingreso_empleado_gestor,
-         fecha_salida_empleado_gestor,
-         numero_asegurado_empleado_gestor,
-         numero_ins_empleado_gestor,
-         numero_hacienda_empleado_gestor,
-         cuenta_bancaria_1_empleado_gestor,
-         ministerio_hacienda_empleado_gestor,
-         rt_ins_empleado_gestor,
-         ccss_empleado_gestor,
-         moneda_pago_empleado_gestor,
-         estado_empleado_gestor,
-         montoAsegurado_gestor_empelado,
-         tipo_planilla_empleado_gestor
-      FROM gestor_empleado_tbl
-      WHERE estado_empleado_gestor = 1
-         AND (fecha_salida_empleado_gestor IS NULL OR fecha_salida_empleado_gestor = '')
-         AND salario_base_empleado_gestor IS NOT NULL
-         AND salario_base_empleado_gestor != ''
-         AND id_empresa = ?
-         AND moneda_pago_empleado_gestor = ? 
-         and tipo_planilla_empleado_gestor = ?;
+    e.id_empleado_gestor,
+    e.numero_socio_empleado_gestor,
+    e.nombre_completo_empleado_gestor,
+    e.correo_empleado_gestor,
+    e.cedula_empleado_gestor,
+    e.salario_base_empleado_gestor,
+    e.tipo_contrato_empleado_gestor,
+    e.supervisor_empleado_gestor,
+    e.fecha_ingreso_empleado_gestor,
+    e.fecha_salida_empleado_gestor,
+    e.numero_asegurado_empleado_gestor,
+    e.numero_ins_empleado_gestor,
+    e.numero_hacienda_empleado_gestor,
+    e.cuenta_bancaria_1_empleado_gestor,
+    e.ministerio_hacienda_empleado_gestor,
+    e.rt_ins_empleado_gestor,
+    e.ccss_empleado_gestor,
+    e.moneda_pago_empleado_gestor,
+    e.estado_empleado_gestor,
+    e.montoAsegurado_gestor_empelado,
+    e.tipo_planilla_empleado_gestor,
+    emp.nombre_comercial_empresa
+FROM gestor_empleado_tbl e
+JOIN empresas_tbl emp ON emp.id_empresa = e.id_empresa
+WHERE e.estado_empleado_gestor = 1
+  AND (e.fecha_salida_empleado_gestor IS NULL OR e.fecha_salida_empleado_gestor = '')
+  AND e.salario_base_empleado_gestor IS NOT NULL
+  AND e.salario_base_empleado_gestor != ''
+  AND e.id_empresa = ?
+  AND e.moneda_pago_empleado_gestor = ?
+  AND e.tipo_planilla_empleado_gestor = ?;
+
       `,
       // Consulta para obtener aumentos del empleado
       AUMENTOS: `
