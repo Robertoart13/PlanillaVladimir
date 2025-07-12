@@ -14,9 +14,9 @@ import ModalDetalleEmpleado from "./ModalDetalleEmpleado";
 const PAYROLL_COLUMNS = [
    { key: "nombre", label: "Nombre Socio", style: { minWidth: 180 } },
    { key: "cedula", label: "Cédula", style: { minWidth: 100 } },
-   { key: "compensacion_base", label: "Compensacion Base", type: "number" },
+   { key: "compensacion_base", label: "Compensación Base", type: "number" },
    { key: "devengado", label: "Devengado", type: "number" },
-   { key: "cargas_sociales", label: "Cargas Sociales", type: "number" },
+   { key: "cargas_sociales", label: "S.T.I CCSS", type: "number" },
    { key: "monto_rtn_neto", label: "Monto de RTN Neto", type: "number", style: { minWidth: 150 } },
    { key: "monto_neto", label: "Monto Neto", type: "number", style: { minWidth: 180 } },
    { key: "accion", label: "Acciones" },
@@ -43,7 +43,7 @@ const PAGE_SIZES = [5, 10, 30, 60, 80, 100];
 
 /**
  * Calcula la compensación base según el tipo de planilla del empleado
- * @param {number} salarioBase - Salario base del empleado
+ * @param {number} salarioBase - Compensación base del empleado
  * @param {string} tipoPlanilla - Tipo de planilla (mensual, quincenal, semanal)
  * @returns {number} Compensación base calculada
  */
@@ -54,11 +54,11 @@ const calcularCompensacionBase = (salarioBase, tipoPlanilla) => {
    
    switch (tipoPlanilla?.toLowerCase()) {
       case 'mensual':
-         // Para planilla mensual, se toma el salario completo
+         // Para planilla mensual, se toma la compensación completa
          return salario;
          
       case 'quincenal':
-         // Para planilla quincenal, se divide el salario en 2
+         // Para planilla quincenal, se divide la compensación en 2
          return salario / 2;
          
       case 'semanal':
@@ -77,7 +77,7 @@ const calcularCompensacionBase = (salarioBase, tipoPlanilla) => {
  * Formatea la compensación base según la moneda de pago
  * @param {number} compensacionBase - Compensación base calculada
  * @param {string} monedaPago - Moneda de pago del empleado
- * @param {number} salarioBase - Salario base original (para casos de doble moneda)
+ * @param {number} salarioBase - Compensación base original (para casos de doble moneda)
  * @param {string} tipoPlanilla - Tipo de planilla del empleado
  * @returns {string} Compensación base formateada
  */
@@ -111,7 +111,7 @@ const validarDatosEmpleado = (empleado) => {
    const datosRequeridos = {
       nombre: empleado.nombre_completo_empleado_gestor,
       cedula: empleado.numero_socio_empleado_gestor,
-      salarioBase: empleado.salario_base_empleado_gestor,
+      compensacionBase: empleado.salario_base_empleado_gestor,
       tipoPlanilla: empleado.tipo_planilla_empleado_gestor,
       monedaPago: empleado.moneda_pago_empleado_gestor,
       rtIns: empleado.rt_ins_empleado_gestor, // Campo para RTN
@@ -144,7 +144,7 @@ const validarDatosEmpleado = (empleado) => {
 const calcularDevengado = (empleado, compensacionBase) => {
    let devengadoTotal = compensacionBase; // Empezar con compensación base
    
-   // Sumar aumentos
+   // Sumar compensación anual
    if (empleado.aumentos && Array.isArray(empleado.aumentos)) {
       empleado.aumentos.forEach(aumento => {
          const montoAumento = parseFloat(aumento.monto_aumento_gestor) || 0;
@@ -152,7 +152,7 @@ const calcularDevengado = (empleado, compensacionBase) => {
       });
    }
    
-   // Sumar horas extras
+   // Sumar compensación extra
    if (empleado.horas_extras && Array.isArray(empleado.horas_extras)) {
       empleado.horas_extras.forEach(horaExtra => {
          const montoHoraExtra = parseFloat(horaExtra.monto_compensacion_calculado_gestor) || 0;
@@ -168,7 +168,7 @@ const calcularDevengado = (empleado, compensacionBase) => {
       });
    }
    
-   // Restar rebajos a compensación
+   // Restar rebajo a compensación
    if (empleado.rebajos_compensacion && Array.isArray(empleado.rebajos_compensacion)) {
       empleado.rebajos_compensacion.forEach(rebajo => {
          const montoRebajo = parseFloat(rebajo.monto_rebajo_calculado) || 0;
@@ -213,7 +213,7 @@ const transformarEmpleado = (empleado) => {
    
    // Calcular compensación base
    const compensacionBaseCalculada = calcularCompensacionBase(
-      datosEmpleado.salarioBase,
+      datosEmpleado.compensacionBase,
       datosEmpleado.tipoPlanilla
    );
    
@@ -221,7 +221,7 @@ const transformarEmpleado = (empleado) => {
    const compensacionBaseFormateada = formatearCompensacionBase(
       compensacionBaseCalculada,
       datosEmpleado.monedaPago,
-      datosEmpleado.salarioBase,
+      datosEmpleado.compensacionBase,
       datosEmpleado.tipoPlanilla
    );
    
@@ -322,7 +322,7 @@ const calcularRTNNetoTotal = (empleado, compensacionBase) => {
 };
 
 /**
- * Calcula las Cargas Sociales (CCSS) para un empleado
+ * Calcula las Cargas Sociales (S.T.I CCSS) para un empleado según el tipo de planilla
  * @param {Object} empleado - Datos del empleado de la API
  * @returns {Object} Información de las Cargas Sociales
  */
@@ -349,28 +349,56 @@ const calcularCargasSociales = (empleado) => {
       };
    }
    
+   // Calcular S.T.I CCSS según el tipo de planilla del empleado
+   const tipoPlanilla = empleado.tipo_planilla_empleado_gestor;
+   let ccssCalculado = montoAsegurado;
+   
+   switch (tipoPlanilla?.toLowerCase()) {
+      case 'mensual':
+         // Para planilla mensual, se toma el monto completo
+         ccssCalculado = montoAsegurado;
+         break;
+         
+      case 'quincenal':
+         // Para planilla quincenal, se divide el monto en 2
+         ccssCalculado = montoAsegurado / 2;
+         break;
+         
+      case 'semanal':
+         // Para planilla semanal, se calcula según la ley costarricense
+         // 52 semanas al año / 12 meses = 4.33 semanas por mes
+         ccssCalculado = montoAsegurado * 4.33;
+         break;
+         
+      default:
+         // Si no se especifica tipo, se asume mensual
+         console.warn(`Tipo de planilla no reconocido para S.T.I CCSS: ${tipoPlanilla}. Se asume mensual.`);
+         ccssCalculado = montoAsegurado;
+         break;
+   }
+   
    // Formatear según moneda
    let ccssFormateado = "0";
-   if (montoAsegurado > 0) {
+   if (ccssCalculado > 0) {
       switch (empleado.moneda_pago_empleado_gestor?.toLowerCase()) {
          case 'dolares':
-            ccssFormateado = formatCurrencyUSD(montoAsegurado);
+            ccssFormateado = formatCurrencyUSD(ccssCalculado);
             break;
          case 'colones_y_dolares':
-            ccssFormateado = formatCurrency(montoAsegurado); // CCSS se aplica en colones
+            ccssFormateado = formatCurrency(ccssCalculado); // S.T.I CCSS se aplica en colones
             break;
          case 'colones':
          default:
-            ccssFormateado = formatCurrency(montoAsegurado);
+            ccssFormateado = formatCurrency(ccssCalculado);
             break;
       }
    }
    
    return {
       aplica: true,
-      monto: montoAsegurado,
+      monto: ccssCalculado,
       formateado: ccssFormateado,
-      descripcion: "CCSS sobre monto asegurado"
+      descripcion: `S.T.I CCSS sobre monto asegurado (${tipoPlanilla || 'mensual'})`
    };
 };
 
@@ -463,12 +491,12 @@ const generarDetalleRTN = (empleado, compensacionBase, monedaPago) => {
  * Genera el detalle de Cargas Sociales para la subtabla
  * @param {Object} ccssInfo - Información de las Cargas Sociales calculadas
  * @param {string} monedaPago - Moneda de pago del empleado
- * @returns {Object} Detalle de CCSS formateado
+ * @returns {Object} Detalle de S.T.I CCSS formateado
  */
 const generarDetalleCCSS = (ccssInfo, monedaPago) => {
    if (!ccssInfo.aplica) {
       return {
-         categoria: "Cargas Sociales",
+         categoria: "S.T.I CCSS",
          tipoAccion: "Deducción",
          monto: "0",
          tipo: "-",
@@ -477,7 +505,7 @@ const generarDetalleCCSS = (ccssInfo, monedaPago) => {
    }
    
    return {
-      categoria: "Cargas Sociales",
+      categoria: "S.T.I CCSS",
       tipoAccion: "Deducción",
       monto: ccssInfo.formateado,
       tipo: "-",
@@ -505,7 +533,7 @@ const generarDatosSubtabla = (planillaData) => {
          empleado.tipo_planilla_empleado_gestor
       );
       
-      // 1. PRIMERO: Agregar aumentos
+      // 1. PRIMERO: Agregar compensación anual
       if (empleado.aumentos && Array.isArray(empleado.aumentos)) {
          empleado.aumentos.forEach(aumento => {
             const montoAumento = parseFloat(aumento.monto_aumento_gestor) || 0;
@@ -528,7 +556,7 @@ const generarDatosSubtabla = (planillaData) => {
             }
             
             detalles.push({
-               categoria: "Aumento",
+               categoria: "Compensación Anual",
                tipoAccion: "Aumento",
                monto: montoFormateado,
                tipo: "+",
@@ -537,7 +565,7 @@ const generarDatosSubtabla = (planillaData) => {
          });
       }
       
-      // 2. SEGUNDO: Agregar horas extras
+      // 2. SEGUNDO: Agregar compensación extra
       if (empleado.horas_extras && Array.isArray(empleado.horas_extras)) {
          empleado.horas_extras.forEach(horaExtra => {
             const montoHoraExtra = parseFloat(horaExtra.monto_compensacion_calculado_gestor) || 0;
@@ -560,7 +588,7 @@ const generarDatosSubtabla = (planillaData) => {
             }
             
             detalles.push({
-               categoria: "Horas Extras",
+               categoria: "Compensación Extra",
                tipoAccion: "Ingreso",
                monto: montoFormateado,
                tipo: "+",
@@ -592,7 +620,7 @@ const generarDatosSubtabla = (planillaData) => {
             }
             
             detalles.push({
-               categoria: "Compensación Métrica",
+               categoria: "Compensación por Métrica",
                tipoAccion: "Ingreso",
                monto: montoFormateado,
                tipo: "+",
@@ -601,7 +629,7 @@ const generarDatosSubtabla = (planillaData) => {
          });
       }
       
-      // 4. CUARTO: Agregar rebajos a compensación
+      // 4. CUARTO: Agregar rebajo a compensación
       if (empleado.rebajos_compensacion && Array.isArray(empleado.rebajos_compensacion)) {
          empleado.rebajos_compensacion.forEach(rebajo => {
             const montoRebajo = parseFloat(rebajo.monto_rebajo_calculado) || 0;
@@ -624,7 +652,7 @@ const generarDatosSubtabla = (planillaData) => {
             }
             
             detalles.push({
-               categoria: "Rebajo Compensación",
+               categoria: "Rebajo a Compensación",
                tipoAccion: "Deducción",
                monto: montoFormateado,
                tipo: "-",
@@ -633,11 +661,7 @@ const generarDatosSubtabla = (planillaData) => {
          });
       }
       
-      // 5. QUINTO: Calcular y agregar RTN
-      const detalleRTN = generarDetalleRTN(empleado, compensacionBase, empleado.moneda_pago_empleado_gestor);
-      detalles.push(detalleRTN);
-      
-      // 6. SEXTO: Calcular y agregar Cargas Sociales
+      // 5. QUINTO: Calcular y agregar S.T.I CCSS (RTN removido de detalles)
       const ccssInfo = calcularCargasSociales(empleado);
       const detalleCCSS = generarDetalleCCSS(ccssInfo, empleado.moneda_pago_empleado_gestor);
       detalles.push(detalleCCSS);
@@ -928,6 +952,73 @@ const PayrollTable = ({
 };
 
 /**
+ * Componente de tabla de resultados de la planilla
+ * @param {Object} props - Propiedades del componente
+ * @param {Object} props.totales - Totales calculados de la planilla
+ * @returns {JSX.Element} Tabla de resultados
+ */
+const ResultsTable = ({ totales }) => {
+   return (
+      <div className="card shadow-sm">
+         <div className="card-header bg-primary text-white">
+            <h5 className="mb-0">
+               <i className="fas fa-calculator me-2"></i>
+               Resumen de Totales
+            </h5>
+         </div>
+         <div className="card-body p-0">
+            <table className="table table-borderless results-table mb-0">
+               <thead>
+                  <tr>
+                     <th style={{ width: "60%" }}>Concepto</th>
+                     <th style={{ width: "40%", textAlign: "right" }}>Monto</th>
+                  </tr>
+               </thead>
+               <tbody>
+                  <tr>
+                     <td>Total de Devengado:</td>
+                     <td style={{ textAlign: "right", fontWeight: "600" }}>
+                        {formatCurrency(totales.totalDevengado)}
+                     </td>
+                  </tr>
+                  <tr>
+                     <td>Subtotal:</td>
+                     <td style={{ textAlign: "right", fontWeight: "600" }}>
+                        {formatCurrency(totales.subtotal)}
+                     </td>
+                  </tr>
+                  <tr>
+                     <td>Suma de RTN:</td>
+                     <td style={{ textAlign: "right", fontWeight: "600" }}>
+                        {formatCurrency(totales.sumaRTN)}
+                     </td>
+                  </tr>
+                  <tr>
+                     <td>Monto Neto de los Socios:</td>
+                     <td style={{ textAlign: "right", fontWeight: "600" }}>
+                        {formatCurrency(totales.montoNetoSocios)}
+                     </td>
+                  </tr>
+                  <tr>
+                     <td>IVA:</td>
+                     <td style={{ textAlign: "right", fontWeight: "600" }}>
+                        {formatCurrency(totales.iva)}
+                     </td>
+                  </tr>
+                  <tr className="total-row">
+                     <td><strong>Total:</strong></td>
+                     <td style={{ textAlign: "right" }}>
+                        <strong>{formatCurrency(totales.total)}</strong>
+                     </td>
+                  </tr>
+               </tbody>
+            </table>
+         </div>
+      </div>
+   );
+};
+
+/**
  * Componente de paginación reutilizable
  * @param {Object} props - Propiedades del componente
  * @returns {JSX.Element} Componente de paginación
@@ -1030,6 +1121,71 @@ const TablePagination = ({
 
 /**
  * =========================
+ * CALCULATION UTILITIES
+ * =========================
+ */
+
+/**
+ * Calcula los totales de la planilla basado en los datos transformados
+ * @param {Array} rows - Datos transformados de la planilla
+ * @returns {Object} Objeto con todos los totales calculados
+ */
+const calcularTotalesPlanilla = (rows) => {
+   if (!rows || !Array.isArray(rows) || rows.length === 0) {
+      return {
+         totalDevengado: 0,
+         subtotal: 0,
+         sumaRTN: 0,
+         montoNetoSocios: 0,
+         iva: 0,
+         total: 0
+      };
+   }
+
+   // Suma de todos los devengados
+   let totalDevengado = 0;
+   // Suma de todos los Monto de RTN Neto
+   let sumaRTN = 0;
+   // Suma de todos los Monto Neto
+   let montoNetoSocios = 0;
+
+   rows.forEach(row => {
+      // Extraer valores numéricos de los montos formateados
+      const devengadoStr = row.devengado || "0";
+      const rtnStr = row.monto_rtn_neto || "0";
+      const netoStr = row.monto_neto || "0";
+      
+      // Convertir strings formateados a números
+      const devengadoNum = parseFloat(devengadoStr.replace(/[^0-9.-]+/g, "")) || 0;
+      const rtnNum = parseFloat(rtnStr.replace(/[^0-9.-]+/g, "")) || 0;
+      const netoNum = parseFloat(netoStr.replace(/[^0-9.-]+/g, "")) || 0;
+      
+      totalDevengado += devengadoNum;
+      sumaRTN += rtnNum;
+      montoNetoSocios += netoNum;
+   });
+
+   // Subtotal = totalDevengado * 0.05
+   const subtotal = totalDevengado * 0.05;
+
+   // IVA = (subtotal + sumaRTN + montoNetoSocios) * 0.13
+   const iva = (subtotal + sumaRTN + montoNetoSocios) * 0.13;
+
+   // Total = iva
+   const total = iva;
+
+   return {
+      totalDevengado,
+      subtotal,
+      sumaRTN,
+      montoNetoSocios,
+      iva,
+      total
+   };
+};
+
+/**
+ * =========================
  * CUSTOM HOOKS
  * =========================
  */
@@ -1116,11 +1272,25 @@ export const PayrollGenerator = () => {
    // Cargar datos de planilla cuando se selecciona una
    useEffect(() => {
       const cargarDatosPlanilla = async () => {
-         if (!planillaSeleccionada || !empresaSeleccionada) {
+         if (!planillaSeleccionada || !planillasList.length) {
             setPlanillaData(null);
             setRows([]);
             return;
          }
+
+         // Buscar la planilla seleccionada en la lista actual
+         const selectedPlanilla = planillasList.find(
+            (p) => String(p.planilla_id) === String(planillaSeleccionada)
+         );
+         if (!selectedPlanilla) {
+            setPlanillaData(null);
+            setRows([]);
+            return;
+         }
+
+         const empresaSeleccionada = selectedPlanilla.empresa_id;
+         const tipoPlanilla = selectedPlanilla.planilla_tipo;
+         const planilla_moneda = selectedPlanilla.planilla_moneda;
 
          try {
             setLoading(true);
@@ -1133,14 +1303,13 @@ export const PayrollGenerator = () => {
                planilla_moneda: planilla_moneda,
             };
 
-
-
             const response = await dispatch(fetchData_api(params, "gestor/planilla/gestor"));
+            
 
             if (response.success && response.data.array?.length > 0) {
                setPlanillaData(response.data.array);
             } else {
-               setError("Error al cargar los datos de la planilla");
+               setError("No se encontraron datos de la planilla");
                setPlanillaData(null);
             }
          } catch (error) {
@@ -1153,7 +1322,7 @@ export const PayrollGenerator = () => {
       };
 
       cargarDatosPlanilla();
-   }, [dispatch, planillaSeleccionada, empresaSeleccionada]);
+   }, [planillaSeleccionada, planillasList, dispatch]);
 
    // Actualizar rows cuando cambien los datos de la planilla
    useEffect(() => {
@@ -1195,6 +1364,9 @@ export const PayrollGenerator = () => {
    const startIdx = (currentPage - 1) * pageSize;
    const totalPages = Math.ceil(rows.length / pageSize);
    const pageRows = rows.slice(startIdx, startIdx + pageSize);
+
+   // Calcular totales de la planilla
+   const totales = calcularTotalesPlanilla(rows);
 
    // Handlers
    const handleCheckbox = useHandleCheckbox({
@@ -1339,6 +1511,34 @@ export const PayrollGenerator = () => {
                .details-table-wrapper td {
                   background: #fff;
                }
+               
+               /* Estilos para la tabla de resultados */
+               .results-table {
+                  background: #fff;
+                  border: 2px solid #e3e6f0;
+                  border-radius: 8px;
+                  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+               }
+               .results-table th {
+                  background: #f8f9fa;
+                  border-bottom: 2px solid #dee2e6;
+                  font-weight: 600;
+                  color: #495057;
+                  text-align: center;
+               }
+               .results-table td {
+                  border-bottom: 1px solid #dee2e6;
+                  font-weight: 500;
+               }
+               .results-table .total-row {
+                  background: #e3f2fd;
+                  font-weight: 700;
+                  border-top: 2px solid #2196f3;
+               }
+               .results-table .total-row td {
+                  font-size: 1.1rem;
+                  color: #1976d2;
+               }
             `}
          </style>
 
@@ -1396,11 +1596,14 @@ export const PayrollGenerator = () => {
                         >
                            <option value="">Seleccione un tipo de planilla</option>
                            {planillasList.length > 0 ? (
-                              planillasList.map((planilla) => (
-                                 <option key={planilla.planilla_id} value={planilla.planilla_id}>
-                                    {planilla.planilla_codigo} - {planilla.planilla_tipo} ({planilla.planilla_estado})
-                                 </option>
-                              ))
+                              planillasList
+                                 .slice()
+                                 .sort((a, b) => new Date(a.planilla_fecha_inicio) - new Date(b.planilla_fecha_inicio)) // ascendente: más antiguo primero
+                                 .map((planilla) => (
+                                    <option key={planilla.planilla_id} value={planilla.planilla_id}>
+                                       {planilla.planilla_codigo} - {planilla.planilla_tipo} ({planilla.planilla_estado})
+                                    </option>
+                                 ))
                            ) : (
                               <option value="" disabled>
                                  {loadingPlanillas ? "Cargando planillas..." : "No hay planillas disponibles"}
@@ -1448,6 +1651,13 @@ export const PayrollGenerator = () => {
                               onPageSizeChange={handlePageSizeChange}
                               onPageChange={handlePageChange}
                            />
+
+                           {/* Resumen de Totales debajo de la tabla principal */}
+                           <div className="mt-4 d-flex justify-content-end" style={{ width: '100%' }}>
+                              <div style={{ maxWidth: '450px', width: '100%' }}>
+                                 <ResultsTable totales={totales} />
+                              </div>
+                           </div>
                         </>
                      )}
                      {/* MODAL DETALLE EMPLEADO */}

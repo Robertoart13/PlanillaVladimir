@@ -27,7 +27,7 @@ const ModalDetalleEmpleado = ({
   // Puedes ajustar estos datos según tu estructura real
   const empresa = empleado.nombre_comercial_empresa || "NOMBRE DE LA EMPRESA";
   const puesto = empleado.tipo_contrato_empleado_gestor || "Puesto";
-  const tipoSalario = empleado.tipo_planilla_empleado_gestor || "Sueldo a ₡450 000,00 por unidad";
+  const tipoSalario = empleado.tipo_planilla_empleado_gestor || "Compensación a ₡450 000,00 por unidad";
   const periodo = empleado.periodo_pago || "Periodo de pago";
   const salarioNormal = empleado.salario_base_empleado_gestor || 0;
 
@@ -42,18 +42,18 @@ const ModalDetalleEmpleado = ({
               <div style={{ fontSize: 13, color: "#444" }}>
                 <b>Código:</b> {empleado.codigo || empleado.numero_socio_empleado_gestor}<br />
                 <b>Cédula:</b> {empleado.cedula_empleado_gestor}<br />
-                <b>Salario Normal:</b> {formatMoney(salarioNormal)}
+                <b>Compensación Normal:</b> {formatMoney(salarioNormal)}
               </div>
             </div>
             <div style={{ textAlign: "right" }}>
               <div style={{ fontWeight: 700, fontSize: 18 }}>
-                Previsualización de Pago de Salario
+                Previsualización de Pago de Compensación
               </div>
               <div style={{ fontSize: 13 }}>{periodoLabel}</div>
               <div style={{ marginTop: 10 }}>
                 <b>Nombre:</b> {empleado.nombre_completo_empleado_gestor}<br />
                 <b>Puesto:</b> {puesto}<br />
-                <b>Tipo de Salario:</b> {tipoSalario}
+                <b>Tipo de Compensación:</b> {tipoSalario}
               </div>
             </div>
           </div>
@@ -103,7 +103,7 @@ const ModalDetalleEmpleado = ({
                   // Aumentos
                   if (aumentos && aumentos.length > 0) {
                     aumentos.forEach(a => detalles.push({
-                      categoria: "Aumento",
+                      categoria: "Compensación Anual",
                       tipoAccion: "Aumento",
                       monto: formatMoney(a.monto_aumento_gestor, "$"),
                       tipo: "+",
@@ -112,7 +112,7 @@ const ModalDetalleEmpleado = ({
                   // Horas Extras
                   if (horasExtras && horasExtras.length > 0) {
                     horasExtras.forEach(h => detalles.push({
-                      categoria: "Horas Extras",
+                      categoria: "Compensación Extra",
                       tipoAccion: "Ingreso",
                       monto: formatMoney(h.monto_compensacion_calculado_gestor, "$"),
                       tipo: "+",
@@ -121,7 +121,7 @@ const ModalDetalleEmpleado = ({
                   // Métricas
                   if (metricas && metricas.length > 0) {
                     metricas.forEach(m => detalles.push({
-                      categoria: "Compensación Métrica",
+                      categoria: "Compensación por Métrica",
                       tipoAccion: "Ingreso",
                       monto: formatMoney(m.monto_compensacion_metrica_gestor, "$"),
                       tipo: "+",
@@ -130,25 +130,25 @@ const ModalDetalleEmpleado = ({
                   // Rebajos
                   if (rebajos && rebajos.length > 0) {
                     rebajos.forEach(r => detalles.push({
-                      categoria: "Rebajo Compensación",
+                      categoria: "Rebajo a Compensación",
                       tipoAccion: "Deducción",
                       monto: formatMoney(r.monto_rebajo_calculado, "$"),
                       tipo: "-",
                     }));
                   }
                   // RTN
-                  if (calculos?.monto_rtn_neto && calculos.monto_rtn_neto !== "N/A" && parseFloat(calculos.monto_rtn_neto.replace(/[^0-9.-]+/g,"")) > 0) {
-                    detalles.push({
-                      categoria: "RTN",
-                      tipoAccion: "Deducción",
-                      monto: calculos.monto_rtn_neto,
-                      tipo: "-",
-                    });
-                  }
+                  // if (calculos?.monto_rtn_neto && calculos.monto_rtn_neto !== "N/A" && parseFloat(calculos.monto_rtn_neto.replace(/[^0-9.-]+/g,"")) > 0) {
+                  //   detalles.push({
+                  //     categoria: "RTN",
+                  //     tipoAccion: "Deducción",
+                  //     monto: calculos.monto_rtn_neto,
+                  //     tipo: "-",
+                  //   });
+                  // }
                   // Cargas Sociales
                   if (calculos?.cargas_sociales && calculos.cargas_sociales !== "N/A" && parseFloat(calculos.cargas_sociales.replace(/[^0-9.-]+/g,"")) > 0) {
                     detalles.push({
-                      categoria: "Cargas Sociales",
+                      categoria: "S.T.I CCSS",
                       tipoAccion: "Deducción",
                       monto: calculos.cargas_sociales,
                       tipo: "-",
