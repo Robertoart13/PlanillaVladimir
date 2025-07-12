@@ -18,10 +18,8 @@ import { Buffer } from "buffer";
 
 // Constantes de configuración
 const DEFAULT_DATABASE = "pruebas";
-const CONNECTION_LIMIT = 25; // Aumentado de 15 a 25 para manejar más conexiones simultáneas
-const QUEUE_LIMIT = 10; // Cambiado de 0 a 10 para limitar la cola de espera
-const ACQUIRE_TIMEOUT = 60000; // 60 segundos para adquirir conexión
-const TIMEOUT = 60000; // 60 segundos timeout de conexión
+const CONNECTION_LIMIT = 15;
+const QUEUE_LIMIT = 0;
 
 /**
  * ====================================================================================================================================
@@ -72,21 +70,14 @@ function createConnectionPool(baseDatos) {
    }
 
    // Crea y retorna el pool de conexiones con los parámetros configurados
-   const pool = mysql.createPool({
+   return mysql.createPool({
       ...configuracionBD, // Propiedades específicas de la base de datos
       waitForConnections: true,
       connectionLimit: CONNECTION_LIMIT,
       queueLimit: QUEUE_LIMIT,
       charset: "utf8mb4", // Soporte completo para caracteres especiales
       collation: "utf8mb4_unicode_ci", // Collation para ordenamiento correcto
-      acquireTimeout: ACQUIRE_TIMEOUT, // Tiempo máximo para adquirir una conexión
-      timeout: TIMEOUT, // Tiempo máximo de inactividad de la conexión
    });
-
-   // Configurar monitoreo del pool
-   configurarMonitoreoPool(pool);
-
-   return pool;
 }
 
 /**
@@ -114,37 +105,15 @@ function createConnectionPool(baseDatos) {
  * ====================================================================================================================================
  */
 async function executeQuery(pool, consulta, parametros) {
-   let conexion = null;
+   // Obtener una conexión del pool de conexiones
+   const conexion = await pool.getConnection();
    try {
-      // Obtener una conexión del pool de conexiones con timeout
-      conexion = await Promise.race([
-         pool.getConnection(),
-         new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Timeout al obtener conexión del pool')), 10000)
-         )
-      ]);
-      
       // Ejecutar la consulta SQL con los parámetros proporcionados
-      const [resultado] = await Promise.race([
-         conexion.query(consulta, parametros),
-         new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Timeout en ejecución de consulta')), 30000)
-         )
-      ]);
-      
+      const [resultado] = await conexion.query(consulta, parametros);
       return resultado; // Retornar el resultado de la consulta
-   } catch (error) {
-      console.error('Error en executeQuery:', error.message);
-      throw error;
    } finally {
       // Liberar la conexión para que pueda ser reutilizada por otros clientes
-      if (conexion) {
-         try {
-            conexion.release();
-         } catch (releaseError) {
-            console.error('Error al liberar conexión:', releaseError.message);
-         }
-      }
+      conexion.release();
    }
 }
 
@@ -555,47 +524,4 @@ export const manejarError = (error, status, userMessage, technicalDetails) => {
  * ====================================================================================================================================
  */
 export const codificarBase64 = (str) => Buffer.from(str, "utf8").toString("base64");
-
-/**
- * ====================================================================================================================================
- * Monitorea el estado del pool de conexiones para detectar problemas de rendimiento.
- *
- * Esta función proporciona información sobre el estado actual del pool de conexiones,
- * incluyendo el número de conexiones activas, en espera y el estado general del pool.
- *
- * @param {mysql.Pool} pool - Pool de conexiones a monitorear
- * @returns {Object} Información del estado del pool
- * ====================================================================================================================================
- */
-function monitorearPool(pool) {
-   const estado = {
-      threadId: pool.threadId,
-      connectionLimit: pool.config.connectionLimit,
-      queueLimit: pool.config.queueLimit,
-      acquireTimeout: pool.config.acquireTimeout,
-      timeout: pool.config.timeout,
-      timestamp: new Date().toISOString()
-   };
-
-   // Log del estado del pool cada 5 minutos
-   console.log(`📊 Estado del pool: ${JSON.stringify(estado, null, 2)}`);
-   
-   return estado;
-}
-
-/**
- * ====================================================================================================================================
- * Configura monitoreo automático del pool de conexiones.
- *
- * @param {mysql.Pool} pool - Pool de conexiones a monitorear
- * @param {number} interval - Intervalo en milisegundos (por defecto 5 minutos)
- * ====================================================================================================================================
- */
-function configurarMonitoreoPool(pool, interval = 300000) {
-   setInterval(() => {
-      monitorearPool(pool);
-   }, interval);
-   
-   console.log(`🔍 Monitoreo de pool configurado con intervalo de ${interval/1000} segundos`);
-}
 
