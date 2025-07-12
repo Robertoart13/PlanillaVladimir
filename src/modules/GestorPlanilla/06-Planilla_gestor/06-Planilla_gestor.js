@@ -62,78 +62,42 @@ const QUERIES = {
    
    // Consulta optimizada para obtener todos los aumentos de todos los empleados en una sola consulta
    AUMENTOS_TODOS: `
-      SELECT 
-         empleado_id_aumento_gestor,
-         JSON_ARRAYAGG(
-            JSON_OBJECT(
-               'id', id_aumento_gestor,
-               'monto', monto_aumento_gestor,
-               'descripcion', descripcion_aumento_gestor,
-               'fecha', fecha_aumento_gestor
-            )
-         ) as aumentos
+      SELECT *
       FROM gestor_aumento_tbl
       WHERE planilla_id_aumento_gestor = ?
         AND empresa_id_aumento_gestor = ?
         AND estado_planilla_aumento_gestor = "Pendiente"
-      GROUP BY empleado_id_aumento_gestor;
+      ORDER BY empleado_id_aumento_gestor;
    `,
    
    // Consulta optimizada para obtener todos los rebajos de todos los empleados en una sola consulta
    REBAJOS_COMPENSACION_TODOS: `
-      SELECT 
-         empleado_id_rebajo,
-         JSON_ARRAYAGG(
-            JSON_OBJECT(
-               'id', id_rebajo,
-               'monto', monto_rebajo,
-               'descripcion', descripcion_rebajo,
-               'fecha', fecha_rebajo
-            )
-         ) as rebajos_compensacion
+      SELECT *
       FROM gestor_rebajo_compensacion_tbl
       WHERE planilla_id_rebajo = ?
         AND empresa_id_rebajo = ?
         AND estado_rebajo = "Pendiente"
-      GROUP BY empleado_id_rebajo;
+      ORDER BY empleado_id_rebajo;
    `,
    
    // Consulta optimizada para obtener todas las horas extras de todos los empleados en una sola consulta
    HORAS_EXTRAS_TODOS: `
-      SELECT 
-         empleado_id_compensacion_extra_gestor,
-         JSON_ARRAYAGG(
-            JSON_OBJECT(
-               'id', id_compensacion_extra_gestor,
-               'monto', monto_compensacion_extra_gestor,
-               'descripcion', descripcion_compensacion_extra_gestor,
-               'fecha', fecha_compensacion_extra_gestor
-            )
-         ) as horas_extras
+      SELECT *
       FROM gestor_compensacion_extra_tbl
       WHERE planilla_id_compensacion_extra_gestor = ?
         AND empresa_id_compensacion_extra_gestor = ?
         AND estado_compensacion_extra_gestor = "Pendiente"
-      GROUP BY empleado_id_compensacion_extra_gestor;
+      ORDER BY empleado_id_compensacion_extra_gestor;
    `,
    
    // Consulta optimizada para obtener todas las compensaciones por métrica de todos los empleados en una sola consulta
    COMPENSACION_METRICA_TODOS: `
-      SELECT 
-         empleado_id_compensacion_metrica_gestor,
-         JSON_ARRAYAGG(
-            JSON_OBJECT(
-               'id', id_compensacion_metrica_gestor,
-               'monto', monto_compensacion_metrica_gestor,
-               'descripcion', descripcion_compensacion_metrica_gestor,
-               'fecha', fecha_compensacion_metrica_gestor
-            )
-         ) as compensacion_metrica
+      SELECT *
       FROM gestor_compensacion_metrica_tbl
       WHERE planilla_id_compensacion_metrica_gestor = ?
         AND empresa_id_compensacion_metrica_gestor = ?
         AND estado_compensacion_metrica_gestor = "Pendiente"
-      GROUP BY empleado_id_compensacion_metrica_gestor;
+      ORDER BY empleado_id_compensacion_metrica_gestor;
    `,
 };
 
@@ -174,6 +138,7 @@ const ejecutarConsultaConTimeout = async (query, params, database, timeout = 100
  *
  * Esta función ejecuta consultas optimizadas para evitar el problema N+1,
  * obteniendo todos los datos relacionados en consultas separadas pero eficientes.
+ * Cada tabla gestor almacena registros individuales, no JSON arrays.
  *
  * @param {Object} datos - Datos de la solicitud
  * @param {string} database - Base de datos
@@ -183,7 +148,7 @@ const ejecutarConsultaConTimeout = async (query, params, database, timeout = 100
  */
 const obtenerTodosDatos = async (datos, database) => {
    try {
-      console.log('🔄 Iniciando consulta optimizada de empleados...');
+
       
       // 1. Obtener empleados principales (consulta principal)
       const empleadosResultado = await ejecutarConsultaConTimeout(
@@ -198,7 +163,6 @@ const obtenerTodosDatos = async (datos, database) => {
       }
 
       const empleados = empleadosResultado.datos || [];
-      console.log(`✅ Empleados obtenidos: ${empleados.length}`);
 
       if (empleados.length === 0) {
          return {
@@ -207,8 +171,6 @@ const obtenerTodosDatos = async (datos, database) => {
          };
       }
 
-      // 2. Obtener todos los datos relacionados en consultas paralelas optimizadas
-      console.log('🔄 Obteniendo datos relacionados...');
       
       const [aumentosResult, rebajosResult, horasExtrasResult, compensacionMetricaResult] = await Promise.allSettled([
          ejecutarConsultaConTimeout(QUERIES.AUMENTOS_TODOS, [datos.planilla_id, datos.empresa_id], database, 8000),
@@ -218,6 +180,7 @@ const obtenerTodosDatos = async (datos, database) => {
       ]);
 
       // 3. Procesar resultados y crear mapas para acceso rápido
+      // Cada tabla gestor contiene registros individuales que se agrupan por empleado
       const aumentosMap = new Map();
       const rebajosMap = new Map();
       const horasExtrasMap = new Map();
@@ -227,11 +190,14 @@ const obtenerTodosDatos = async (datos, database) => {
       if (aumentosResult.status === 'fulfilled' && aumentosResult.value?.datos) {
          aumentosResult.value.datos.forEach(item => {
             try {
-               const aumentos = JSON.parse(item.aumentos || '[]');
-               aumentosMap.set(item.empleado_id_aumento_gestor, aumentos);
+               // Cada item es un registro individual de aumento, no un JSON
+               const empleadoId = item.empleado_id_aumento_gestor;
+               if (!aumentosMap.has(empleadoId)) {
+                  aumentosMap.set(empleadoId, []);
+               }
+               aumentosMap.get(empleadoId).push(item);
             } catch (e) {
-               console.warn(`Error parseando aumentos para empleado ${item.empleado_id_aumento_gestor}:`, e);
-               aumentosMap.set(item.empleado_id_aumento_gestor, []);
+               console.warn(`Error procesando aumento para empleado ${item.empleado_id_aumento_gestor}:`, e);
             }
          });
       }
@@ -240,11 +206,14 @@ const obtenerTodosDatos = async (datos, database) => {
       if (rebajosResult.status === 'fulfilled' && rebajosResult.value?.datos) {
          rebajosResult.value.datos.forEach(item => {
             try {
-               const rebajos = JSON.parse(item.rebajos_compensacion || '[]');
-               rebajosMap.set(item.empleado_id_rebajo, rebajos);
+               // Cada item es un registro individual de rebajo, no un JSON
+               const empleadoId = item.empleado_id_rebajo;
+               if (!rebajosMap.has(empleadoId)) {
+                  rebajosMap.set(empleadoId, []);
+               }
+               rebajosMap.get(empleadoId).push(item);
             } catch (e) {
-               console.warn(`Error parseando rebajos para empleado ${item.empleado_id_rebajo}:`, e);
-               rebajosMap.set(item.empleado_id_rebajo, []);
+               console.warn(`Error procesando rebajo para empleado ${item.empleado_id_rebajo}:`, e);
             }
          });
       }
@@ -253,11 +222,14 @@ const obtenerTodosDatos = async (datos, database) => {
       if (horasExtrasResult.status === 'fulfilled' && horasExtrasResult.value?.datos) {
          horasExtrasResult.value.datos.forEach(item => {
             try {
-               const horasExtras = JSON.parse(item.horas_extras || '[]');
-               horasExtrasMap.set(item.empleado_id_compensacion_extra_gestor, horasExtras);
+               // Cada item es un registro individual de horas extras, no un JSON
+               const empleadoId = item.empleado_id_compensacion_extra_gestor;
+               if (!horasExtrasMap.has(empleadoId)) {
+                  horasExtrasMap.set(empleadoId, []);
+               }
+               horasExtrasMap.get(empleadoId).push(item);
             } catch (e) {
-               console.warn(`Error parseando horas extras para empleado ${item.empleado_id_compensacion_extra_gestor}:`, e);
-               horasExtrasMap.set(item.empleado_id_compensacion_extra_gestor, []);
+               console.warn(`Error procesando horas extras para empleado ${item.empleado_id_compensacion_extra_gestor}:`, e);
             }
          });
       }
@@ -266,11 +238,14 @@ const obtenerTodosDatos = async (datos, database) => {
       if (compensacionMetricaResult.status === 'fulfilled' && compensacionMetricaResult.value?.datos) {
          compensacionMetricaResult.value.datos.forEach(item => {
             try {
-               const compensacionMetrica = JSON.parse(item.compensacion_metrica || '[]');
-               compensacionMetricaMap.set(item.empleado_id_compensacion_metrica_gestor, compensacionMetrica);
+               // Cada item es un registro individual de compensación por métrica, no un JSON
+               const empleadoId = item.empleado_id_compensacion_metrica_gestor;
+               if (!compensacionMetricaMap.has(empleadoId)) {
+                  compensacionMetricaMap.set(empleadoId, []);
+               }
+               compensacionMetricaMap.get(empleadoId).push(item);
             } catch (e) {
-               console.warn(`Error parseando compensación por métrica para empleado ${item.empleado_id_compensacion_metrica_gestor}:`, e);
-               compensacionMetricaMap.set(item.empleado_id_compensacion_metrica_gestor, []);
+               console.warn(`Error procesando compensación por métrica para empleado ${item.empleado_id_compensacion_metrica_gestor}:`, e);
             }
          });
       }
@@ -283,8 +258,6 @@ const obtenerTodosDatos = async (datos, database) => {
          horas_extras: horasExtrasMap.get(empleado.id_empleado_gestor) || [],
          compensacion_metrica: compensacionMetricaMap.get(empleado.id_empleado_gestor) || []
       }));
-
-      console.log(`✅ Procesamiento completado para ${empleadosConDatosAdicionales.length} empleados`);
 
       return {
          status: 200,
@@ -344,7 +317,6 @@ const esConsultarExitosa = (resultado) => {
  */
 const obtenerListaCompleta = async (req, res) => {
 
-   console.log(res);
    try {
       // 1. Validar los datos iniciales de la solicitud (por ejemplo, formato y autenticidad de los datos).
       const errorValidacion = await realizarValidacionesIniciales(res);

@@ -177,7 +177,7 @@ import Gestor_Vacaciones_Editar from "../modules/GestorPlanilla/05-Gestor_Vacaci
  * ====================================================================================================================================
  */
 import Gestor_Planilla_Gestor from "../modules/GestorPlanilla/06-Planilla_gestor/06-Planilla_gestor.js";
-
+import Gestor_Planilla_Aplicar from "../modules/GestorPlanilla/06-Planilla_gestor/06-Planilla_Aplicar.js";
 
 
 /** ====================================================================================================================================
@@ -811,6 +811,7 @@ function getModulesConfig() {
             ...Gestor_Vacaciones_Listar,
             ...Gestor_Vacaciones_Editar,
             ...Gestor_Planilla_Gestor,
+            ...Gestor_Planilla_Aplicar,
             }, // Combinamos ambos modelos
          routes: [
             {
@@ -836,6 +837,11 @@ function getModulesConfig() {
             {
                path: "gestor/planilla/gestor", // Ruta para obtener todos los empleados de la empresa
                method: "obtenerListaCompleta", // Método que se ejecutará
+               isAuthRequired: true, // Requiere autenticación
+            },
+            {
+               path: "gestor/planilla/aplicar", // Ruta para aplicar planilla
+               method: "aplicarTransaccion", // Método que se ejecutará
                isAuthRequired: true, // Requiere autenticación
             },
          ],
