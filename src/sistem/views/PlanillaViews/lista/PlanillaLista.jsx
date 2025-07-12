@@ -11,7 +11,7 @@ import { useNavigate } from "react-router-dom";
 // Constantes para los textos
 const TEXTOS = {
    titulo: "Listado de Planillas de todas las empresas",
-   subtitulo: "Tabla que muestra todas las planillas de todas las empresas",  
+   subtitulo: "Tabla que muestra todas las planillas de todas las empresas",
    crearEmpresa: "Crear Planilla",
    sinPermiso: "No tienes permiso para ver la lista de planillas",
    filtrarPorEstado: "Filtrar por estado",
@@ -186,7 +186,7 @@ export const PlanillaLista = () => {
             },
          },
       }),
-      [user?.id_usuario, estadoSeleccionado]
+      [user?.id_usuario, estadoSeleccionado],
    );
 
    // Inicializa la tabla con los parámetros configurados.
@@ -250,27 +250,33 @@ export const PlanillaLista = () => {
                   ></i>
                   {TEXTOS.crearEmpresa}
                </Button>
-           
             </Stack>
             <FormControl sx={{ minWidth: 200, marginRight: 2, marginBottom: 2 }}>
-                  <InputLabel>{TEXTOS.filtrarPorEstado}</InputLabel>
-                  <Select
-                     value={estadoSeleccionado}
-                     onChange={(e) => setEstadoSeleccionado(e.target.value)}
-                     label={TEXTOS.filtrarPorEstado}
-                     sx={{ height: 40 }}
-                  >
-                     {OPCIONES_ESTADO.map((opcion) => (
-                        <MenuItem key={opcion.value} value={opcion.value}>
-                           {opcion.label}
-                        </MenuItem>
-                     ))}
-                  </Select>
-               </FormControl>
+               <InputLabel>{TEXTOS.filtrarPorEstado}</InputLabel>
+               <Select
+                  value={estadoSeleccionado}
+                  onChange={(e) => setEstadoSeleccionado(e.target.value)}
+                  label={TEXTOS.filtrarPorEstado}
+                  sx={{ height: 40 }}
+               >
+                  {OPCIONES_ESTADO.map((opcion) => (
+                     <MenuItem
+                        key={opcion.value}
+                        value={opcion.value}
+                     >
+                        {opcion.label}
+                     </MenuItem>
+                  ))}
+               </Select>
+            </FormControl>
 
-               <Alert severity="info" sx={{ mb: 2 }}>
-                  Mostrando planillas en estado: {OPCIONES_ESTADO.find(op => op.value === estadoSeleccionado)?.label || "Todos"}
-               </Alert>
+            <Alert
+               severity="info"
+               sx={{ mb: 2 }}
+            >
+               Mostrando planillas en estado:{" "}
+               {OPCIONES_ESTADO.find((op) => op.value === estadoSeleccionado)?.label || "Todos"}
+            </Alert>
 
             {/* Contenedor de la tabla */}
             <div className="table-responsive">

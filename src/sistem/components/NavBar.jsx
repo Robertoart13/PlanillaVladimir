@@ -75,6 +75,10 @@ export const NavBar = ({ isSidebarOpen, isMobile }) => {
                if (openSubMenu === "gestion-planillas" && to === "/planilla/lista") {
                   setOpenSubMenu(null);
                }
+               // Si el submenú Gestor Planillas está abierto y el menú no es parte de /gestor/, ciérralo
+               if (openSubMenu === "gestor-planillas" && !to.startsWith("/gestor/")) {
+                  setOpenSubMenu(null);
+               }
             }}
          >
             <span className="pc-micon">
@@ -245,6 +249,58 @@ export const NavBar = ({ isSidebarOpen, isMobile }) => {
                            {tienePermiso(1) && (
                               <MenuItem
                                  to="/empleados/lista"
+                                 icon="fas fa-users"
+                                 label="Empleados"
+                                 i18n="Empleados"
+                              />
+                           )}
+                        </ul>
+                     )}
+                  </li>
+                  {/* Submenú Gestor Planillas */}
+                  <li
+                     className={`pc-item pc-submenu ${
+                        openSubMenu === "gestor-planillas" ? "open" : ""
+                     }`}
+                  >
+                     <div
+                        className="pc-link pc-submenu-toggle d-flex align-items-center justify-content-between"
+                        style={{ cursor: "pointer", width: "100%" }}
+                        onClick={() => handleSubMenuToggle("gestor-planillas")}
+                     >
+                        <span className="d-flex align-items-center">
+                           <span className="pc-micon">
+                           <i className="fas fa-cogs"></i>
+                           </span>
+                           <span
+                              className="pc-mtext"
+                              data-i18n="Gestor Planillas"
+                           >
+                              Gestor Planillas 
+                           </span>
+                        </span>
+                        <span className="submenu-arrow ms-auto">
+                           <i
+                              className={`fas fa-chevron-${
+                                 openSubMenu === "gestor-planillas" ? "down" : "right"
+                              }`}
+                           ></i>
+                        </span>
+                     </div>
+                     {openSubMenu === "gestor-planillas" && (
+                        <ul
+                           className="pc-navbar"
+                           style={{ paddingLeft: "10px", margin: 0 }}
+                        >
+                           <MenuItem
+                              to="/gestor/planillas-aplicadas"
+                              icon="fas fa-check-circle"
+                              label="Planillas Aplicadas"
+                              i18n="Planillas Aplicadas"
+                           />
+                           {tienePermiso(1) && (
+                              <MenuItem
+                                 to="/gestor/empleados"
                                  icon="fas fa-users"
                                  label="Empleados"
                                  i18n="Empleados"

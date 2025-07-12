@@ -9,6 +9,7 @@ import { ClientesPage } from "../pages/ClientesPage/ClientePage";
 import { CalendarioPage } from "../pages/CalendarioPage/CalendarioPage";
 import { PlanillaPage } from "../pages/NturalEmpresa/PlanillaPage/PlanillaPage";
 import { EmpleadosPage } from "../pages/NturalEmpresa/EmpleadosPage/EmpleadosPage";
+import { PlanillaGestorPage } from "../pages/GestorPlanilla/PlanillaGestorPage";
 
 
 // Componente principal de rutas del sistema
@@ -55,6 +56,11 @@ export const SistemaRouters = () => {
          <Route
             path="/*"
             element={<Navigate to="/" />}
+         />
+         {/* Ruta para el Gestor de Planillas */}
+         <Route
+            path="/gestor/planillas-aplicadas"
+            element={<PlanillaGestorPage />}
          />
       </Routes>
    );
