@@ -18,7 +18,6 @@ const getDatabaseConfig = () => {
       password: passLocalBD,
       database: databasenexo,
       port: portmysql,
-      charset: 'utf8mb4', // ✅ válido
    };
 };
 
