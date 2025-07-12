@@ -23,168 +23,276 @@ import { crearRespuestaErrorCrear } from "../../../hooks/crearRespuestaErrorCrea
  * ====================================================================================================================================
  */
 const QUERIES = {
-   // Consulta SQL para obtener todos los registros de la tabla
+   // Consulta SQL optimizada para obtener todos los empleados con sus datos relacionados en una sola consulta
    TRAER_TODOS_LOS_EMPLEADOS_DE_LA_EMPRESA: `
       SELECT 
-    e.id_empleado_gestor,
-    e.numero_socio_empleado_gestor,
-    e.nombre_completo_empleado_gestor,
-    e.correo_empleado_gestor,
-    e.cedula_empleado_gestor,
-    e.salario_base_empleado_gestor,
-    e.tipo_contrato_empleado_gestor,
-    e.supervisor_empleado_gestor,
-    e.fecha_ingreso_empleado_gestor,
-    e.fecha_salida_empleado_gestor,
-    e.numero_asegurado_empleado_gestor,
-    e.numero_ins_empleado_gestor,
-    e.numero_hacienda_empleado_gestor,
-    e.cuenta_bancaria_1_empleado_gestor,
-    e.ministerio_hacienda_empleado_gestor,
-    e.rt_ins_empleado_gestor,
-    e.ccss_empleado_gestor,
-    e.moneda_pago_empleado_gestor,
-    e.estado_empleado_gestor,
-    e.montoAsegurado_gestor_empelado,
-    e.tipo_planilla_empleado_gestor,
-    emp.nombre_comercial_empresa
-FROM gestor_empleado_tbl e
-JOIN empresas_tbl emp ON emp.id_empresa = e.id_empresa
-WHERE e.estado_empleado_gestor = 1
-  AND (e.fecha_salida_empleado_gestor IS NULL OR e.fecha_salida_empleado_gestor = '')
-  AND e.salario_base_empleado_gestor IS NOT NULL
-  AND e.salario_base_empleado_gestor != ''
-  AND e.id_empresa = ?
-  AND e.moneda_pago_empleado_gestor = ?
-  AND e.tipo_planilla_empleado_gestor = ?;
-
-      `,
-      // Consulta para obtener aumentos del empleado
-      AUMENTOS: `
-      SELECT *
+         e.id_empleado_gestor,
+         e.numero_socio_empleado_gestor,
+         e.nombre_completo_empleado_gestor,
+         e.correo_empleado_gestor,
+         e.cedula_empleado_gestor,
+         e.salario_base_empleado_gestor,
+         e.tipo_contrato_empleado_gestor,
+         e.supervisor_empleado_gestor,
+         e.fecha_ingreso_empleado_gestor,
+         e.fecha_salida_empleado_gestor,
+         e.numero_asegurado_empleado_gestor,
+         e.numero_ins_empleado_gestor,
+         e.numero_hacienda_empleado_gestor,
+         e.cuenta_bancaria_1_empleado_gestor,
+         e.ministerio_hacienda_empleado_gestor,
+         e.rt_ins_empleado_gestor,
+         e.ccss_empleado_gestor,
+         e.moneda_pago_empleado_gestor,
+         e.estado_empleado_gestor,
+         e.montoAsegurado_gestor_empelado,
+         e.tipo_planilla_empleado_gestor,
+         emp.nombre_comercial_empresa
+      FROM gestor_empleado_tbl e
+      JOIN empresas_tbl emp ON emp.id_empresa = e.id_empresa
+      WHERE e.estado_empleado_gestor = 1
+        AND (e.fecha_salida_empleado_gestor IS NULL OR e.fecha_salida_empleado_gestor = '')
+        AND e.salario_base_empleado_gestor IS NOT NULL
+        AND e.salario_base_empleado_gestor != ''
+        AND e.id_empresa = ?
+        AND e.moneda_pago_empleado_gestor = ?
+        AND e.tipo_planilla_empleado_gestor = ?
+      ORDER BY e.nombre_completo_empleado_gestor;
+   `,
+   
+   // Consulta optimizada para obtener todos los aumentos de todos los empleados en una sola consulta
+   AUMENTOS_TODOS: `
+      SELECT 
+         empleado_id_aumento_gestor,
+         JSON_ARRAYAGG(
+            JSON_OBJECT(
+               'id', id_aumento_gestor,
+               'monto', monto_aumento_gestor,
+               'descripcion', descripcion_aumento_gestor,
+               'fecha', fecha_aumento_gestor
+            )
+         ) as aumentos
       FROM gestor_aumento_tbl
       WHERE planilla_id_aumento_gestor = ?
         AND empresa_id_aumento_gestor = ?
-        AND empleado_id_aumento_gestor = ?
-        AND estado_planilla_aumento_gestor = "Pendiente";
-      `,
-      // Consulta para obtener rebajos a compensación del empleado
-      REBAJOS_COMPENSACION: `
-      SELECT *
+        AND estado_planilla_aumento_gestor = "Pendiente"
+      GROUP BY empleado_id_aumento_gestor;
+   `,
+   
+   // Consulta optimizada para obtener todos los rebajos de todos los empleados en una sola consulta
+   REBAJOS_COMPENSACION_TODOS: `
+      SELECT 
+         empleado_id_rebajo,
+         JSON_ARRAYAGG(
+            JSON_OBJECT(
+               'id', id_rebajo,
+               'monto', monto_rebajo,
+               'descripcion', descripcion_rebajo,
+               'fecha', fecha_rebajo
+            )
+         ) as rebajos_compensacion
       FROM gestor_rebajo_compensacion_tbl
       WHERE planilla_id_rebajo = ?
         AND empresa_id_rebajo = ?
-        AND empleado_id_rebajo = ?
-        AND estado_rebajo = "Pendiente";
-      `,
-      // Consulta para obtener horas extras del empleado
-      HORAS_EXTRAS: `
-      SELECT *
+        AND estado_rebajo = "Pendiente"
+      GROUP BY empleado_id_rebajo;
+   `,
+   
+   // Consulta optimizada para obtener todas las horas extras de todos los empleados en una sola consulta
+   HORAS_EXTRAS_TODOS: `
+      SELECT 
+         empleado_id_compensacion_extra_gestor,
+         JSON_ARRAYAGG(
+            JSON_OBJECT(
+               'id', id_compensacion_extra_gestor,
+               'monto', monto_compensacion_extra_gestor,
+               'descripcion', descripcion_compensacion_extra_gestor,
+               'fecha', fecha_compensacion_extra_gestor
+            )
+         ) as horas_extras
       FROM gestor_compensacion_extra_tbl
       WHERE planilla_id_compensacion_extra_gestor = ?
         AND empresa_id_compensacion_extra_gestor = ?
-        AND empleado_id_compensacion_extra_gestor = ?
-        AND estado_compensacion_extra_gestor = "Pendiente";
-      `,
-      // Consulta para obtener compensación por métrica del empleado
-      COMPENSACION_METRICA: `
-      SELECT *
+        AND estado_compensacion_extra_gestor = "Pendiente"
+      GROUP BY empleado_id_compensacion_extra_gestor;
+   `,
+   
+   // Consulta optimizada para obtener todas las compensaciones por métrica de todos los empleados en una sola consulta
+   COMPENSACION_METRICA_TODOS: `
+      SELECT 
+         empleado_id_compensacion_metrica_gestor,
+         JSON_ARRAYAGG(
+            JSON_OBJECT(
+               'id', id_compensacion_metrica_gestor,
+               'monto', monto_compensacion_metrica_gestor,
+               'descripcion', descripcion_compensacion_metrica_gestor,
+               'fecha', fecha_compensacion_metrica_gestor
+            )
+         ) as compensacion_metrica
       FROM gestor_compensacion_metrica_tbl
       WHERE planilla_id_compensacion_metrica_gestor = ?
         AND empresa_id_compensacion_metrica_gestor = ?
-        AND empleado_id_compensacion_metrica_gestor = ?
-        AND estado_compensacion_metrica_gestor = "Pendiente";
-      `,
+        AND estado_compensacion_metrica_gestor = "Pendiente"
+      GROUP BY empleado_id_compensacion_metrica_gestor;
+   `,
 };
 
 /**
  * ====================================================================================================================================
- * Realiza una consulta a la base de datos para obtener todos los registros.
+ * Ejecuta una consulta con timeout controlado y manejo de errores mejorado.
  *
- * Esta función ejecuta una consulta SQL definida en el objeto `QUERIES`, la cual extrae todos
- * los registros almacenados en la base de datos sin aplicar filtros.
+ * @param {string} query - Consulta SQL a ejecutar
+ * @param {Array} params - Parámetros de la consulta
+ * @param {string} database - Base de datos
+ * @param {number} timeout - Timeout en milisegundos (por defecto 10 segundos)
+ * @returns {Promise<Object>} Resultado de la consulta
+ * ====================================================================================================================================
+ */
+const ejecutarConsultaConTimeout = async (query, params, database, timeout = 10000) => {
+   try {
+      const resultado = await Promise.race([
+         realizarConsulta(query, params, database),
+         new Promise((_, reject) => 
+            setTimeout(() => reject(new Error(`Timeout en consulta después de ${timeout}ms`)), timeout)
+         )
+      ]);
+      
+      return resultado;
+   } catch (error) {
+      console.error(`Error en consulta con timeout: ${error.message}`);
+      return {
+         status: 500,
+         error: error.message,
+         datos: []
+      };
+   }
+};
+
+/**
+ * ====================================================================================================================================
+ * Realiza una consulta a la base de datos para obtener todos los registros optimizada.
  *
- * @param {Object|string} database - Objeto de conexión a la base de datos o nombre de la base de datos.
- * @returns {Promise<Object>} - Promesa que retorna el resultado de la consulta con todos los registros
+ * Esta función ejecuta consultas optimizadas para evitar el problema N+1,
+ * obteniendo todos los datos relacionados en consultas separadas pero eficientes.
+ *
+ * @param {Object} datos - Datos de la solicitud
+ * @param {string} database - Base de datos
+ * @returns {Promise<Object>} - Promesa que retorna el resultado de la consulta
  * @throws {Error} Si ocurre un error durante la consulta a la base de datos.
  * ====================================================================================================================================
  */
 const obtenerTodosDatos = async (datos, database) => {
-
    try {
-      // Obtener la lista de empleados
-      const resultado = await realizarConsulta(QUERIES.TRAER_TODOS_LOS_EMPLEADOS_DE_LA_EMPRESA, [datos.empresa_id, datos.planilla_moneda, datos.tipo_planilla], database); 
+      console.log('🔄 Iniciando consulta optimizada de empleados...');
       
-      // Si hay un error en la consulta principal, retornarlo
-      if (resultado?.status === 500) {
-         return resultado;
+      // 1. Obtener empleados principales (consulta principal)
+      const empleadosResultado = await ejecutarConsultaConTimeout(
+         QUERIES.TRAER_TODOS_LOS_EMPLEADOS_DE_LA_EMPRESA, 
+         [datos.empresa_id, datos.planilla_moneda, datos.tipo_planilla], 
+         database,
+         15000 // 15 segundos para la consulta principal
+      );
+      
+      if (empleadosResultado?.status === 500) {
+         return empleadosResultado;
       }
 
-      // Recorrer cada empleado y obtener sus datos adicionales
-      const empleadosConDatosAdicionales = await Promise.all(
-         resultado.datos.map(async (empleado) => {
+      const empleados = empleadosResultado.datos || [];
+      console.log(`✅ Empleados obtenidos: ${empleados.length}`);
 
+      if (empleados.length === 0) {
+         return {
+            status: 200,
+            datos: []
+         };
+      }
+
+      // 2. Obtener todos los datos relacionados en consultas paralelas optimizadas
+      console.log('🔄 Obteniendo datos relacionados...');
+      
+      const [aumentosResult, rebajosResult, horasExtrasResult, compensacionMetricaResult] = await Promise.allSettled([
+         ejecutarConsultaConTimeout(QUERIES.AUMENTOS_TODOS, [datos.planilla_id, datos.empresa_id], database, 8000),
+         ejecutarConsultaConTimeout(QUERIES.REBAJOS_COMPENSACION_TODOS, [datos.planilla_id, datos.empresa_id], database, 8000),
+         ejecutarConsultaConTimeout(QUERIES.HORAS_EXTRAS_TODOS, [datos.planilla_id, datos.empresa_id], database, 8000),
+         ejecutarConsultaConTimeout(QUERIES.COMPENSACION_METRICA_TODOS, [datos.planilla_id, datos.empresa_id], database, 8000)
+      ]);
+
+      // 3. Procesar resultados y crear mapas para acceso rápido
+      const aumentosMap = new Map();
+      const rebajosMap = new Map();
+      const horasExtrasMap = new Map();
+      const compensacionMetricaMap = new Map();
+
+      // Procesar aumentos
+      if (aumentosResult.status === 'fulfilled' && aumentosResult.value?.datos) {
+         aumentosResult.value.datos.forEach(item => {
             try {
-               // Ejecutar las 4 consultas adicionales para cada empleado
-               const [aumentos, rebajosCompensacion, horasExtras, compensacionMetrica] = await Promise.all([
-                  // Consulta de aumentos
-                  realizarConsulta(
-                     QUERIES.AUMENTOS, 
-                     [datos.planilla_id, datos.empresa_id, empleado.id_empleado_gestor], 
-                     database
-                  ),
-                  // Consulta de rebajos a compensación
-                  realizarConsulta(
-                     QUERIES.REBAJOS_COMPENSACION, 
-                     [datos.planilla_id, datos.empresa_id, empleado.id_empleado_gestor], 
-                     database
-                  ),
-                  // Consulta de horas extras
-                  realizarConsulta(
-                     QUERIES.HORAS_EXTRAS, 
-                     [datos.planilla_id, datos.empresa_id, empleado.id_empleado_gestor], 
-                     database
-                  ),
-                  // Consulta de compensación por métrica
-                  realizarConsulta(
-                     QUERIES.COMPENSACION_METRICA, 
-                     [datos.planilla_id, datos.empresa_id, empleado.id_empleado_gestor], 
-                     database
-                  )
-               ]);
-
-               console.log("datos adicionales", datos.planilla_id, datos.empresa_id, empleado);
-
-
-               // Agregar los datos adicionales al empleado
-               return {
-                  ...empleado,
-                  aumentos: aumentos?.status === 500 ? [] : (aumentos?.datos || []),
-                  rebajos_compensacion: rebajosCompensacion?.status === 500 ? [] : (rebajosCompensacion?.datos || []),
-                  horas_extras: horasExtras?.status === 500 ? [] : (horasExtras?.datos || []),
-                  compensacion_metrica: compensacionMetrica?.status === 500 ? [] : (compensacionMetrica?.datos || [])
-               };
-            } catch (error) {
-               // Si hay error en las consultas adicionales, retornar el empleado sin datos adicionales
-               console.error(`Error obteniendo datos adicionales para empleado ${empleado.id_empleado_gestor}:`, error);
-               return {
-                  ...empleado,
-                  aumentos: [],
-                  rebajos_compensacion: [],
-                  horas_extras: [],
-                  compensacion_metrica: []
-               };
+               const aumentos = JSON.parse(item.aumentos || '[]');
+               aumentosMap.set(item.empleado_id_aumento_gestor, aumentos);
+            } catch (e) {
+               console.warn(`Error parseando aumentos para empleado ${item.empleado_id_aumento_gestor}:`, e);
+               aumentosMap.set(item.empleado_id_aumento_gestor, []);
             }
-         })
-      );
+         });
+      }
 
-      // Retornar el resultado con los empleados y sus datos adicionales
+      // Procesar rebajos
+      if (rebajosResult.status === 'fulfilled' && rebajosResult.value?.datos) {
+         rebajosResult.value.datos.forEach(item => {
+            try {
+               const rebajos = JSON.parse(item.rebajos_compensacion || '[]');
+               rebajosMap.set(item.empleado_id_rebajo, rebajos);
+            } catch (e) {
+               console.warn(`Error parseando rebajos para empleado ${item.empleado_id_rebajo}:`, e);
+               rebajosMap.set(item.empleado_id_rebajo, []);
+            }
+         });
+      }
+
+      // Procesar horas extras
+      if (horasExtrasResult.status === 'fulfilled' && horasExtrasResult.value?.datos) {
+         horasExtrasResult.value.datos.forEach(item => {
+            try {
+               const horasExtras = JSON.parse(item.horas_extras || '[]');
+               horasExtrasMap.set(item.empleado_id_compensacion_extra_gestor, horasExtras);
+            } catch (e) {
+               console.warn(`Error parseando horas extras para empleado ${item.empleado_id_compensacion_extra_gestor}:`, e);
+               horasExtrasMap.set(item.empleado_id_compensacion_extra_gestor, []);
+            }
+         });
+      }
+
+      // Procesar compensación por métrica
+      if (compensacionMetricaResult.status === 'fulfilled' && compensacionMetricaResult.value?.datos) {
+         compensacionMetricaResult.value.datos.forEach(item => {
+            try {
+               const compensacionMetrica = JSON.parse(item.compensacion_metrica || '[]');
+               compensacionMetricaMap.set(item.empleado_id_compensacion_metrica_gestor, compensacionMetrica);
+            } catch (e) {
+               console.warn(`Error parseando compensación por métrica para empleado ${item.empleado_id_compensacion_metrica_gestor}:`, e);
+               compensacionMetricaMap.set(item.empleado_id_compensacion_metrica_gestor, []);
+            }
+         });
+      }
+
+      // 4. Combinar todos los datos
+      const empleadosConDatosAdicionales = empleados.map(empleado => ({
+         ...empleado,
+         aumentos: aumentosMap.get(empleado.id_empleado_gestor) || [],
+         rebajos_compensacion: rebajosMap.get(empleado.id_empleado_gestor) || [],
+         horas_extras: horasExtrasMap.get(empleado.id_empleado_gestor) || [],
+         compensacion_metrica: compensacionMetricaMap.get(empleado.id_empleado_gestor) || []
+      }));
+
+      console.log(`✅ Procesamiento completado para ${empleadosConDatosAdicionales.length} empleados`);
+
       return {
-         ...resultado,
+         status: 200,
          datos: empleadosConDatosAdicionales
       };
 
    } catch (error) {
+      console.error('❌ Error en obtenerTodosDatos:', error);
       return manejarError(
          error,
          500,

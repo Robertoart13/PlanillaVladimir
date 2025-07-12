@@ -83,6 +83,29 @@ function setupBasicMiddlewares(app) {
   // Middleware para logging de solicitudes HTTP
   app.use(morgan("dev"));
 
+  // Middleware personalizado para logging detallado de peticiones
+  app.use((req, res, next) => {
+    const startTime = Date.now();
+    
+    // Log de inicio de petición
+    console.log(`🚀 [${new Date().toISOString()}] ${req.method} ${req.path} - Iniciando...`);
+    
+    // Interceptar el evento 'finish' para logging de finalización
+    res.on('finish', () => {
+      const duration = Date.now() - startTime;
+      const statusColor = res.statusCode >= 400 ? '❌' : res.statusCode >= 300 ? '⚠️' : '✅';
+      
+      console.log(`${statusColor} [${new Date().toISOString()}] ${req.method} ${req.path} - ${res.statusCode} (${duration}ms)`);
+      
+      // Log de advertencia para peticiones lentas
+      if (duration > 10000) {
+        console.warn(`🐌 Petición lenta detectada: ${req.method} ${req.path} tomó ${duration}ms`);
+      }
+    });
+    
+    next();
+  });
+
   // Middleware para archivos estáticos
   app.use(express.static(path.join(__dirname, "../public")));
 }
@@ -282,6 +305,32 @@ function bootstrapApplication() {
 
   // Configuración de middlewares esenciales
   setupBasicMiddlewares(app); // Middlewares básicos (JSON, urlencoded, cookieParser, morgan)
+
+  // Middleware de timeout global (15 segundos)
+  app.use((req, res, next) => {
+    // Configurar timeout más largo para operaciones complejas
+    const timeout = req.path.includes('/gestor/planilla/gestor') ? 30000 : 15000;
+    
+    res.setTimeout(timeout, () => {
+      if (!res.headersSent) {
+        console.error(`⏰ Timeout en ruta: ${req.path} después de ${timeout}ms`);
+        res.status(504).json({ 
+          error: 'Timeout', 
+          message: 'La petición tardó demasiado en responder.',
+          path: req.path,
+          timeout: timeout
+        });
+      }
+    });
+    
+    // Agregar listener para detectar cuando la respuesta se envía
+    res.on('finish', () => {
+      console.log(`✅ Respuesta enviada para ${req.path} - Status: ${res.statusCode}`);
+    });
+    
+    next();
+  });
+
   configureCORS(app, config_env.entorno.corsOrigins); // Configura CORS con orígenes permitidos
   setupErrorHandling(app); // Configura manejo global de errores
 
