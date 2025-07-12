@@ -1,5 +1,7 @@
 import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 import { fetchData_api } from "../../../../store/fetchData_api/fetchData_api_Thunks";
 import { formatCurrency, formatCurrencyUSD } from "../../../../hooks/formatCurrency";
 import ModalDetalleEmpleado from "./ModalDetalleEmpleado";    
@@ -68,7 +70,7 @@ const calcularCompensacionBase = (salarioBase, tipoPlanilla) => {
          
       default:
          // Si no se especifica tipo, se asume mensual
-         console.warn(`Tipo de planilla no reconocido: ${tipoPlanilla}. Se asume mensual.`);
+         // console.warn(`Tipo de planilla no reconocido: ${tipoPlanilla}. Se asume mensual.`);
          return salario;
    }
 };
@@ -128,7 +130,7 @@ const validarDatosEmpleado = (empleado) => {
       .map(([key]) => key);
    
    if (datosFaltantes.length > 0) {
-      console.warn(`Empleado ${datosRequeridos.cedula || 'sin cédula'} - Datos faltantes:`, datosFaltantes);
+      // console.warn(`Empleado ${datosRequeridos.cedula || 'sin cédula'} - Datos faltantes:`, datosFaltantes);
       return null;
    }
    
@@ -255,18 +257,18 @@ const transformarEmpleado = (empleado) => {
 const transformarDatosPlanilla = (planillaData) => {
    // Validar entrada
    if (!planillaData || !Array.isArray(planillaData)) {
-      console.warn('transformarDatosPlanilla: Datos de planilla inválidos o vacíos');
+      // console.warn('transformarDatosPlanilla: Datos de planilla inválidos o vacíos');
       return [];
    }
 
-   console.log('Datos de planilla recibidos:', planillaData);
+   // console.log('Datos de planilla recibidos:', planillaData);
    
    // Transformar cada empleado
    const empleadosTransformados = planillaData
       .map(empleado => transformarEmpleado(empleado))
       .filter(empleado => empleado !== null); // Filtrar empleados con datos inválidos
    
-   console.log('Empleados transformados:', empleadosTransformados);
+   // console.log('Empleados transformados:', empleadosTransformados);
    
    return empleadosTransformados;
 };
@@ -372,7 +374,7 @@ const calcularCargasSociales = (empleado) => {
          
       default:
          // Si no se especifica tipo, se asume mensual
-         console.warn(`Tipo de planilla no reconocido para S.T.I CCSS: ${tipoPlanilla}. Se asume mensual.`);
+         // console.warn(`Tipo de planilla no reconocido para S.T.I CCSS: ${tipoPlanilla}. Se asume mensual.`);
          ccssCalculado = montoAsegurado;
          break;
    }
@@ -722,10 +724,6 @@ const TableSkeleton = ({ count = 5, columns = PAYROLL_COLUMNS }) => {
       <>
          {Array.from({ length: count }, (_, index) => (
             <tr key={`skeleton-${index}`} className="skeleton-row">
-               {/* Checkbox column */}
-               <td style={{ padding: "12px 8px", textAlign: "center" }}>
-                  <div className="skeleton-text" style={{ height: "16px", width: "16px", borderRadius: "4px", margin: "0 auto" }}></div>
-               </td>
                {/* Data columns */}
                {columns.map((col, colIndex) => (
                   <td key={`skeleton-col-${colIndex}`} style={{ padding: "12px 8px" }}>
@@ -829,16 +827,13 @@ const SubTable = ({ columns, data, employeeName }) => {
 };
 
 /**
- * Componente principal de la tabla de planilla con funcionalidad de selección y expansión
+ * Componente principal de la tabla de planilla con funcionalidad de expansión
  * @param {Object} props - Propiedades del componente
  * @returns {JSX.Element} Tabla de planilla
  */
 const PayrollTable = ({
    columns,
    pageRows,
-   selectedRows,
-   onCheckboxChange,
-   startIdx,
    disabled,
    planillaEstado,
    expandedRows,
@@ -860,7 +855,6 @@ const PayrollTable = ({
       >
          <thead className="table-light sticky-top" style={{ zIndex: 2 }}>
             <tr>
-               <th style={{ width: 40, textAlign: "center" }}></th>
                {columns.map((col) => (
                   <th key={col.key} style={getTableHeaderStyle(col)}>
                      {col.label}
@@ -873,36 +867,25 @@ const PayrollTable = ({
                <TableSkeleton count={pageSize || 5} columns={columns} />
             ) : (
                pageRows.map((row, idx) => {
-                  const globalIdx = startIdx + idx;
-                  const isSelected = selectedRows.includes(globalIdx);
-                  const isExpanded = expandedRows.includes(globalIdx);
+                  const isExpanded = expandedRows.includes(idx);
                   const rowDisabled = disabled || planillaEstado === "Procesada";
                   const employeeData = subtableData[row.cedula] || [];
 
                   return (
-                     <React.Fragment key={globalIdx}>
+                     <React.Fragment key={idx}>
                         <tr
-                           className={`${isSelected ? "fila-seleccionada" : ""} ${isExpanded ? "table-active" : ""}`}
+                           className={`${isExpanded ? "table-active" : ""}`}
                            style={
                               rowDisabled
                                  ? { pointerEvents: "none", opacity: 0.7, background: "#f5f5f5" }
                                  : { cursor: "pointer" }
                            }
-                           onClick={() => !rowDisabled && onRowToggle(globalIdx)}
+                           onClick={() => !rowDisabled && onRowToggle(idx)}
                         >
-                           <td style={{ textAlign: "center" }} onClick={(e) => e.stopPropagation()}>
-                              <input
-                                 type="checkbox"
-                                 checked={isSelected}
-                                 onChange={() => onCheckboxChange(idx)}
-                                 aria-label={`Seleccionar fila ${globalIdx + 1}`}
-                                 disabled={rowDisabled}
-                              />
-                           </td>
                            {columns.map((col) => (
                               <td
                                  key={col.key}
-                                 style={getTableCellStyle(col, isSelected, idx)}
+                                 style={getTableCellStyle(col, false, idx)}
                                  onClick={(e) => {
                                     if (col.key === "accion") {
                                        e.stopPropagation();
@@ -933,7 +916,7 @@ const PayrollTable = ({
                         </tr>
                         {isExpanded && (
                            <tr>
-                              <td colSpan={columns.length + 1} style={{ padding: 0, border: "none" }}>
+                              <td colSpan={columns.length} style={{ padding: 0, border: "none" }}>
                                  <SubTable
                                     columns={SUBTABLE_COLUMNS}
                                     data={employeeData}
@@ -1191,35 +1174,15 @@ const calcularTotalesPlanilla = (rows) => {
  */
 
 /**
- * Hook personalizado para manejar la selección de filas
- * @param {Object} params - Parámetros del hook
- * @returns {Function} Función para manejar cambios de checkbox
- */
-const useHandleCheckbox = ({ rows, selectedRows, startIdx, setSelectedRows }) => {
-   return useCallback(
-      (idx) => {
-         const globalIdx = startIdx + idx;
-         const isCurrentlySelected = selectedRows.includes(globalIdx);
-         const shouldSelect = !isCurrentlySelected;
-
-         setSelectedRows((prev) =>
-            shouldSelect ? [...prev, globalIdx] : prev.filter((i) => i !== globalIdx)
-         );
-      },
-      [rows, selectedRows, startIdx, setSelectedRows]
-   );
-};
-
-/**
  * Hook personalizado para manejar la expansión de filas
  * @param {Object} params - Parámetros del hook
  * @returns {Function} Función para manejar toggle de filas
  */
 const useHandleRowToggle = ({ expandedRows, setExpandedRows }) => {
    return useCallback(
-      (globalIdx) => {
+      (idx) => {
          setExpandedRows((prev) =>
-            prev.includes(globalIdx) ? prev.filter((i) => i !== globalIdx) : [...prev, globalIdx]
+            prev.includes(idx) ? prev.filter((i) => i !== idx) : [...prev, idx]
          );
       },
       [expandedRows, setExpandedRows]
@@ -1240,7 +1203,6 @@ const useHandleRowToggle = ({ expandedRows, setExpandedRows }) => {
 export const PayrollGenerator = () => {
    // Estados principales
    const [rows, setRows] = useState([]);
-   const [selectedRows, setSelectedRows] = useState([]);
    const [expandedRows, setExpandedRows] = useState([]);
    const [pageSize, setPageSize] = useState(PAGE_SIZES[0]);
    const [currentPage, setCurrentPage] = useState(1);
@@ -1255,8 +1217,9 @@ export const PayrollGenerator = () => {
    const [loadingPlanillas, setLoadingPlanillas] = useState(false);
    const [error, setError] = useState(null);
 
-   // Hook de Redux
+   // Hook de Redux y navegación
    const dispatch = useDispatch();
+   const navigate = useNavigate();
 
    // Obtener datos de la planilla seleccionada
    const selectedPlanilla = planillasList.find(
@@ -1313,7 +1276,7 @@ export const PayrollGenerator = () => {
                setPlanillaData(null);
             }
          } catch (error) {
-            console.error("Error al cargar datos de planilla:", error);
+
             setError("Error de conexión al cargar los datos");
             setPlanillaData(null);
          } finally {
@@ -1346,11 +1309,10 @@ export const PayrollGenerator = () => {
             if (response.success && response.data.array?.length > 0) {
                setPlanillasList(response.data.array || []);
             } else {
-               console.error("Error en la respuesta de lista de planillas:", response);
                setError("Error al cargar la lista de planillas");
             }
          } catch (error) {
-            console.error("Error al cargar lista de planillas:", error);
+            // console.error("Error al cargar lista de planillas:", error);
             setError("Error de conexión al cargar la lista de planillas");
          } finally {
             setLoadingPlanillas(false);
@@ -1369,13 +1331,6 @@ export const PayrollGenerator = () => {
    const totales = calcularTotalesPlanilla(rows);
 
    // Handlers
-   const handleCheckbox = useHandleCheckbox({
-      rows,
-      selectedRows,
-      startIdx,
-      setSelectedRows,
-   });
-
    const handleRowToggle = useHandleRowToggle({
       expandedRows,
       setExpandedRows,
@@ -1399,6 +1354,86 @@ export const PayrollGenerator = () => {
       setPlanillaSeleccionada(e.target.value);
    }, []);
 
+   // Handler para aplicar planilla con confirmación
+   const handleAplicarPlanilla = async () => {
+      if (!selectedPlanilla) {
+         Swal.fire({
+            icon: 'warning',
+            title: 'Advertencia',
+            text: 'No hay planilla seleccionada.',
+            confirmButtonText: 'Entendido'
+         });
+         return;
+      }
+
+      // Mostrar confirmación
+      const result = await Swal.fire({
+         title: '¿Está seguro?',
+         text: '¿Desea aplicar la planilla seleccionada? Esta acción no se puede deshacer.',
+         icon: 'question',
+         showCancelButton: true,
+         confirmButtonColor: '#3085d6',
+         cancelButtonColor: '#d33',
+         confirmButtonText: 'Sí, aplicar planilla',
+         cancelButtonText: 'Cancelar'
+      });
+
+      if (result.isConfirmed) {
+         try {
+            // Mostrar loading
+            Swal.fire({
+               title: 'Aplicando planilla...',
+               text: 'Por favor espere mientras se procesa la planilla',
+               allowOutsideClick: false,
+               allowEscapeKey: false,
+               showConfirmButton: false,
+               didOpen: () => {
+                  Swal.showLoading();
+               }
+            });
+
+            // Ejecutar la aplicación de la planilla
+            const response = await dispatch(fetchData_api(selectedPlanilla, "gestor/planilla/aplicar"));
+
+            // Cerrar loading
+            Swal.close();
+
+            // Verificar respuesta
+            if (response.success) {
+               // Mostrar éxito y navegar
+               await Swal.fire({
+                  icon: 'success',
+                  title: '¡Planilla aplicada!',
+                  text: 'La planilla ha sido aplicada exitosamente.',
+                  confirmButtonText: 'Continuar'
+               });
+
+               // Navegar a la lista de planillas
+               navigate('/planilla/lista');
+            } else {
+               // Mostrar error
+               Swal.fire({
+                  icon: 'error',
+                  title: 'Error',
+                  text: response.message || 'Error al aplicar la planilla. Por favor intente nuevamente.',
+                  confirmButtonText: 'Entendido'
+               });
+            }
+         } catch (error) {
+            // Cerrar loading en caso de error
+            Swal.close();
+            
+            // Mostrar error
+            Swal.fire({
+               icon: 'error',
+               title: 'Error de conexión',
+               text: 'No se pudo conectar con el servidor. Por favor verifique su conexión e intente nuevamente.',
+               confirmButtonText: 'Entendido'
+            });
+         }
+      }
+   };
+
    // IDs únicos para accesibilidad
    const planillaSelectId = "planillaSelect";
 
@@ -1417,8 +1452,8 @@ export const PayrollGenerator = () => {
         horasExtras: empleadoOriginal?.horas_extras || [],
         metricas: empleadoOriginal?.compensacion_metrica || [],
         rebajos: empleadoOriginal?.rebajos_compensacion || [],
-        tipoPlanillaLabel: selectedPlanilla?.planilla_tipo || "", // <--- agrega esto
-        periodoLabel: selectedPlanilla?.planilla_codigo || "",    // <--- o el campo que corresponda
+        tipoPlanillaLabel: selectedPlanilla?.planilla_tipo || "",
+        periodoLabel: selectedPlanilla?.planilla_codigo || "",
       });
    };
 
@@ -1432,13 +1467,12 @@ export const PayrollGenerator = () => {
                }
                .table th, .table td {
                   vertical-align: middle !important;
-               }
-               .fila-seleccionada {
-                  background-color: #b6fcb6 !important;
+                  font-size: 0.92rem !important;
+                  padding: 6px 8px !important;
                }
                .table-active {
                   background-color: #e3f2fd !important;
-                  border-left: 4px solid #2196f3 !important;
+                  border-left: 3px solid #2196f3 !important;
                }
                .subtable-container {
                   transition: all 0.3s ease-in-out;
@@ -1448,7 +1482,14 @@ export const PayrollGenerator = () => {
                   border-color: #6c757d;
                   color: white;
                }
-               
+               .btn-compact {
+                  font-size: 0.98rem !important;
+                  padding: 6px 18px !important;
+                  min-width: 120px !important;
+                  border-radius: 6px !important;
+                  height: 38px !important;
+                  font-weight: 600;
+               }
                /* Skeleton loading animation */
                .skeleton-text {
                   animation: skeleton-loading 1.5s ease-in-out infinite;
@@ -1474,35 +1515,35 @@ export const PayrollGenerator = () => {
                }
                .employee-details-block {
                   background: #fff;
-                  border: 1.5px solid #e3e6f0;
-                  border-radius: 8px;
-                  box-shadow: 0 2px 8px rgba(44,62,80,0.04);
-                  margin: 12px 0 24px 0;
-                  padding: 0 0 12px 0;
+                  border: 1px solid #e3e6f0;
+                  border-radius: 6px;
+                  box-shadow: 0 1px 4px rgba(44,62,80,0.04);
+                  margin: 8px 0 16px 0;
+                  padding: 0 0 8px 0;
                   transition: box-shadow 0.2s;
                }
                .employee-details-block:hover {
-                  box-shadow: 0 4px 16px rgba(44,62,80,0.10);
+                  box-shadow: 0 2px 8px rgba(44,62,80,0.08);
                }
                .details-header {
                   background: #f1f3f6;
-                  border-bottom: 1.5px solid #e3e6f0;
-                  font-size: 1.08rem;
+                  border-bottom: 1px solid #e3e6f0;
+                  font-size: 0.99rem;
                   font-weight: 600;
                   color: #2d3748;
-                  padding: 10px 18px;
-                  border-radius: 8px 8px 0 0;
+                  padding: 7px 12px;
+                  border-radius: 6px 6px 0 0;
                   display: flex;
                   align-items: center;
                }
                .details-table-wrapper {
-                  padding: 10px 18px 0 18px;
+                  padding: 7px 12px 0 12px;
                }
                .details-table-wrapper table {
-                  font-size: 0.95rem;
+                  font-size: 0.92rem;
                }
                .details-table-wrapper th, .details-table-wrapper td {
-                  padding: 6px 10px !important;
+                  padding: 4px 7px !important;
                }
                .details-table-wrapper th {
                   background: #f8fafc;
@@ -1515,29 +1556,59 @@ export const PayrollGenerator = () => {
                /* Estilos para la tabla de resultados */
                .results-table {
                   background: #fff;
-                  border: 2px solid #e3e6f0;
-                  border-radius: 8px;
-                  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                  border: 1px solid #e3e6f0;
+                  border-radius: 6px;
+                  box-shadow: 0 2px 6px rgba(0,0,0,0.07);
                }
                .results-table th {
                   background: #f8f9fa;
-                  border-bottom: 2px solid #dee2e6;
+                  border-bottom: 1px solid #dee2e6;
                   font-weight: 600;
                   color: #495057;
                   text-align: center;
+                  font-size: 0.97rem;
+                  padding: 6px 8px !important;
                }
                .results-table td {
                   border-bottom: 1px solid #dee2e6;
                   font-weight: 500;
+                  font-size: 0.97rem;
+                  padding: 8px 8px !important;
+                  border-right: 1.5px solid #e3e6f0;
+                  background: #fff;
+               }
+               .results-table th:last-child, .results-table td:last-child {
+                  border-right: none;
+               }
+               .results-table tbody tr {
+                  border-bottom: 2.5px solid #e3e6f0 !important;
+               }
+               .results-table tbody tr td {
+                  background: #fcfcfc;
+               }
+               .results-table tbody tr:not(.total-row) td {
+                  border-bottom: 2.5px solid #e3e6f0 !important;
+               }
+               .results-table tbody tr.total-row td {
+                  border-bottom: none !important;
                }
                .results-table .total-row {
                   background: #e3f2fd;
                   font-weight: 700;
-                  border-top: 2px solid #2196f3;
+                  border-top: 1px solid #2196f3;
                }
                .results-table .total-row td {
-                  font-size: 1.1rem;
+                  font-size: 1.02rem;
                   color: #1976d2;
+               }
+               .card-header.bg-primary {
+                  font-size: 1.01rem;
+                  padding: 7px 14px !important;
+                  border-radius: 6px 6px 0 0 !important;
+               }
+               .card.shadow-sm {
+                  box-shadow: 0 1px 4px rgba(0,0,0,0.07) !important;
+                  border-radius: 8px !important;
                }
             `}
          </style>
@@ -1584,7 +1655,7 @@ export const PayrollGenerator = () => {
 
                      {/* Selector de planilla */}
                      <div className="mb-3">
-                        <label htmlFor={planillaSelectId} className="form-label">
+                        <label htmlFor={planillaSelectId} className="form-label" style={{ fontSize: '0.97rem' }}>
                            Tipo de Planilla
                         </label>
                         <select
@@ -1593,12 +1664,13 @@ export const PayrollGenerator = () => {
                            value={planillaSeleccionada}
                            onChange={handlePlanillaChange}
                            disabled={loadingPlanillas}
+                           style={{ fontSize: '0.97rem', padding: '5px 10px', height: '34px', borderRadius: '6px' }}
                         >
                            <option value="">Seleccione un tipo de planilla</option>
                            {planillasList.length > 0 ? (
                               planillasList
                                  .slice()
-                                 .sort((a, b) => new Date(a.planilla_fecha_inicio) - new Date(b.planilla_fecha_inicio)) // ascendente: más antiguo primero
+                                 .sort((a, b) => new Date(a.planilla_fecha_inicio) - new Date(b.planilla_fecha_inicio))
                                  .map((planilla) => (
                                     <option key={planilla.planilla_id} value={planilla.planilla_id}>
                                        {planilla.planilla_codigo} - {planilla.planilla_tipo} ({planilla.planilla_estado})
@@ -1621,13 +1693,6 @@ export const PayrollGenerator = () => {
                                     <PayrollTable
                                        columns={PAYROLL_COLUMNS}
                                        pageRows={pageRows}
-                                       selectedRows={selectedRows}
-                                       onCheckboxChange={
-                                          planillaEstado === "En Proceso" || planillaEstado === "Activa"
-                                             ? handleCheckbox
-                                             : () => {}
-                                       }
-                                       startIdx={startIdx}
                                        disabled={false}
                                        planillaEstado={planillaEstado}
                                        expandedRows={expandedRows}
@@ -1635,26 +1700,27 @@ export const PayrollGenerator = () => {
                                        subtableData={generarDatosSubtabla(planillaData)}
                                        isLoading={loading}
                                        pageSize={pageSize}
-                                       // MODIFICACIÓN: Pasar el handler para ver detalle
                                        onVerDetalle={handleVerDetalle}
                                     />
                                  </div>
                               </div>
                            </div>
 
-                           {/* Paginación */}
-                           <TablePagination
-                              pageSize={pageSize}
-                              pageSizes={PAGE_SIZES}
-                              currentPage={currentPage}
-                              totalPages={totalPages}
-                              onPageSizeChange={handlePageSizeChange}
-                              onPageChange={handlePageChange}
-                           />
+                           {/* Botón Aplicar Planilla */}
+                           <div className="mt-3 d-flex justify-content-end" style={{ width: '100%' }}>
+                              <button
+                                 className="btn btn-success btn-compact me-2"
+                                 onClick={handleAplicarPlanilla}
+                                 disabled={loading || planillaEstado === "Procesada"}
+                              >
+                                 <i className="fas fa-check-circle me-2"></i>
+                                 Aplicar Planilla
+                              </button>
+                           </div>
 
                            {/* Resumen de Totales debajo de la tabla principal */}
-                           <div className="mt-4 d-flex justify-content-end" style={{ width: '100%' }}>
-                              <div style={{ maxWidth: '450px', width: '100%' }}>
+                           <div className="mt-2 d-flex justify-content-end" style={{ width: '100%' }}>
+                              <div style={{ maxWidth: '340px', width: '100%' }}>
                                  <ResultsTable totales={totales} />
                               </div>
                            </div>
