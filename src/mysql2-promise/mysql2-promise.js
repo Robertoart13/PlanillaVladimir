@@ -75,7 +75,7 @@ function createConnectionPool(baseDatos) {
       waitForConnections: true,
       connectionLimit: CONNECTION_LIMIT,
       queueLimit: QUEUE_LIMIT,
-      charset: "utf8mb4", // Soporte completo para caracteres especiales
+      charset: "utf8mb4", // Soporte completo para caracteres especiales   
       collation: "utf8mb4_unicode_ci", // Collation para ordenamiento correcto
    });
 }
