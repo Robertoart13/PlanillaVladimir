@@ -66,7 +66,7 @@ const QUERIES = {
       FROM gestor_aumento_tbl
       WHERE planilla_id_aumento_gestor = ?
         AND empresa_id_aumento_gestor = ?
-        AND estado_planilla_aumento_gestor = "Pendiente"
+        AND estado_planilla_aumento_gestor = "Aprobado"
       ORDER BY empleado_id_aumento_gestor;
    `,
    
@@ -76,7 +76,7 @@ const QUERIES = {
       FROM gestor_rebajo_compensacion_tbl
       WHERE planilla_id_rebajo = ?
         AND empresa_id_rebajo = ?
-        AND estado_rebajo = "Pendiente"
+        AND estado_rebajo = "Aprobado"
       ORDER BY empleado_id_rebajo;
    `,
    
@@ -86,7 +86,7 @@ const QUERIES = {
       FROM gestor_compensacion_extra_tbl
       WHERE planilla_id_compensacion_extra_gestor = ?
         AND empresa_id_compensacion_extra_gestor = ?
-        AND estado_compensacion_extra_gestor = "Pendiente"
+        AND estado_compensacion_extra_gestor = "Aprobado"
       ORDER BY empleado_id_compensacion_extra_gestor;
    `,
    
@@ -96,7 +96,7 @@ const QUERIES = {
       FROM gestor_compensacion_metrica_tbl
       WHERE planilla_id_compensacion_metrica_gestor = ?
         AND empresa_id_compensacion_metrica_gestor = ?
-        AND estado_compensacion_metrica_gestor = "Pendiente"
+        AND estado_compensacion_metrica_gestor = "Aprobada"
       ORDER BY empleado_id_compensacion_metrica_gestor;
    `,
 };
@@ -352,8 +352,8 @@ const obtenerListaCompleta = async (req, res) => {
  * Este módulo expone la funcionalidad de obtener la lista completa, entre otras.
  * ====================================================================================================================================
  */
-const Gestor_Planilla_Gestor = {      
+const Planilla_gestorGlobal = {      
    obtenerListaCompleta, // Método que obtiene la lista completa, con validaciones y permisos.
 };
 
-export default Gestor_Planilla_Gestor;       
+export default Planilla_gestorGlobal;       

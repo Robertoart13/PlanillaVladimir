@@ -119,6 +119,9 @@ import Gestor_Empleado_Editar from "../modules/GestorPlanilla/01-Gestor-Empleado
  */
 import Gestor_Planilla_Listar from "../modules/GestorPlanilla/02-Gestor_Planilla/Planilla_ListaCompletaOptions.js";
 import Gestor_Planilla_Empleados_Options from "../modules/GestorPlanilla/02-Gestor_Planilla/Planilla_empleadosOptions.js";
+import Planilla_ListaCompletaOptionsGlobal from "../modules/GestorPlanilla/02-Gestor_Planilla/Planilla_ListaCompletaOptionsGlobal.js";
+import Gestor_Planilla_Procesar from "../modules/GestorPlanilla/06-Planilla_gestor/06-Planilla_Procesar.js";
+import Planilla_gestorGlobal from "../modules/GestorPlanilla/06-Planilla_gestor/06-Planilla_gestorGlobal.js";
 
 /**
  * ====================================================================================================================================
@@ -684,6 +687,7 @@ function getModulesConfig() {
          model: {
             ...Gestor_Planilla_Listar,
             ...Gestor_Planilla_Empleados_Options,
+            ...Planilla_ListaCompletaOptionsGlobal,
          }, // Combinamos ambos modelos
          routes: [
             {
@@ -694,6 +698,11 @@ function getModulesConfig() {
             {
                path: "gestor/planillas/empleados/options", // Ruta para la lista de planilla
                method: "empleadosPlanillaOptions", // Método que se ejecutará
+               isAuthRequired: true, // Requiere autenticación
+            },
+            {
+               path: "gestor/planillas/listas/global", // Ruta para la lista de planilla
+               method: "GLOBAL_obtenerListaCompleta", // Método que se ejecutará
                isAuthRequired: true, // Requiere autenticación
             },
          ],
@@ -811,7 +820,9 @@ function getModulesConfig() {
             ...Gestor_Vacaciones_Listar,
             ...Gestor_Vacaciones_Editar,
             ...Gestor_Planilla_Gestor,
-            ...Gestor_Planilla_Aplicar,
+            ...Gestor_Planilla_Aplicar,   
+            ...Gestor_Planilla_Procesar,
+            ...Planilla_gestorGlobal,
             }, // Combinamos ambos modelos
          routes: [
             {
@@ -842,6 +853,16 @@ function getModulesConfig() {
             {
                path: "gestor/planilla/aplicar", // Ruta para aplicar planilla
                method: "aplicarTransaccion", // Método que se ejecutará
+               isAuthRequired: true, // Requiere autenticación
+            },
+            {
+               path: "gestor/planilla/procesar", // Ruta para procesar planilla
+               method: "procesarTransaccion", // Método que se ejecutará
+               isAuthRequired: true, // Requiere autenticación
+            },
+            {
+               path: "gestor/planilla/gestor/global", // Ruta para obtener todos los empleados de la empresa
+               method: "obtenerListaCompleta", // Método que se ejecutará
                isAuthRequired: true, // Requiere autenticación
             },
          ],
