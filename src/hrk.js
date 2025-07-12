@@ -8,7 +8,6 @@ import dotenv from "dotenv";
 import idpRoutes from "./routes/idpRoutes.js";
 import cookieParser from "cookie-parser"; // Aquí importamos cookie-parser
 import { fileURLToPath } from "url";
-
 // Configuración inicial de entorno
 dotenv.config();
 
@@ -54,6 +53,50 @@ function showLastDeployChanges(logPath) {
 }
 
 /** ====================================================================================================================================
+ * Middleware de seguridad para bloquear intentos de escaneo y ataques comunes.
+ * 
+ * Esta función detecta patrones de URL asociados con intentos de escaneo de vulnerabilidades
+ * y bloquea estas peticiones, respondiendo con un código 403 (Forbidden).
+ * 
+ * @param {object} req - Objeto de solicitud HTTP
+ * @param {object} res - Objeto de respuesta HTTP
+ * @param {function} next - Función para continuar con el siguiente middleware
+ */
+function securityMiddleware(req, res, next) {
+  // Patrones sospechosos de URL que deben ser bloqueados
+  const suspiciousPatterns = [
+    /\.php$/i,                   // Archivos PHP (phpinfo.php, etc.)
+    /phpinfo/i,                  // Información de PHP
+    /\.env/i,                    // Archivos de configuración .env
+    /composer\.json/i,           // Composer JSON (revela dependencias)
+    /_profiler/i,                // Profiler de Symfony
+    /\/config\//i,               // Rutas de configuración
+    /\/helper/i,                 // Directorios de helpers
+    /\/backend/i,                // Rutas de backend
+    /\/admin/i                   // Rutas de administración no autorizadas
+  ];
+
+  const url = req.originalUrl || req.url;
+
+  // Verificar si la URL coincide con algún patrón sospechoso
+  const isSuspicious = suspiciousPatterns.some(pattern => pattern.test(url));
+
+  if (isSuspicious) {
+    // Registrar el intento de acceso sospechoso
+    console.log(`🛑 Bloqueado intento de acceso sospechoso: ${url} desde IP: ${req.ip}`);
+
+    // Responder con un 403 Forbidden sin revelar información del servidor
+    return res.status(403).json({
+      message: "Acceso denegado",
+      status: 403
+    });
+  }
+
+  // Si no es sospechoso, continúa con la siguiente función middleware
+  next();
+}
+
+/** ====================================================================================================================================
  * Configura los middlewares básicos para la aplicación.
  *
  * Esta función establece varios middlewares necesarios para una aplicación Express,
@@ -65,48 +108,22 @@ function showLastDeployChanges(logPath) {
  * setupBasicMiddlewares(app);
  */
 function setupBasicMiddlewares(app) {
-  // Configurar codificación UTF-8 para todas las respuestas
-  app.use((req, res, next) => {
-    res.setHeader('Content-Type', 'application/json; charset=utf-8');
-    next();
-  });
+  // Middleware de seguridad (debe ejecutarse antes que otros middlewares)
+  app.use(securityMiddleware);
 
   // Middleware para analizar el cuerpo de la solicitud en formato JSON
-  app.use(express.json({ limit: '10mb' }));
+  app.use(express.json());
 
-  // Middleware para analizar datos codificados en URL
-  app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+  // Middleware para analizar datos codificados en URL (por ejemplo, formularios)
+  app.use(express.urlencoded({ extended: true }));
 
-  // Middleware para parsear cookies
-  app.use(cookieParser());
+  // Middleware para parsear cookies en las solicitudes
+  app.use(cookieParser()); // Aquí añadimos cookie-parser
 
-  // Middleware para logging de solicitudes HTTP
+  // Middleware para registrar las solicitudes HTTP en la consola (usando el formato "dev" de morgan)
   app.use(morgan("dev"));
 
-  // Middleware personalizado para logging detallado de peticiones
-  app.use((req, res, next) => {
-    const startTime = Date.now();
-    
-    // Log de inicio de petición
-    console.log(`🚀 [${new Date().toISOString()}] ${req.method} ${req.path} - Iniciando...`);
-    
-    // Interceptar el evento 'finish' para logging de finalización
-    res.on('finish', () => {
-      const duration = Date.now() - startTime;
-      const statusColor = res.statusCode >= 400 ? '❌' : res.statusCode >= 300 ? '⚠️' : '✅';
-      
-      console.log(`${statusColor} [${new Date().toISOString()}] ${req.method} ${req.path} - ${res.statusCode} (${duration}ms)`);
-      
-      // Log de advertencia para peticiones lentas
-      if (duration > 10000) {
-        console.warn(`🐌 Petición lenta detectada: ${req.method} ${req.path} tomó ${duration}ms`);
-      }
-    });
-    
-    next();
-  });
-
-  // Middleware para archivos estáticos
+  // Middleware para servir archivos estáticos desde la carpeta 'public'
   app.use(express.static(path.join(__dirname, "../public")));
 }
 
@@ -305,32 +322,6 @@ function bootstrapApplication() {
 
   // Configuración de middlewares esenciales
   setupBasicMiddlewares(app); // Middlewares básicos (JSON, urlencoded, cookieParser, morgan)
-
-  // Middleware de timeout global (15 segundos)
-  app.use((req, res, next) => {
-    // Configurar timeout más largo para operaciones complejas
-    const timeout = req.path.includes('/gestor/planilla/gestor') ? 30000 : 15000;
-    
-    res.setTimeout(timeout, () => {
-      if (!res.headersSent) {
-        console.error(`⏰ Timeout en ruta: ${req.path} después de ${timeout}ms`);
-        res.status(504).json({ 
-          error: 'Timeout', 
-          message: 'La petición tardó demasiado en responder.',
-          path: req.path,
-          timeout: timeout
-        });
-      }
-    });
-    
-    // Agregar listener para detectar cuando la respuesta se envía
-    res.on('finish', () => {
-      console.log(`✅ Respuesta enviada para ${req.path} - Status: ${res.statusCode}`);
-    });
-    
-    next();
-  });
-
   configureCORS(app, config_env.entorno.corsOrigins); // Configura CORS con orígenes permitidos
   setupErrorHandling(app); // Configura manejo global de errores
 
