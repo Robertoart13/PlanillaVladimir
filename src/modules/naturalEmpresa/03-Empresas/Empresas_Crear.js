@@ -70,7 +70,7 @@ const crearNuevoRegistroBd = async (datos, database) => {
          datos.correo_contacto_empresa,
          datos.correo_facturacion_empresa,
          datos.direccion_empresa,
-         datos.porcentaje_empresa,
+         datos.porcentaje_empresa || 0,
       ],
       database,
    );
