@@ -35,7 +35,8 @@ const QUERIES = {
          correo_contacto_empresa = ?,
          correo_facturacion_empresa = ?,
          direccion_empresa = ?,
-         estado_empresa = ?
+         estado_empresa = ?,
+         porcentaje_empresa = ?
       WHERE id_empresa  = ?;    
    `,
 };
@@ -63,6 +64,7 @@ const editarRegistroBd = async (datos, database) => {
          datos.correo_facturacion_empresa,
          datos.direccion_empresa,
          datos.estado_empresa,
+         datos.porcentaje_empresa,
          datos.id_empresa,
       ],
       database,

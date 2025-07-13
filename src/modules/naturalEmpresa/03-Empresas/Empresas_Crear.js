@@ -32,8 +32,10 @@ const QUERIES = {
     nombre_contacto_empresa,
     correo_contacto_empresa,
     correo_facturacion_empresa,
-    direccion_empresa
+    direccion_empresa,
+    porcentaje_empresa
 ) VALUES (
+    ?,
     ?,
     ?,
     ?,
@@ -68,6 +70,7 @@ const crearNuevoRegistroBd = async (datos, database) => {
          datos.correo_contacto_empresa,
          datos.correo_facturacion_empresa,
          datos.direccion_empresa,
+         datos.porcentaje_empresa,
       ],
       database,
    );
