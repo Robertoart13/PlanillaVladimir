@@ -940,7 +940,17 @@ const PayrollTable = ({
  * @param {Object} props.totales - Totales calculados de la planilla
  * @returns {JSX.Element} Tabla de resultados
  */
-const ResultsTable = ({ totales }) => {
+const ResultsTable = ({ totales, porcentajeTarifa }) => {
+   // Determinar el porcentaje en formato porcentaje (ej: 0.05 => 5)
+   let porcentajeMostrar = 0;
+   if (porcentajeTarifa !== undefined && porcentajeTarifa !== null) {
+      let num = Number(porcentajeTarifa);
+      if (num > 1) {
+         porcentajeMostrar = num;
+      } else {
+         porcentajeMostrar = num * 100;
+      }
+   }
    return (
       <div className="card shadow-sm">
          <div className="card-header bg-primary text-white">
@@ -959,39 +969,33 @@ const ResultsTable = ({ totales }) => {
                </thead>
                <tbody>
                   <tr>
-                     <td>Total de Devengado:</td>
+                     <td>Suma de todos los devengados:</td>
                      <td style={{ textAlign: "right", fontWeight: "600" }}>
                         {formatCurrency(totales.totalDevengado)}
                      </td>
                   </tr>
                   <tr>
-                     <td>Subtotal:</td>
+                     <td>Tarifa ({porcentajeMostrar}%):</td>
                      <td style={{ textAlign: "right", fontWeight: "600" }}>
-                        {formatCurrency(totales.subtotal)}
+                        {formatCurrency(totales.tarifa)}
                      </td>
                   </tr>
                   <tr>
-                     <td>Suma de RTN:</td>
+                     <td>Suma RTI:</td>
                      <td style={{ textAlign: "right", fontWeight: "600" }}>
-                        {formatCurrency(totales.sumaRTN)}
+                        {formatCurrency(totales.sumaRTI)}
                      </td>
                   </tr>
                   <tr>
-                     <td>Monto Neto de los Socios:</td>
-                     <td style={{ textAlign: "right", fontWeight: "600" }}>
-                        {formatCurrency(totales.montoNetoSocios)}
-                     </td>
-                  </tr>
-                  <tr>
-                     <td>IVA:</td>
+                     <td>IVA (13%):</td>
                      <td style={{ textAlign: "right", fontWeight: "600" }}>
                         {formatCurrency(totales.iva)}
                      </td>
                   </tr>
                   <tr className="total-row">
-                     <td><strong>Total:</strong></td>
+                     <td><strong>Total a facturar:</strong></td>
                      <td style={{ textAlign: "right" }}>
-                        <strong>{formatCurrency(totales.total)}</strong>
+                        <strong>{formatCurrency(totales.totalFacturar)}</strong>
                      </td>
                   </tr>
                </tbody>
@@ -1113,57 +1117,55 @@ const TablePagination = ({
  * @param {Array} rows - Datos transformados de la planilla
  * @returns {Object} Objeto con todos los totales calculados
  */
-const calcularTotalesPlanilla = (rows) => {
+const calcularTotalesPlanilla = (rows, porcentajeTarifa = 0.05) => {
    if (!rows || !Array.isArray(rows) || rows.length === 0) {
       return {
          totalDevengado: 0,
-         subtotal: 0,
-         sumaRTN: 0,
-         montoNetoSocios: 0,
+         tarifa: 0,
+         sumaRTI: 0,
          iva: 0,
-         total: 0
+         totalFacturar: 0
       };
    }
 
    // Suma de todos los devengados
    let totalDevengado = 0;
-   // Suma de todos los Monto de RTN Neto
-   let sumaRTN = 0;
-   // Suma de todos los Monto Neto
-   let montoNetoSocios = 0;
+   // Suma de todos los Monto de RTN Neto (RTI)
+   let sumaRTI = 0;
 
    rows.forEach(row => {
       // Extraer valores numéricos de los montos formateados
       const devengadoStr = row.devengado || "0";
       const rtnStr = row.monto_rtn_neto || "0";
-      const netoStr = row.monto_neto || "0";
       
       // Convertir strings formateados a números
       const devengadoNum = parseFloat(devengadoStr.replace(/[^0-9.-]+/g, "")) || 0;
       const rtnNum = parseFloat(rtnStr.replace(/[^0-9.-]+/g, "")) || 0;
-      const netoNum = parseFloat(netoStr.replace(/[^0-9.-]+/g, "")) || 0;
       
       totalDevengado += devengadoNum;
-      sumaRTN += rtnNum;
-      montoNetoSocios += netoNum;
+      sumaRTI += rtnNum;
    });
 
-   // Subtotal = totalDevengado * 0.05
-   const subtotal = totalDevengado * 0.05;
+   // Normalizar porcentajeTarifa
+   let porcentaje = Number(porcentajeTarifa);
+   if (isNaN(porcentaje) || porcentaje < 0) porcentaje = 0;
+   if (porcentaje > 1) porcentaje = porcentaje / 100;
 
-   // IVA = (subtotal + sumaRTN + montoNetoSocios) * 0.13
-   const iva = (subtotal + sumaRTN + montoNetoSocios) * 0.13;
+   // Tarifa dinámica
+   const tarifa = totalDevengado * porcentaje;
 
-   // Total = iva
-   const total = iva;
+   // IVA = (Total Devengados + Tarifa + RTI) * 0.13
+   const iva = (totalDevengado + tarifa + sumaRTI) * 0.13;
+
+   // Total a facturar
+   const totalFacturar = totalDevengado + tarifa + sumaRTI + iva;
 
    return {
       totalDevengado,
-      subtotal,
-      sumaRTN,
-      montoNetoSocios,
+      tarifa,
+      sumaRTI,
       iva,
-      total
+      totalFacturar
    };
 };
 
@@ -1268,6 +1270,7 @@ export const PayrollGenerator = () => {
 
             const response = await dispatch(fetchData_api(params, "gestor/planilla/gestor"));
             
+            
 
             if (response.success && response.data.array?.length > 0) {
                setPlanillaData(response.data.array);
@@ -1305,6 +1308,7 @@ export const PayrollGenerator = () => {
             setError(null);
 
             const response = await dispatch(fetchData_api(null, "gestor/planillas/listas"));
+            console.log(response);
 
             if (response.success && response.data.array?.length > 0) {
                setPlanillasList(response.data.array || []);
@@ -1328,7 +1332,8 @@ export const PayrollGenerator = () => {
    const pageRows = rows.slice(startIdx, startIdx + pageSize);
 
    // Calcular totales de la planilla
-   const totales = calcularTotalesPlanilla(rows);
+   const porcentajeTarifa = selectedPlanilla?.porcentaje_empresa ?? 0.05;
+   const totales = calcularTotalesPlanilla(rows, porcentajeTarifa);
 
    // Handlers
    const handleRowToggle = useHandleRowToggle({
@@ -1721,7 +1726,7 @@ export const PayrollGenerator = () => {
                            {/* Resumen de Totales debajo de la tabla principal */}
                            <div className="mt-2 d-flex justify-content-end" style={{ width: '100%' }}>
                               <div style={{ maxWidth: '340px', width: '100%' }}>
-                                 <ResultsTable totales={totales} />
+                                <ResultsTable totales={totales} porcentajeTarifa={porcentajeTarifa} />
                               </div>
                            </div>
                         </>
