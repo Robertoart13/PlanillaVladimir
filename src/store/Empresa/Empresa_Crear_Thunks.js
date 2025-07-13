@@ -27,6 +27,7 @@ export const Empresa_Crear_Thunks = (formData) => {
                correo_contacto_empresa: formData.correo_contacto,
                correo_facturacion_empresa: formData.correo_facturacion,
                direccion_empresa: formData.direccion,
+               porcentaje_empresa: formData.porcentaje,
             },
             acceso: {
                type: 0,

@@ -35,6 +35,7 @@ export const CrearEmpresa = () => {
          correo_contacto: "",
          correo_facturacion: "",
          direccion: "",
+         porcentaje: 0,
       };
    }
 
@@ -178,6 +179,7 @@ export const CrearEmpresa = () => {
                      "Correo de Facturación",
                      "Enter billing email",
                   )}
+                  {renderInputField("porcentaje", "Porcentaje a Cobrar", "Enter percentage", "number")}
                   {renderTextAreaField("direccion", "Dirección", "Enter address")}
                </div>
             </div>
@@ -196,9 +198,10 @@ export const CrearEmpresa = () => {
     * @param {string} field - Nombre del campo.
     * @param {string} label - Etiqueta del campo.
     * @param {string} placeholder - Texto de marcador de posición.
+    * @param {string} type - Tipo de input (opcional, por defecto "text").
     * @returns {JSX.Element} El campo de entrada de texto.
     */
-   function renderInputField(field, label, placeholder) {
+   function renderInputField(field, label, placeholder, type = "text") {
       return (
          <div className="mb-3">
             <label
@@ -208,7 +211,7 @@ export const CrearEmpresa = () => {
                {label}
             </label>
             <input
-               type="text"
+               type={type}
                style={getInputStyle(field)}
                className="form-control"
                id={field}

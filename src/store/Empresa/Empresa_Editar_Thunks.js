@@ -29,6 +29,7 @@ export const Empresa_Editar_Thunks = (formData) => {
                correo_facturacion_empresa: formData.correo_facturacion,
                direccion_empresa: formData.direccion,
                estado_empresa: formData.estado,
+               porcentaje_empresa: formData.porcentaje,
             },
             acceso: {
                type: 0,

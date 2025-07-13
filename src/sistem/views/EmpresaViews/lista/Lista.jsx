@@ -47,6 +47,11 @@ const obtenerColumnasTabla = () => [
       searchPanes: { show: true },
    },
    {
+      data: "porcentaje_empresa", 
+      title: "Porcentaje a cobrar",
+      searchPanes: { show: true },
+   },
+   {
       data: "estado_empresa",
       title: "Estado",
       searchPanes: { show: true },
@@ -76,6 +81,7 @@ const formatearDatosFila = (datosFila) => ({
    correo_facturacion_empresa: datosFila.correo_facturacion_empresa,
    direccion_empresa: datosFila.direccion_empresa,
    estado_empresa: datosFila.estado_empresa,
+   porcentaje_empresa: datosFila.porcentaje_empresa,
 });
 
 /**
@@ -98,7 +104,7 @@ const crearConfiguracionTabla = (usuario) => ({
       },
    },
    columnsLayout: "columns-2", // Diseño de columnas en la tabla.
-   columnsFilter: [0, 1, 2, 3, 4, 5], // Índices de columnas que se pueden filtrar.
+   columnsFilter: [0, 1, 2, 3, 4, 5, 6], // Índices de columnas que se pueden filtrar.
    columns: obtenerColumnasTabla(), // Definición de columnas.
 });
 

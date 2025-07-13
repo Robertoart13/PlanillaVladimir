@@ -49,6 +49,7 @@ export const EditarEmpresa = () => {
             correo_facturacion: "",
             direccion: "",
             estado: 0,
+            porcentaje: 0,
         };
     }
 
@@ -67,6 +68,7 @@ export const EditarEmpresa = () => {
             correo_facturacion: existingData.correo_facturacion_empresa,
             direccion: existingData.direccion_empresa,
             estado: existingData.estado_empresa,
+            porcentaje: existingData.porcentaje_empresa || 0,
         });
     }
 
@@ -225,6 +227,7 @@ export const EditarEmpresa = () => {
                         {renderInputField("nombre_contacto", "Nombre de Contacto", "Enter contact name")}
                         {renderInputField("correo_contacto", "Correo de Contacto", "Enter contact email")}
                         {renderInputField("correo_facturacion", "Correo de Facturación", "Enter billing email")}
+                        {renderInputField("porcentaje", "Porcentaje a Cobrar", "Enter percentage", "number")}
                         {renderTextAreaField("direccion", "Dirección", "Enter address")}
                     </div>
                 </div>
@@ -243,14 +246,15 @@ export const EditarEmpresa = () => {
      * @param {string} field - Nombre del campo.
      * @param {string} label - Etiqueta del campo.
      * @param {string} placeholder - Texto de marcador de posición.
+     * @param {string} type - Tipo de input (opcional, por defecto "text").
      * @returns {JSX.Element} El campo de entrada de texto.
      */
-    function renderInputField(field, label, placeholder) {
+    function renderInputField(field, label, placeholder, type = "text") {
         return (
             <div className="mb-3">
                 <label className="form-label" htmlFor={field}>{label}</label>
                 <input
-                    type="text"
+                    type={type}
                     style={getInputStyle(field)}
                     className="form-control"
                     id={field}
