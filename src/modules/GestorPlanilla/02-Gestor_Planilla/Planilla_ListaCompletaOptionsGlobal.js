@@ -24,7 +24,15 @@ import { crearRespuestaErrorCrear } from "../../../hooks/crearRespuestaErrorCrea
  */
 const QUERIES = {
    // Consulta SQL para obtener todos los registros de la tabla
-   QUERIES_SELECT: `SELECT * FROM planilla_tbl WHERE  planilla_estado IN ('Activa','Cerrada','Cancelada','Procesada');
+   QUERIES_SELECT: ` SELECT 
+         p.*,
+         e.nombre_comercial_empresa,
+         e.porcentaje_empresa
+      FROM 
+         planilla_tbl p
+      INNER JOIN 
+         empresas_tbl e ON p.empresa_id = e.id_empresa
+      WHERE p.planilla_estado IN ('Activa','Cerrada','Cancelada','Procesada');
       `,
 };
 
