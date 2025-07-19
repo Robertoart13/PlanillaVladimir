@@ -241,8 +241,10 @@ const transformarEmpleado = (empleado) => {
       cedula: datosEmpleado.cedula,
       compensacion_base: compensacionBaseFormateada,
       devengado: devengadoTotal.formateado,
+      devengado_numerico: devengadoTotal.monto, // Valor numérico para cálculos
       cargas_sociales: cargasSociales.formateado,
       monto_rtn_neto: rtnNetoTotal.formateado,
+      monto_rtn_numerico: rtnNetoTotal.monto, // Valor numérico para cálculos
       monto_neto: devengadoTotal.formateado, // Igual al devengado
       accion: "",
       estado: "Pendiente", // Siempre pendiente
@@ -937,6 +939,7 @@ const PayrollTable = ({
  * @returns {JSX.Element} Tabla de resultados
  */
 const ResultsTable = ({ totales, porcentajeTarifa }) => {
+
    // Determinar el porcentaje en formato porcentaje (ej: 0.05 => 5)
    let porcentajeMostrar = 0;
    if (porcentajeTarifa !== undefined && porcentajeTarifa !== null) {
@@ -1115,6 +1118,8 @@ const TablePagination = ({
  * @returns {Object} Objeto con todos los totales calculados
  */
 const calcularTotalesPlanilla = (rows, porcentajeTarifa = 0.05) => {
+
+
    if (!rows || !Array.isArray(rows) || rows.length === 0) {
       return {
          totalDevengado: 0,
@@ -1130,14 +1135,10 @@ const calcularTotalesPlanilla = (rows, porcentajeTarifa = 0.05) => {
    // Suma de todos los Monto de RTN Neto (RTI)
    let sumaRTI = 0;
 
-   rows.forEach(row => {
-      // Extraer valores numéricos de los montos formateados
-      const devengadoStr = row.devengado || "0";
-      const rtnStr = row.monto_rtn_neto || "0";
-      
-      // Convertir strings formateados a números
-      const devengadoNum = parseFloat(devengadoStr.replace(/[^0-9.-]+/g, "")) || 0;
-      const rtnNum = parseFloat(rtnStr.replace(/[^0-9.-]+/g, "")) || 0;
+   rows.forEach((row, index) => {
+      // Usar valores numéricos directamente para cálculos
+      const devengadoNum = row.devengado_numerico || 0;
+      const rtnNum = row.monto_rtn_numerico || 0;
       
       totalDevengado += devengadoNum;
       sumaRTI += rtnNum;
@@ -1306,7 +1307,7 @@ export const PayrollGenerator = () => {
             setError(null);
 
             const response = await dispatch(fetchData_api(null, "gestor/planillas/listas/global"));
-            console.log(response);
+            console.log("response: " , response);
 
             if (response.success && response.data.array?.length > 0) {
                setPlanillasList(response.data.array || []);
@@ -1328,6 +1329,8 @@ export const PayrollGenerator = () => {
    const startIdx = (currentPage - 1) * pageSize;
    const totalPages = Math.ceil(rows.length / pageSize);
    const pageRows = rows.slice(startIdx, startIdx + pageSize);
+
+   console.log("selectedPlanilla: " , selectedPlanilla);
 
    // Calcular totales de la planilla
    const porcentajeTarifa = selectedPlanilla?.porcentaje_empresa ?? 0.05;
