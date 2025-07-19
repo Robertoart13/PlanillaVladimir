@@ -2,6 +2,9 @@ import { useSegmentoRutaUrl } from "../../../hooks/useUrlPathSegment";
 
 import { SistemLayout } from "../../layout/SistemLayout";
 import { GenerarAplicadas } from "../../views/PlanillaViews/GenerarAplicadas/GenerarAplicadas";
+import { PLanillaEmpleados } from "../../views/PlanillaViews/GenerarAplicadas/PLanillaEmpleados";
+import { PLanillasAplicadas } from "../../views/PlanillaViews/lista/PLanillasAplicadas";
+
 
 /**
  * Página para gestionar empresas.
@@ -18,6 +21,8 @@ export const PlanillaGestorPage = () => {
                      <div className="page-block">
                         <div className="row align-items-center">
                            {accion === "planillas-aplicadas" && <GenerarAplicadas />}
+                           {accion === "planillas-empleados" && <PLanillasAplicadas/>}   
+                           {accion === "planillas-empleadosLista" && <PLanillaEmpleados/>}
                         </div>
                      </div>
                   </div>

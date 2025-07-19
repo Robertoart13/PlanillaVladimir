@@ -1400,6 +1400,7 @@ export const PayrollGenerator = () => {
 
             // Ejecutar la aplicación de la planilla
             const response = await dispatch(fetchData_api(selectedPlanilla, "gestor/planilla/procesar"));
+            
 
             // Cerrar loading
             Swal.close();
@@ -1415,7 +1416,7 @@ export const PayrollGenerator = () => {
                });
 
                // Navegar a la lista de planillas
-               navigate('/planilla/lista');
+               navigate(`/gestor/planillas-empleadosLista?planilla_id=${selectedPlanilla.planilla_id}`);
             } else {
                // Mostrar error
                Swal.fire({

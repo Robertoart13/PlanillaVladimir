@@ -298,6 +298,12 @@ export const NavBar = ({ isSidebarOpen, isMobile }) => {
                               label="Planillas Aplicadas"
                               i18n="Planillas Aplicadas"
                            />
+                           <MenuItem
+                              to="/gestor/planillas-empleados"
+                              icon="fas fa-file-invoice-dollar"
+                              label="Planillas Procesadas"
+                              i18n="Planillas Procesadas"
+                           />
                            {tienePermiso(1) && (
                               <MenuItem
                                  to="/gestor/empleados"

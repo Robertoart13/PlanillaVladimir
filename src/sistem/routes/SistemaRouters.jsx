@@ -59,7 +59,7 @@ export const SistemaRouters = () => {
          />
          {/* Ruta para el Gestor de Planillas */}
          <Route
-            path="/gestor/planillas-aplicadas"
+            path="/gestor/*"
             element={<PlanillaGestorPage />}
          />
       </Routes>
