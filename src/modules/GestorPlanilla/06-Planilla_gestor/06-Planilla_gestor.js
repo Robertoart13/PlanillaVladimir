@@ -113,6 +113,14 @@ const QUERIES = {
  * ====================================================================================================================================
  */
 const ejecutarConsultaConTimeout = async (query, params, database, timeout = 10000) => {
+
+
+
+
+
+
+
+
    try {
       const resultado = await Promise.race([
          realizarConsulta(query, params, database),
@@ -147,7 +155,7 @@ const ejecutarConsultaConTimeout = async (query, params, database, timeout = 100
  * ====================================================================================================================================
  */
 const obtenerTodosDatos = async (datos, database) => {
-   console.log(datos);
+
    try {
 
       
@@ -353,7 +361,7 @@ const obtenerListaCompleta = async (req, res) => {
  * ====================================================================================================================================
  */
 const Gestor_Planilla_Gestor = {      
-   obtenerListaCompleta, // Método que obtiene la lista completa, con validaciones y permisos.
+   Gestor_Planilla_Gestor: obtenerListaCompleta, // Método que obtiene la lista completa, con validaciones y permisos.
 };
 
 export default Gestor_Planilla_Gestor;       

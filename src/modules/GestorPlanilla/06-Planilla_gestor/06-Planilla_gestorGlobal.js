@@ -317,6 +317,7 @@ const esConsultarExitosa = (resultado) => {
  * ====================================================================================================================================
  */
 const obtenerListaCompleta = async (req, res) => {
+   
 
    try {
       // 1. Validar los datos iniciales de la solicitud (por ejemplo, formato y autenticidad de los datos).

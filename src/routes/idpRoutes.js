@@ -847,7 +847,7 @@ function getModulesConfig() {
             },
             {
                path: "gestor/planilla/gestor", // Ruta para obtener todos los empleados de la empresa
-               method: "obtenerListaCompleta", // Método que se ejecutará
+               method: "Gestor_Planilla_Gestor", // Método que se ejecutará
                isAuthRequired: true, // Requiere autenticación
             },
             {
