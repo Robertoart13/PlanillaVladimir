@@ -354,7 +354,7 @@ const obtenerListaCompleta = async (req, res) => {
  * ====================================================================================================================================
  */
 const Planilla_gestorGlobal = {      
-   obtenerListaCompleta, // Método que obtiene la lista completa, con validaciones y permisos.
+   GLOBAL_obtenerListaCompleta:obtenerListaCompleta, // Método que obtiene la lista completa, con validaciones y permisos.
 };
 
 export default Planilla_gestorGlobal;       
