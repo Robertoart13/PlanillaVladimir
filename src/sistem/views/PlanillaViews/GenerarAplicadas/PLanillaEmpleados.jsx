@@ -563,27 +563,39 @@ export const PLanillaEmpleados = () => {
     const montoAsegurado = parseFloat(employee.montoAsegurado_gestor_empelado) || 0;
     const cargasSociales = montoAsegurado / factorDivision;
     
-    // Calcular totales de aumentos
-    const totalAumentos = employee.aumentos?.reduce((sum, aumento) => 
-      sum + parseFloat(aumento.monto_aumento_gestor || 0), 0) || 0;
+    // Verificar si existen aumentos
+    const tieneAumentos = employee.aumentos && employee.aumentos.length > 0;
     
-    // Calcular totales de horas extras
-    const totalHorasExtras = employee.horas_extras?.reduce((sum, hora) => 
-      sum + parseFloat(hora.monto_compensacion_calculado_gestor || 0), 0) || 0;
+    let totalDevengado, montoNeto;
     
-    // Calcular totales de compensación por métrica
-    const totalMetrica = employee.compensacion_metrica?.reduce((sum, metrica) => 
-      sum + parseFloat(metrica.monto_compensacion_metrica_gestor || 0), 0) || 0;
-    
-    // Calcular totales de rebajos
-    const totalRebajos = employee.rebajos_compensacion?.reduce((sum, rebajo) => 
-      sum + parseFloat(rebajo.monto_rebajo_calculado || 0), 0) || 0;
-    
-    // Calcular devengado (compensación base + aumentos + horas extras + métrica - rebajos)
-    const totalDevengado = compensacionBase + totalAumentos + totalHorasExtras + totalMetrica - totalRebajos;
-    
-    // Calcular monto neto (devengado - cargas sociales)
-    const montoNeto = totalDevengado - cargasSociales;
+    if (tieneAumentos) {
+      // Si hay aumentos: monto neto = compensación base - cargas sociales
+      totalDevengado = compensacionBase;
+      montoNeto = compensacionBase - cargasSociales;
+    } else {
+      // Si no hay aumentos: usar toda la lógica de sumas y restas
+      // Calcular totales de aumentos
+      const totalAumentos = employee.aumentos?.reduce((sum, aumento) => 
+        sum + parseFloat(aumento.monto_aumento_gestor || 0), 0) || 0;
+      
+      // Calcular totales de horas extras
+      const totalHorasExtras = employee.horas_extras?.reduce((sum, hora) => 
+        sum + parseFloat(hora.monto_compensacion_calculado_gestor || 0), 0) || 0;
+      
+      // Calcular totales de compensación por métrica
+      const totalMetrica = employee.compensacion_metrica?.reduce((sum, metrica) => 
+        sum + parseFloat(metrica.monto_compensacion_metrica_gestor || 0), 0) || 0;
+      
+      // Calcular totales de rebajos
+      const totalRebajos = employee.rebajos_compensacion?.reduce((sum, rebajo) => 
+        sum + parseFloat(rebajo.monto_rebajo_calculado || 0), 0) || 0;
+      
+      // Calcular devengado (compensación base + aumentos + horas extras + métrica - rebajos)
+      totalDevengado = compensacionBase + totalAumentos + totalHorasExtras + totalMetrica - totalRebajos;
+      
+      // Calcular monto neto (devengado - cargas sociales)
+      montoNeto = totalDevengado - cargasSociales;
+    }
 
     return (
       <div className="modal-overlay" onClick={handleCloseModal}>
@@ -617,29 +629,31 @@ export const PLanillaEmpleados = () => {
               </div>
             </div>
 
-            {/* Resumen de Compensación */}
-            <div className="employee-detail-section">
-              <div className="compensation-summary">
-                <table className="summary-table">
-                  <thead>
-                    <tr>
-                      <th>COMPENSACIÓN BASE</th>
-                      <th>DEVENGADO</th>
-                      <th>CARGAS SOCIALES</th>
-                      <th>MONTO NETO</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td>{formatCurrencyByPlanilla(moneda, compensacionBase)}</td>
-                      <td>{formatCurrencyByPlanilla(moneda, totalDevengado)}</td>
-                      <td>{formatCurrencyByPlanilla(moneda, cargasSociales)}</td>
-                      <td>{formatCurrencyByPlanilla(moneda, montoNeto)}</td>
-                    </tr>
-                  </tbody>
-                </table>
+            {/* Resumen de Compensación - Solo si NO hay aumentos */}
+            {!tieneAumentos && (
+              <div className="employee-detail-section">
+                <div className="compensation-summary">
+                  <table className="summary-table">
+                    <thead>
+                      <tr>
+                        <th>COMPENSACIÓN BASE</th>
+                        <th>DEVENGADO</th>
+                        <th>CARGAS SOCIALES</th>
+                        <th>MONTO NETO</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>{formatCurrencyByPlanilla(moneda, compensacionBase)}</td>
+                        <td>{formatCurrencyByPlanilla(moneda, totalDevengado)}</td>
+                        <td>{formatCurrencyByPlanilla(moneda, cargasSociales)}</td>
+                        <td>{formatCurrencyByPlanilla(moneda, montoNeto)}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Detalles de Acciones de Personal */}
             <div className="employee-detail-section">
