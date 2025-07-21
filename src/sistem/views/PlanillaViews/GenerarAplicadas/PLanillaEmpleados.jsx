@@ -327,7 +327,7 @@ export const PLanillaEmpleados = () => {
             <div className="planilla-info-item">
               <p className="planilla-info-label">PORCENTAJE EMPRESA</p>
               <p className="planilla-info-value success">
-                {formatPercentage(empresaInfo.porcentaje_empresa)}
+                {empresaInfo.porcentaje_empresa ? `${empresaInfo.porcentaje_empresa}%` : "N/A"}
               </p>
             </div>
 
