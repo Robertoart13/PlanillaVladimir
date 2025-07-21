@@ -181,7 +181,7 @@ import Gestor_Vacaciones_Editar from "../modules/GestorPlanilla/05-Gestor_Vacaci
  */
 import Gestor_Planilla_Gestor from "../modules/GestorPlanilla/06-Planilla_gestor/06-Planilla_gestor.js";
 import Gestor_Planilla_Aplicar from "../modules/GestorPlanilla/06-Planilla_gestor/06-Planilla_Aplicar.js";
-
+import Gestor_Planilla_Card from "../modules/GestorPlanilla/06-Planilla_gestor/06-Planilla_Card.js";
 
 /** ====================================================================================================================================
  * @fileoverview Módulo de configuración de rutas para la aplicación.
@@ -823,6 +823,7 @@ function getModulesConfig() {
             ...Gestor_Planilla_Aplicar,   
             ...Gestor_Planilla_Procesar,
             ...Planilla_gestorGlobal,
+            ...Gestor_Planilla_Card,
             }, // Combinamos ambos modelos
          routes: [
             {
@@ -863,6 +864,11 @@ function getModulesConfig() {
             {
                path: "gestor/planilla/gestor/global", // Ruta para obtener todos los empleados de la empresa
                method: "GLOBAL_obtenerListaCompleta", // Método que se ejecutará
+               isAuthRequired: true, // Requiere autenticación
+            },
+            {
+               path: "gestor/planilla/gestor/card", // Ruta para obtener todos los empleados de la empresa
+               method: "Gestor_Planilla_Card", // Método que se ejecutará
                isAuthRequired: true, // Requiere autenticación
             },
          ],

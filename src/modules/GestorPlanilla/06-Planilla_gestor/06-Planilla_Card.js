@@ -66,7 +66,6 @@ const QUERIES = {
       FROM gestor_aumento_tbl
       WHERE planilla_id_aumento_gestor = ?
         AND empresa_id_aumento_gestor = ?
-        AND estado_planilla_aumento_gestor = "Pendiente"
       ORDER BY empleado_id_aumento_gestor;
    `,
    
@@ -76,7 +75,6 @@ const QUERIES = {
       FROM gestor_rebajo_compensacion_tbl
       WHERE planilla_id_rebajo = ?
         AND empresa_id_rebajo = ?
-        AND estado_rebajo = "Pendiente"
       ORDER BY empleado_id_rebajo;
    `,
    
@@ -86,7 +84,6 @@ const QUERIES = {
       FROM gestor_compensacion_extra_tbl
       WHERE planilla_id_compensacion_extra_gestor = ?
         AND empresa_id_compensacion_extra_gestor = ?
-        AND estado_compensacion_extra_gestor = "Pendiente"
       ORDER BY empleado_id_compensacion_extra_gestor;
    `,
    
@@ -96,9 +93,23 @@ const QUERIES = {
       FROM gestor_compensacion_metrica_tbl
       WHERE planilla_id_compensacion_metrica_gestor = ?
         AND empresa_id_compensacion_metrica_gestor = ?
-        AND estado_compensacion_metrica_gestor = "Pendiente"
       ORDER BY empleado_id_compensacion_metrica_gestor;
    `,
+   SELECCION_PLANILLA: `
+    SELECT 
+         p.*,
+         e.*,
+         u.nombre_usuario
+      FROM 
+         planilla_tbl p
+      JOIN 
+         empresas_tbl e ON p.empresa_id = e.id_empresa
+      LEFT JOIN 
+         usuarios_tbl u ON p.planilla_creado_por = u.id_usuario
+      WHERE 
+         p.planilla_id =  ?;
+
+`,
 };
 
 /**
@@ -126,7 +137,6 @@ const ejecutarConsultaConTimeout = async (query, params, database, timeout = 100
       
       return resultado;
    } catch (error) {
-      console.error(`Error en consulta con timeout: ${error.message}`);
       return {
          status: 500,
          error: error.message,
@@ -151,14 +161,34 @@ const ejecutarConsultaConTimeout = async (query, params, database, timeout = 100
  */
 const obtenerTodosDatos = async (datos, database) => {
 
-
    try {
+      // 1. Primero seleccionar la planilla para obtener todos los datos necesarios
+      const planillaResultado = await ejecutarConsultaConTimeout(
+         QUERIES.SELECCION_PLANILLA,
+         [datos.planilla_id],
+         database,
+         5000 // 5 segundos para obtener la planilla
+      );
 
-      
-      // 1. Obtener empleados principales (consulta principal)
+      if (planillaResultado?.status === 500) {
+         return planillaResultado;
+      }
+
+      const planilla = planillaResultado.datos?.[0];
+      if (!planilla) {
+         return {
+            status: 404,
+            error: `No se encontró la planilla con ID: ${datos.planilla_id}`,
+            datos: []
+         };
+      }
+
+
+
+      // 2. Obtener empleados principales usando los datos de la planilla
       const empleadosResultado = await ejecutarConsultaConTimeout(
          QUERIES.TRAER_TODOS_LOS_EMPLEADOS_DE_LA_EMPRESA, 
-         [datos.empresa_id, datos.planilla_moneda, datos.tipo_planilla], 
+         [planilla.empresa_id, planilla.planilla_moneda, planilla.planilla_tipo], 
          database,
          15000 // 15 segundos para la consulta principal
       );
@@ -176,15 +206,15 @@ const obtenerTodosDatos = async (datos, database) => {
          };
       }
 
-      
+      // 3. Ejecutar consultas paralelas usando los datos de la planilla
       const [aumentosResult, rebajosResult, horasExtrasResult, compensacionMetricaResult] = await Promise.allSettled([
-         ejecutarConsultaConTimeout(QUERIES.AUMENTOS_TODOS, [datos.planilla_id, datos.empresa_id], database, 8000),
-         ejecutarConsultaConTimeout(QUERIES.REBAJOS_COMPENSACION_TODOS, [datos.planilla_id, datos.empresa_id], database, 8000),
-         ejecutarConsultaConTimeout(QUERIES.HORAS_EXTRAS_TODOS, [datos.planilla_id, datos.empresa_id], database, 8000),
-         ejecutarConsultaConTimeout(QUERIES.COMPENSACION_METRICA_TODOS, [datos.planilla_id, datos.empresa_id], database, 8000)
+         ejecutarConsultaConTimeout(QUERIES.AUMENTOS_TODOS, [planilla.planilla_id, planilla.empresa_id], database, 8000),
+         ejecutarConsultaConTimeout(QUERIES.REBAJOS_COMPENSACION_TODOS, [planilla.planilla_id, planilla.empresa_id], database, 8000),
+         ejecutarConsultaConTimeout(QUERIES.HORAS_EXTRAS_TODOS, [planilla.planilla_id, planilla.empresa_id], database, 8000),
+         ejecutarConsultaConTimeout(QUERIES.COMPENSACION_METRICA_TODOS, [planilla.planilla_id, planilla.empresa_id], database, 8000)
       ]);
 
-      // 3. Procesar resultados y crear mapas para acceso rápido
+      // 4. Procesar resultados y crear mapas para acceso rápido
       // Cada tabla gestor contiene registros individuales que se agrupan por empleado
       const aumentosMap = new Map();
       const rebajosMap = new Map();
@@ -202,7 +232,7 @@ const obtenerTodosDatos = async (datos, database) => {
                }
                aumentosMap.get(empleadoId).push(item);
             } catch (e) {
-               console.warn(`Error procesando aumento para empleado ${item.empleado_id_aumento_gestor}:`, e);
+               // Error procesando aumento para empleado
             }
          });
       }
@@ -218,7 +248,7 @@ const obtenerTodosDatos = async (datos, database) => {
                }
                rebajosMap.get(empleadoId).push(item);
             } catch (e) {
-               console.warn(`Error procesando rebajo para empleado ${item.empleado_id_rebajo}:`, e);
+               // Error procesando rebajo para empleado
             }
          });
       }
@@ -234,7 +264,7 @@ const obtenerTodosDatos = async (datos, database) => {
                }
                horasExtrasMap.get(empleadoId).push(item);
             } catch (e) {
-               console.warn(`Error procesando horas extras para empleado ${item.empleado_id_compensacion_extra_gestor}:`, e);
+               // Error procesando horas extras para empleado
             }
          });
       }
@@ -250,14 +280,16 @@ const obtenerTodosDatos = async (datos, database) => {
                }
                compensacionMetricaMap.get(empleadoId).push(item);
             } catch (e) {
-               console.warn(`Error procesando compensación por métrica para empleado ${item.empleado_id_compensacion_metrica_gestor}:`, e);
+               // Error procesando compensación por métrica para empleado
             }
          });
       }
 
-      // 4. Combinar todos los datos
+      // 5. Combinar todos los datos
       const empleadosConDatosAdicionales = empleados.map(empleado => ({
          ...empleado,
+         // Agregar toda la información de la planilla a cada empleado
+         planilla: planilla,
          aumentos: aumentosMap.get(empleado.id_empleado_gestor) || [],
          rebajos_compensacion: rebajosMap.get(empleado.id_empleado_gestor) || [],
          horas_extras: horasExtrasMap.get(empleado.id_empleado_gestor) || [],
@@ -270,7 +302,6 @@ const obtenerTodosDatos = async (datos, database) => {
       };
 
    } catch (error) {
-      console.error('❌ Error en obtenerTodosDatos:', error);
       return manejarError(
          error,
          500,
@@ -356,8 +387,8 @@ const obtenerListaCompleta = async (req, res) => {
  * Este módulo expone la funcionalidad de obtener la lista completa, entre otras.
  * ====================================================================================================================================
  */
-const Gestor_Planilla_Gestor = {      
-   Gestor_Planilla_Gestor: obtenerListaCompleta, // Método que obtiene la lista completa, con validaciones y permisos.
+const Gestor_Planilla_Card = {      
+   Gestor_Planilla_Card: obtenerListaCompleta, // Método que obtiene la lista completa, con validaciones y permisos.
 };
 
-export default Gestor_Planilla_Gestor;       
+export default Gestor_Planilla_Card;       
