@@ -671,14 +671,6 @@ export const PLanillaEmpleados = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {/* Compensación Base */}
-                    <tr>
-                      <td>Compensación Base</td>
-                      <td>Salario</td>
-                      <td>{formatCurrencyByPlanilla(moneda, compensacionBase)}</td>
-                      <td className="positive">+</td>
-                    </tr>
-                    
                     {/* Aumentos */}
                     {employee.aumentos?.map((aumento, index) => (
                       <tr key={`aumento-${index}`}>
