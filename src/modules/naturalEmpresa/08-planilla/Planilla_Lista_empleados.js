@@ -79,7 +79,7 @@ const QUERIES = {
         SELECT
             *
         FROM empleados_tbl
-        WHERE id_empresa = ? AND id_empleado NOT IN (__IDS__)
+        WHERE estado_empleado=1 and id_empresa = ? AND id_empleado NOT IN (__IDS__)
    `,
 
    // Consulta para obtener TODOS los empleados de la empresa
@@ -87,7 +87,7 @@ const QUERIES = {
         SELECT
             *
         FROM empleados_tbl
-        WHERE id_empresa = ?
+        WHERE id_empresa = ? and estado_empleado=1
    `,
 };
 
