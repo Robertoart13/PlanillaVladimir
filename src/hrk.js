@@ -6,8 +6,9 @@ import config_env from "./config/config.js";
 import fs from "fs";
 import dotenv from "dotenv";
 import idpRoutes from "./routes/idpRoutes.js";
-import cookieParser from "cookie-parser"; // Aquí importamos cookie-parser
+import cookieParser from "cookie-parser";
 import { fileURLToPath } from "url";
+import { iniciarCronJob } from "./modules/enviarCorreoNatural/EnviarCorreNatural.js";
 // Configuración inicial de entorno
 dotenv.config();
 
@@ -327,6 +328,9 @@ function bootstrapApplication() {
 
   // Configuración de rutas de la aplicación
   idpRoutes(app); // Define las rutas para el IDP (Proveedor de Identidad) o rutas relacionadas con autenticación
+
+  // Iniciar el cron job
+  iniciarCronJob();
 
   // Inicia el servidor HTTP
   const server = startHttpServer(app);
