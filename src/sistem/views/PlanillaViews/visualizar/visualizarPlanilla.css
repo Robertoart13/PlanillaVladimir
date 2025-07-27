@@ -1,0 +1,661 @@
+/* Estilos para la tabla de remuneración */
+
+.remuneraciones-grid {
+  display: grid;
+  grid-template-columns: repeat(var(--tarjetas-por-fila, 3), 1fr);
+  gap: 15px;
+  font-family: Arial, sans-serif;
+  margin: 20px;
+}
+
+.remuneracion-card {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 15px;
+  background-color: #f9f9f9;
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.1);
+  font-size: 0.85rem;
+  max-width: 100%;
+  transition: transform 0.2s;
+  cursor: pointer;
+}
+
+.remuneracion-card:hover {
+  transform: translateY(-6px) scale(1.03);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
+  background-color: #f1f7fa;
+  border-color: #025543;
+}
+
+/* Estado no aplicado - colores oscuros */
+.remuneracion-card.no-aplicado {
+  border-color: #333;
+}
+
+.no-aplicado .remuneracion-header {
+  background-color: #333;
+  color: white;
+}
+
+.no-aplicado .remuneracion-table td {
+  background-color: #f0f0f0; /* Color gris para campos */
+}
+
+.no-aplicado .section-header {
+  background-color: #555 !important;
+  color: white;
+}
+
+/* Estado aplicado - colores verdes como antes */
+.remuneracion-card.aplicado {
+  border-color: #a0d9a3;
+}
+
+.aplicado .remuneracion-header {
+  background-color: #a0d9a3;
+  color: black;
+}
+
+.aplicado .remuneracion-table td {
+  background-color: #d9f0db;
+}
+
+.aplicado .section-header {
+  background-color: #a0d9a3 !important;
+  color: black;
+}
+
+.remuneracion-header {
+  background-color: #343a40;
+  color: white;
+  padding: 8px;
+  text-align: center;
+  font-weight: bold;
+  font-size: 0.9rem;
+  margin-bottom: 10px;
+}
+
+.remuneracion-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 8px;
+  font-size: 0.8rem;
+}
+
+.remuneracion-table td {
+  padding: 4px 6px;
+  border: 1px solid #e0e0e0;
+}
+
+.section-header {
+  background-color: #343a40;
+  color: white;
+  font-size: 0.8rem;
+  padding: 4px;
+  text-align: center;
+  font-weight: bold;
+}
+
+.amount {
+  text-align: right;
+}
+
+/* Estilos para estados de inscripción */
+.inscrito {
+  color: #4CAF50;
+  font-weight: bold;
+}
+
+.no-inscrito {
+  color: #f44336;
+  font-weight: bold;
+}
+
+/* Estilos para el botón de aplicar */
+.boton-container {
+  padding: 6px;
+  text-align: center;
+  margin-top: 10px;
+}
+
+.boton-container button {
+  font-size: 0.8rem;
+  padding: 5px 10px;
+}
+
+.boton-aplicar {
+  width: 100%;
+  padding: 5px;
+  background-color: #28a745;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+
+.boton-aplicar:hover {
+  background-color: #45a049;
+}
+
+.boton-aplicar:disabled {
+  background-color: #6c757d;
+  cursor: default;
+}
+
+/* Estilos para el botón ver perfil */
+.boton-perfil-container {
+  margin-bottom: 10px;
+}
+
+.boton-ver-perfil {
+  width: 100%;
+  padding: 5px;
+  background-color:rgb(9, 10, 10);
+  color: white;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  margin-bottom: 5px;
+}
+
+.boton-ver-perfil:hover {
+  background-color: #23272b;
+}
+
+.boton-ver-perfil:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+}
+
+/* Estilos para los controles */
+.controles {
+  margin-bottom: 15px;
+}
+
+.selector-tarjetas {
+  margin-left: 10px;
+  padding: 3px;
+}
+
+/* Mensaje de carga */
+.cargando-mensaje {
+  text-align: center;
+  padding: 20px;
+  font-size: 16px;
+  color: #666;
+}
+
+/* Estilos para la información de la planilla */
+.info-planilla {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 15px;
+  margin-bottom: 20px;
+}
+
+.info-planilla h3 {
+  color: #333;
+  font-size: 18px;
+  margin-top: 0;
+  margin-bottom: 15px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 8px;
+}
+
+.info-planilla-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+}
+
+.info-planilla-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.info-label {
+  font-weight: bold;
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 3px;
+}
+
+.info-value {
+  font-size: 14px;
+  color: #333;
+}
+
+.total-remuneracion {
+  font-weight: bold;
+  color: #28a745;
+  font-size: 1.1em;
+  background-color: #f8f9fa;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 2px solid #28a745;
+}
+
+.total-operarios {
+  font-weight: bold;
+  color: #007bff;
+  font-size: 1.1em;
+  background-color: #f8f9fa;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 2px solid #007bff;
+}
+
+/* Estilos para la tabla de resumen */
+.resumen-table-container {
+  margin-top: 8px;
+}
+
+.resumen-table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: #f8f9fa;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.resumen-table td {
+  padding: 8px 12px;
+  border: 1px solid #dee2e6;
+}
+
+.resumen-label {
+  font-weight: 600;
+  color: #495057;
+  background-color: #e9ecef;
+  width: 40%;
+}
+
+.resumen-value {
+  text-align: right;
+  font-weight: bold;
+  font-size: 1.1em;
+}
+
+.valor-por-operario {
+  color: #6f42c1;
+  font-size: 1em;
+}
+
+.monto-remuneraciones {
+  color: #fd7e14;
+  font-size: 1em;
+}
+
+.subtotal {
+  color: #dc3545;
+  font-size: 1.1em;
+  font-weight: bold;
+}
+
+.iva {
+  color: #17a2b8;
+  font-size: 1em;
+}
+
+.monto-total {
+  color: #28a745;
+  font-size: 1.2em;
+  font-weight: bold;
+  background-color: #d4edda;
+  border: 2px solid #28a745;
+  border-radius: 4px;
+  padding: 6px 10px;
+}
+
+/* Estilos para tooltips */
+.resumen-row {
+  cursor: help;
+  transition: background-color 0.2s ease;
+}
+
+.resumen-row:hover {
+  background-color: #e3f2fd;
+}
+
+.resumen-value {
+  position: relative;
+}
+
+.estado-activo {
+  color: #4CAF50;
+  font-weight: bold;
+}
+
+/* Responsive para la información de planilla */
+@media (max-width: 900px) {
+  .info-planilla-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .info-planilla-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 1200px) {
+  .remuneraciones-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .remuneraciones-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Estilos para el contenedor de cuenta bancaria y botón de copia */
+.cuenta-bancaria-container {
+   display: flex;
+   align-items: center;
+   justify-content: space-between;
+   width: 100%;
+   margin-bottom: 5px;
+   padding: 2px 0;
+   border-bottom: 1px dotted #eee;
+}
+
+.cuenta-bancaria-container:last-child {
+   margin-bottom: 0;
+   border-bottom: none;
+}
+
+.cuenta-bancaria-container span {
+   flex-grow: 1;
+   padding-right: 10px;
+}
+
+/* Estilos para los botones de PDF */
+.boton-descargar-pdf,
+.boton-exportar-planilla {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.3s;
+}
+
+.boton-descargar-pdf:hover,
+.boton-exportar-planilla:hover {
+  background-color: #45a049;
+}
+
+.boton-descargar-pdf {
+  margin-left: 10px;
+}
+
+.boton-exportar-planilla {
+  margin-left: auto;
+}
+
+.controles-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 15px;
+}
+
+/* Estilos para los botones de copiar */
+.boton-copiar {
+  background: none;
+  border: none;
+  color:rgb(0, 0, 0);
+  cursor: pointer;
+  font-size: 0.8rem;
+  padding: 0 5px;
+}
+
+.boton-copiar:hover {
+  color:rgb(6, 6, 6);
+}
+
+/* Contenedor para cuentas bancarias y otros campos con botón de copiar */
+.cuenta-bancaria-container {
+  display: flex;
+  align-items: center;
+  padding: 4px 0;
+}
+
+/* Styles for PDF container */
+.pdf-container {
+  /* Allow inline style width from JS to apply without max-width constraint */
+  max-width: none;
+  background-color: white;
+}
+
+.pdf-content {
+  padding: 20px;
+}
+
+/* Asegurar que las tablas en PDF tengan bordes visibles */
+.pdf-content table {
+  border-collapse: collapse;
+  width: 100%;
+  border: 1px solid #333;
+}
+
+.pdf-content td, 
+.pdf-content th {
+  border: 1px solid #ddd;
+  padding: 8px;
+}
+
+/* Mejorar la visibilidad de los encabezados de sección en PDF */
+.pdf-content .section-header,
+.pdf-content .remuneracion-header {
+  background-color: #333;
+  color: white;
+  font-weight: bold;
+  text-align: center;
+  padding: 8px;
+}
+
+/* Estilos específicos para la remuneración en PDF */
+.pdf-content .remuneracion-header {
+  font-size: 16px;
+  margin-bottom: 15px;
+  border-radius: 4px;
+}
+
+/* Aplicar estilos a los encabezados de secciones en PDF */
+.pdf-content .section-header {
+  color: white;
+  padding: 6px;
+}
+
+/* Asegurar que los estados de inscripción sean visibles */
+.pdf-content .inscrito {
+  color: #4CAF50;
+  font-weight: bold;
+}
+
+.pdf-content .no-inscrito {
+  color: #f44336;
+  font-weight: bold;
+}
+
+/* Agregar estilos para mejorar el aspecto visual del PDF */
+.pdf-content .remuneracion-card {
+  border: 2px solid #333;
+  border-radius: 6px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+/* Estilos específicos para mejorar la apariencia del PDF */
+.pdf-content .remuneracion-table {
+  margin-bottom: 20px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+/* Hacer que el encabezado principal destaque más */
+.pdf-content .remuneracion-header {
+  background-color: #343a40;
+  color: white;
+  padding: 12px 10px;
+  font-size: 18px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+/* Mejorar el aspecto de los encabezados de sección */
+.pdf-content .section-header {
+  background-color: #343a40;
+  color: white;
+  padding: 8px;
+  font-weight: bold;
+  font-size: 14px;
+  text-align: center;
+  border-bottom: 2px solid #000;
+}
+
+/* Hacer más compactas las filas para un PDF más pequeño */
+.pdf-content .remuneracion-table td {
+  padding: 5px 8px;
+  line-height: 1.2;
+  font-size: 10px;
+}
+
+/* Destacar las cantidades monetarias */
+.pdf-content .amount {
+  font-family: 'Courier New', monospace;
+  font-weight: bold;
+  color: #333;
+}
+
+/* Hacer más visible los estados de inscripción */
+.pdf-content .inscrito {
+  color: #4CAF50;
+  font-weight: bold;
+  background-color: rgba(76, 175, 80, 0.1);
+  padding: 3px 6px;
+  border-radius: 3px;
+}
+
+.pdf-content .no-inscrito {
+  color: #f44336;
+  font-weight: bold;
+  background-color: rgba(244, 67, 54, 0.1);
+  padding: 3px 6px;
+  border-radius: 3px;
+}
+
+/* Estilos para alternar colores en filas de tablas */
+.pdf-content .remuneracion-table tr:nth-child(even) td {
+  background-color: #f9f9f9;
+}
+
+.pdf-content .remuneracion-table tr:hover td {
+  background-color: #f0f0f0;
+}
+
+/* Estilos para la barra de búsqueda */
+.search-bar {
+  margin-bottom: 20px;
+  width: 100%;
+}
+
+.search-container {
+  display: flex;
+  flex-direction: column;
+  background: white;
+  border-radius: 8px;
+  padding: 15px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.search-type {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 10px;
+}
+
+.search-type label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.search-input-container {
+  display: flex;
+  width: 100%;
+}
+
+.search-input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px 0 0 4px;
+  font-size: 14px;
+}
+
+.search-button {
+  background: #343a40;
+  color: white;
+  border: none;
+  border-radius: 0 4px 4px 0;
+  padding: 0 15px;
+  cursor: pointer;
+}
+
+.search-button:hover {
+  background: #23272b;
+}
+
+/* Mensaje de no resultados */
+.sin-resultados {
+  background: #f8f9fa;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 20px;
+  text-align: center;
+  color: #6c757d;
+  font-size: 16px;
+  margin: 20px 0;
+}
+
+/* Contenedor para controles y filtros */
+.controles-filtros-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin-bottom: 20px;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+@media (max-width: 768px) {
+  .controles-filtros-container {
+    flex-direction: column;
+  }
+  
+  .search-bar {
+    width: 100%;
+  }
+  
+  .controles {
+    margin-bottom: 15px;
+  }
+}

@@ -131,14 +131,12 @@ export const IniciarSesionManualmente = (datosUsuario, navigate) => {
             );
          }
 
-
-
-         // if (resultadoValidacion.data.data.login_usuario === 1) {
-         //    return handleAuthenticationError(
-         //       dispatch,
-         //       "Acceso denegado. No tiene permisos para ingresar a este sistema. Su cuenta será bloqueada si reintenta acceder sin autorización.",
-         //    );
-         // }
+         if (resultadoValidacion.data.data.login_usuario !== 1) {
+            return handleAuthenticationError(
+               dispatch,
+               "Acceso denegado. No tiene permisos para ingresar a este sistema. Su cuenta será bloqueada si reintenta acceder sin autorización.",
+            );
+         }
 
          const { accessToken, refreshToken } = resultadoValidacion.data.tokens || {};
 

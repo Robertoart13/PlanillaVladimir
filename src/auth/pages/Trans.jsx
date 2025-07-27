@@ -1,7 +1,8 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+
 import { useEffect, useRef, useState, useMemo } from 'react';
 import { LayoutEntrance } from '../layout/LayoutEntrance';
+import { AnimatePresence, motion } from "motion/react"
 
 
 const buildKeyframes = (from, steps) => {
@@ -98,6 +99,7 @@ const Trans = ({
         };
 
         return (
+          <>
           <motion.span
             className="inline-block will-change-[transform,filter,opacity]"
             key={index}
@@ -111,6 +113,7 @@ const Trans = ({
             {segment}
             {animateBy === 'words' && index < elements.length - 1 && '\u00A0'}
           </motion.span>
+          </>
         );
       })}
     </p>
