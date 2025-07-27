@@ -96,7 +96,6 @@ const iniciarCronJob = () => {
    // Cron job que se ejecuta cada minuto (*/1 * * * *)
    cron.schedule('*/1 * * * *', async () => {
       try {
-         console.log('🕐 Ejecutando cron job - obtenerTodosDatos:', new Date().toISOString());
          
          // Ejecutar la función obtenerTodosDatos con la base de datos de cron jobs
          const resultado = await obtenerTodosDatos(baseDeDatosCronjob);
@@ -108,10 +107,10 @@ const iniciarCronJob = () => {
             for (let i = 0; i < resultado.datos.length; i++) {
                const planilla = resultado.datos[i];
                
-               console.log(`\n🔍 Procesando planilla ${i + 1}/${resultado.datos.length}:`);
-               console.log(`   - Planilla ID: ${planilla.planilla_id}`);
-               console.log(`   - Empresa ID: ${planilla.empresa_id}`);
-               console.log(`   - Código: ${planilla.planilla_codigo}`);
+            //    console.log(`\n🔍 Procesando planilla ${i + 1}/${resultado.datos.length}:`);
+            //    console.log(`   - Planilla ID: ${planilla.planilla_id}`);
+            //    console.log(`   - Empresa ID: ${planilla.empresa_id}`);
+            //    console.log(`   - Código: ${planilla.planilla_codigo}`);
                
                // Obtener detalles de empleados para esta planilla
                const detalleEmpleados = await obtenerDetalleEmpleados(
@@ -121,61 +120,61 @@ const iniciarCronJob = () => {
                );
                
                if (detalleEmpleados && detalleEmpleados.datos) {
-                  console.log(`   ✅ Empleados encontrados: ${detalleEmpleados.datos.length}`);
-                  console.log('   📋 Detalles de empleados:', detalleEmpleados.datos);
+                //   console.log(`   ✅ Empleados encontrados: ${detalleEmpleados.datos.length}`);
+                //   console.log('   📋 Detalles de empleados:', detalleEmpleados.datos);
                   
-                  // 📧 ENVIAR CORREOS A CADA EMPLEADO
-                  console.log('\n📧 Iniciando envío de correos...');
+                //   // 📧 ENVIAR CORREOS A CADA EMPLEADO
+                //   console.log('\n📧 Iniciando envío de correos...');
                   
                   for (let j = 0; j < detalleEmpleados.datos.length; j++) {
                      const empleado = detalleEmpleados.datos[j];
                      
-                     console.log(`\n   📤 Enviando correo ${j + 1}/${detalleEmpleados.datos.length}:`);
-                     console.log(`      - Empleado: ${empleado.nombre_empleado} ${empleado.apellidos_empleado}`);
-                     console.log(`      - Correo: ${empleado.correo_empleado}`);
-                     console.log(`      - ID Empleado: ${empleado.id_empleado}`);
-                     console.log(`      - ID Planilla: ${planilla.planilla_id}`);
+                    //  console.log(`\n   📤 Enviando correo ${j + 1}/${detalleEmpleados.datos.length}:`);
+                    //  console.log(`      - Empleado: ${empleado.nombre_empleado} ${empleado.apellidos_empleado}`);
+                    //  console.log(`      - Correo: ${empleado.correo_empleado}`);
+                    //  console.log(`      - ID Empleado: ${empleado.id_empleado}`);
+                    //  console.log(`      - ID Planilla: ${planilla.planilla_id}`);
                      
                      try {
                         // Pasar la conexión de base de datos a la función de envío
                         const resultadoCorreo = await sendEmployeeEmail(empleado, planilla, baseDeDatosCronjob);
                         
                         if (resultadoCorreo.success) {
-                           console.log(`      ✅ Correo enviado exitosamente`);
-                           console.log(`      📧 Message ID: ${resultadoCorreo.messageId}`);
+                        //    console.log(`      ✅ Correo enviado exitosamente`);
+                        //    console.log(`      📧 Message ID: ${resultadoCorreo.messageId}`);
                            
                            // Verificar si la actualización de la base de datos fue exitosa
                            if (resultadoCorreo.dbUpdate && resultadoCorreo.dbUpdate.success) {
-                              console.log(`      ✅ Base de datos actualizada: correo_enviado = 1`);
+                            //   console.log(`      ✅ Base de datos actualizada: correo_enviado = 1`);
                            } else {
-                              console.log(`      ⚠️ Correo enviado pero error al actualizar BD: ${resultadoCorreo.dbUpdate?.error || 'Error desconocido'}`);
+                             // console.log(`      ⚠️ Correo enviado pero error al actualizar BD: ${resultadoCorreo.dbUpdate?.error || 'Error desconocido'}`);
                            }
                         } else {
-                           console.log(`      ❌ Error al enviar correo: ${resultadoCorreo.error}`);
+                          // console.log(`      ❌ Error al enviar correo: ${resultadoCorreo.error}`);
                         }
                      } catch (emailError) {
-                        console.log(`      ❌ Error inesperado al enviar correo: ${emailError.message}`);
+                        //console.log(`      ❌ Error inesperado al enviar correo: ${emailError.message}`);
                      }
                      
                      // Pequeña pausa entre envíos para evitar spam
                      await new Promise(resolve => setTimeout(resolve, 1000));
                   }
                   
-                  console.log('\n✅ Proceso de envío de correos completado para esta planilla');
+                //  console.log('\n✅ Proceso de envío de correos completado para esta planilla');
                } else {
-                  console.log('   ⚠️ No se encontraron empleados para esta planilla');
+                 // console.log('   ⚠️ No se encontraron empleados para esta planilla');
                }
             }
          } else {
-            console.log('⚠️ No se encontraron datos de planillas para procesar');
+           // console.log('⚠️ No se encontraron datos de planillas para procesar');
          }
          
       } catch (error) {
-         console.error('❌ Error en cron job obtenerTodosDatos:', error.message);
+        // console.error('❌ Error en cron job obtenerTodosDatos:', error.message);
       }
    });
    
-   console.log('✅ Cron job iniciado - se ejecutará cada minuto');
+   //console.log('✅ Cron job iniciado - se ejecutará cada minuto');
 };
 
 // Exportar las funciones
