@@ -5,18 +5,17 @@ import { useDispatch } from "react-redux";
 import { useLocation } from "react-router-dom";
 import Swal from "sweetalert2";
 import { Planil_Empleado_Aplicadas_Empleado_Thunks } from "../../../../store/Planilla/Planil_Empleado_Aplicadas_Empleado_Thunks";
-import Switch from "@mui/material/Switch";
-import FormControlLabel from "@mui/material/FormControlLabel";
+
 import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
 
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
-import { Planilla_Aplicado } from "../../../../store/Planilla/Planilla_Aplicado_Thunks";
+
 import { Planilla_Incritos_Thunks } from "../../../../store/Planilla/Planilla_Incritos_Thunks";
-import { Planilla_CmabioEstado_Thunks } from "../../../../store/Planilla/Planilla_CmabioEstado_Thunks";
-import { Planilla_Habilitar } from "../../../../store/Planilla/Planilla_Habilitar";
+
+
 
 // Add MUI Dialog imports
 import Dialog from "@mui/material/Dialog";
@@ -269,59 +268,11 @@ const desencriptarId = (encriptedId) => {
  * @param {Object} props.empleado - Datos del empleado a mostrar
  * @returns {JSX.Element} Tarjeta de remuneración
  */
-const RemuneracionCard = ({ empleado, onApplied }) => {
-   // Determinar si el empleado está aplicado basado en su estado o marca_aplicado_epd
-   const estadoAplicado =
-      empleado.estado_epd === "aplicado" || parseInt(empleado.marca_aplicado_epd) === 1;
-   // Inicializar el estado con el valor de aplicado del empleado
-   const [aplicado, setAplicado] = useState(estadoAplicado);
+const RemuneracionCard = ({ empleado }) => {
+
    // Crear una referencia al componente de la tarjeta para exportar a PDF
    const cardRef = React.useRef(null);
-   // Acceder al dispatch para acciones Redux
-   const dispatch = useDispatch();
-   const aplicarEmpleado = async () => {
-      setAplicado(true);
 
-      // Mostrar alerta de proceso iniciado
-      Swal.fire({
-         title: "Procesando",
-         text: "Aplicando usuario...",
-         allowOutsideClick: false,
-         didOpen: () => {
-            Swal.showLoading();
-         },
-      });
-      try {
-         // Ejecutar el dispatch y esperar su finalización
-         await dispatch(Planilla_Aplicado(empleado.id_empleado, empleado.planilla_id_epd));
-
-         // Mostrar alerta de éxito
-         Swal.fire({
-            title: "Éxito",
-            text: "Empleado aplicado correctamente",
-            icon: "success",
-            timer: 2000,
-            showConfirmButton: false,
-         });
-         // Notify parent to mark empleado as applied
-         if (typeof onApplied === 'function') {
-            onApplied(empleado.id_empleado);
-         }
-      } catch (error) {
-         console.error("Error al aplicar empleado:", error);
-
-         // Mostrar alerta de error
-         Swal.fire({
-            title: "Error",
-            text: "Error al aplicar el empleado",
-            icon: "error",
-            confirmButtonText: "Aceptar",
-         });
-
-         // Revertir el estado en caso de error
-         setAplicado(false);
-      }
-   };
 
    const descargarPDF = () => {
       if (cardRef.current) {
@@ -364,7 +315,7 @@ const RemuneracionCard = ({ empleado, onApplied }) => {
    return (
       <div
          ref={cardRef}
-         className={`remuneracion-card ${aplicado ? "aplicado" : "no-aplicado"}`}
+         className="remuneracion-card"
       >
          <div className="remuneracion-header">REMUNERACIÓN OPU SAL</div>
          <div style={{ display: "flex", justifyContent: "space-between", padding: "4px" }}>
@@ -379,18 +330,7 @@ const RemuneracionCard = ({ empleado, onApplied }) => {
          <InfoPersonalTable empleado={empleado} />
          <DesgloceRemuneracionTable empleado={empleado} />
          <EstadoInscripcionTable empleado={empleado} />
-         <div
-            className="boton-container"
-            style={{ padding: "6px 4px 4px" }}
-         >
-            <button
-               className="boton-aplicar"
-               onClick={aplicarEmpleado}
-               disabled={aplicado}
-            >
-               {aplicado ? "Aplicado" : "Aplicar"}
-            </button>
-         </div>
+
       </div>
    );
 };
@@ -407,20 +347,7 @@ const InfoPersonalTable = ({ empleado }) => {
       empleado.apellidos_empleado || ""
    }`.trim();
 
-   // Encontrar todas las cuentas IBAN para este empleado
-   const cuentasIban = [];
-   if (empleado.numero_cuenta_iban) {
-      cuentasIban.push(empleado.numero_cuenta_iban);
-   }
 
-   // Agregar cuentas adicionales si existen
-   if (empleado.cuentas_adicionales && Array.isArray(empleado.cuentas_adicionales)) {
-      empleado.cuentas_adicionales.forEach((cuenta) => {
-         if (cuenta && !cuentasIban.includes(cuenta)) {
-            cuentasIban.push(cuenta);
-         }
-      });
-   }
 
    return (
       <table className="remuneracion-table">
@@ -470,31 +397,7 @@ const InfoPersonalTable = ({ empleado }) => {
                      />
                   </div></td>
             </tr>
-            <tr>
-               <td>Cuenta Bancaria:</td>
-               <td>
-                  {cuentasIban.length > 0 ? (
-                     cuentasIban.map((cuenta, index) => (
-                        <div
-                           key={index}
-                           className="cuenta-bancaria-container"
-                        >
-                           <span>{cuenta}</span>
-                           <CopyButton
-                              textToCopy={cuenta}
-                              message="La cuenta IBAN ha sido copiada al portapapeles"
-                              title="Copiar cuenta IBAN"
-                           />
-                           {index < cuentasIban.length - 1 && <hr />}
-                        </div>
-                     ))
-                  ) : (
-                     <div className="cuenta-bancaria-container">
-                        <span>No disponible</span>
-                     </div>
-                  )}
-               </td>
-            </tr>
+
          </tbody>
       </table>
    );
@@ -587,90 +490,7 @@ const EstadoInscripcionTable = ({ empleado }) => {
       parseInt(empleado.caja_costarricense_seguro_social_empleado) || 0,
    );
 
-   // Obtener dispatch de Redux
-   const dispatch = useDispatch();
 
-   // Manejar el cambio de estado para Ministerio de Hacienda
-   const handleMinisterioChange = async (event) => {
-      // Detener la propagación del evento para evitar que se abra el modal
-      event.stopPropagation();
-      
-      const newValue = event.target.checked ? 1 : 0;
-      setMinisterio(newValue);
-
-      // Crear objeto con todos los valores actualizados
-      const updatedValues = {
-         empleado_id: empleado.id_empleado,
-         planilla_id: empleado.planilla_id_epd,
-         ministerioHacienda: newValue,
-         rtins: rtins,
-         ccss: ccss,
-      };
-
-
-      try {
-         // Enviar los datos actualizados a través del thunk
-         await dispatch(Planilla_Incritos_Thunks(updatedValues));
-         // Alerta removida - cambio silencioso
-      } catch (error) {
-         console.error("Error al actualizar estado de inscripción:", error);
-         // Alerta de error removida - cambio silencioso
-      }
-   };
-
-   // Manejar el cambio de estado para RT-INS
-   const handleRtinsChange = async (event) => {
-      // Detener la propagación del evento para evitar que se abra el modal
-      event.stopPropagation();
-      
-      const newValue = event.target.checked ? 1 : 0;
-      setRtins(newValue);
-
-      // Crear objeto con todos los valores actualizados
-      const updatedValues = {
-         empleado_id: empleado.id_empleado,
-         planilla_id: empleado.planilla_id_epd,
-         ministerioHacienda: ministerio,
-         rtins: newValue,
-         ccss: ccss,
-      };
-
-      try {
-         // Enviar los datos actualizados a través del thunk
-         await dispatch(Planilla_Incritos_Thunks(updatedValues));
-         // Alerta removida - cambio silencioso
-      } catch (error) {
-         console.error("Error al actualizar estado de inscripción:", error);
-         // Alerta de error removida - cambio silencioso
-      }
-   };
-
-   // Manejar el cambio de estado para CCSS
-   const handleCcssChange = async (event) => {
-      // Detener la propagación del evento para evitar que se abra el modal
-      event.stopPropagation();
-      
-      const newValue = event.target.checked ? 1 : 0;
-      setCcss(newValue);
-
-      // Crear objeto con todos los valores actualizados
-      const updatedValues = {
-         empleado_id: empleado.id_empleado,
-         planilla_id: empleado.planilla_id_epd,
-         ministerioHacienda: ministerio,
-         rtins: rtins,
-         ccss: newValue,
-      };
-
-      try {
-         // Enviar los datos actualizados a través del thunk
-         await dispatch(Planilla_Incritos_Thunks(updatedValues));
-         // Alerta removida - cambio silencioso
-      } catch (error) {
-         console.error("Error al actualizar estado de inscripción:", error);
-         // Alerta de error removida - cambio silencioso
-      }
-   };
 
    return (
       <table className="remuneracion-table">
@@ -685,59 +505,20 @@ const EstadoInscripcionTable = ({ empleado }) => {
             </tr>
             <tr>
                <td>Ministerio de Hacienda:</td>
-               <td className={ministerio === 1 ? "inscrito" : "no-inscrito"} onClick={(e) => e.stopPropagation()}>
-                  <FormControlLabel
-                     control={
-                        <Switch
-                           checked={ministerio === 1}
-                           onChange={handleMinisterioChange}
-                           color="success"
-                           size="small"
-                           style={{ transform: "scale(0.8)" }}
-                        />
-                     }
-                     label={ministerio === 1 ? "Inscrito" : "No inscrito"}
-                     labelPlacement="start"
-                     style={{ margin: 0, fontSize: "0.8rem" }}
-                  />
+               <td className={ministerio === 1 ? "inscrito" : "no-inscrito"}>
+                  {ministerio === 1 ? "Inscrito" : "No inscrito"}
                </td>
             </tr>
             <tr>
                <td>RT-INS:</td>
-               <td className={rtins === 1 ? "inscrito" : "no-inscrito"} onClick={(e) => e.stopPropagation()}>
-                  <FormControlLabel
-                     control={
-                        <Switch
-                           checked={rtins === 1}
-                           onChange={handleRtinsChange}
-                           color="success"
-                           size="small"
-                           style={{ transform: "scale(0.8)" }}
-                        />
-                     }
-                     label={rtins === 1 ? "Inscrito" : "No inscrito"}
-                     labelPlacement="start"
-                     style={{ margin: 0, fontSize: "0.8rem" }}
-                  />
+               <td className={rtins === 1 ? "inscrito" : "no-inscrito"}>
+                  {rtins === 1 ? "Inscrito" : "No inscrito"}
                </td>
             </tr>
             <tr>
                <td>CCSS:</td>
-               <td className={ccss === 1 ? "inscrito" : "no-inscrito"} onClick={(e) => e.stopPropagation()}>
-                  <FormControlLabel
-                     control={
-                        <Switch
-                           checked={ccss === 1}
-                           onChange={handleCcssChange}
-                           color="success"
-                           size="small"
-                           style={{ transform: "scale(0.8)" }}
-                        />
-                     }
-                     label={ccss === 1 ? "Inscrito" : "No inscrito"}
-                     labelPlacement="start"
-                     style={{ margin: 0, fontSize: "0.8rem" }}
-                  />
+               <td className={ccss === 1 ? "inscrito" : "no-inscrito"}>
+                  {ccss === 1 ? "Inscrito" : "No inscrito"}
                </td>
             </tr>
          </tbody>
@@ -907,70 +688,7 @@ const InfoPlanilla = ({ planilla, empleados = [] }) => {
       return subtotal + iva;
    };
    
-   /**
-    * Maneja el cambio de estado de la planilla
-    * @param {string} newState - El nuevo estado de la planilla
-    */   const handleStateChange = async (newState) => {
-      // Obtener el ID de la planilla usando la función auxiliar
-      const planilla_id = obtenerPlanillaId(planilla);
-      
-        // Mostrar confirmación antes de cambiar el estado
-      Swal.fire({
-         title: '¿Cambiar estado de la planilla?',
-         text: `¿Está seguro que desea cambiar el estado de la planilla de "${planilla.estado}" a "${newState}"?`,
-         icon: 'warning',
-         showCancelButton: true,
-         confirmButtonColor: '#3085d6',
-         cancelButtonColor: '#d33',
-         confirmButtonText: 'Sí, cambiar estado',
-         cancelButtonText: 'Cancelar'
-      }).then(async (result) => {
-         if (result.isConfirmed) {// Registrar en consola que el cambio ha sido confirmado
-            const planilla_id = obtenerPlanillaId(planilla);
-            
-            // Mostrar indicador de carga
-            Swal.fire({
-               title: 'Procesando',
-               text: 'Cambiando estado de planilla...',
-               allowOutsideClick: false,
-               didOpen: () => {
-                  Swal.showLoading();
-               },
-            });
-            
-            // Llamar al endpoint para cambiar el estado
-            try {               // Ejecutar el dispatch y esperar su finalización
-             
-               await dispatch(Planilla_CmabioEstado_Thunks(planilla_id, newState));
-               
-               // Mostrar alerta de éxito
-               Swal.fire({
-                  title: 'Estado cambiado',
-                  text: `El estado de la planilla ha sido actualizado a "${newState}"`,
-                  icon: 'success',
-                  timer: 2000,
-                  showConfirmButton: false,
-               });
-               
-               // Recargar la página para reflejar el cambio
-               setTimeout(() => {
-                  window.location.reload();
-               }, 2500);
-            } catch (error) {
-               console.error('Error al cambiar estado de planilla:', error);
-               
-               // Mostrar alerta de error
-               Swal.fire({
-                  title: 'Error',
-                  text: `No se pudo cambiar el estado de la planilla: ${error.message || 'Error desconocido'}`,
-                  icon: 'error',
-                  confirmButtonText: 'Aceptar',
-               });
-            }} else {
-            // Registrar en consola que el cambio ha sido cancelado
-         }
-      });
-   };
+
 
    return (
       <div className="info-planilla">
@@ -1005,7 +723,6 @@ const InfoPlanilla = ({ planilla, empleados = [] }) => {
                <span className={`info-value estado-${planilla.estado.toLowerCase().replace(/\s+/g, '-')}`}>
                   {planilla.estado}
                </span>
-               <StateSelector currentState={planilla.estado} onStateChange={handleStateChange} />
             </div>
             <div className="info-planilla-item">
                <span className="info-label">Descripción:</span>
@@ -1088,65 +805,7 @@ const InfoPlanilla = ({ planilla, empleados = [] }) => {
    );
 };
 
-/**
- * Componente para seleccionar y cambiar el estado de la planilla
- * @param {Object} props - Propiedades del componente
- * @param {string} props.currentState - Estado actual de la planilla
- * @param {Function} props.onStateChange - Función a ejecutar cuando se cambia el estado
- * @returns {JSX.Element|null} Selector de estado o null si no se debe mostrar
- */
-const StateSelector = ({ currentState, onStateChange }) => {
-   // Determinar qué opciones mostrar según el estado actual
-   const getStateOptions = () => {
-      switch (currentState) {
-         case 'En Proceso':
-            // No se muestra el selector para planillas en proceso
-            return null;
-         case 'Activa':
-            return ['Cerrada', 'Cancelada', 'Procesada'];
-         case 'Cerrada':
-            return ['Activa', 'Cancelada', 'Procesada'];
-         case 'Cancelada':
-            return ['Activa', 'Cerrada', 'Procesada'];
-         case 'Procesada':
-            return ['Activa'];
-         default:
-            return [];
-      }
-   };
 
-   const stateOptions = getStateOptions();
-   
-   // No mostrar selector si no hay opciones o en ciertos estados
-   if (!stateOptions || stateOptions.length === 0) {
-      return null;
-   }
-
-   return (
-      <FormControl size="small" style={{ minWidth: 120, marginLeft: 10 }}>
-         <Select
-            value=""
-            displayEmpty
-            onChange={(e) => onStateChange(e.target.value)}
-            style={{ 
-               height: 30, 
-               fontSize: '0.85rem',
-               backgroundColor: '#f8f9fa',
-               borderColor: '#ced4da' 
-            }}
-         >
-            <MenuItem disabled value="">
-               <em>Cambiar a</em>
-            </MenuItem>
-            {stateOptions.map((state) => (
-               <MenuItem key={state} value={state}>
-                  {state}
-               </MenuItem>
-            ))}
-         </Select>
-      </FormControl>
-   );
-};
 
 /**
  * Función utilitaria para copiar texto al portapapeles y mostrar notificación
@@ -1281,38 +940,14 @@ const SearchBar = ({ onSearch }) => {
 /**
  * Mini card showing resumen + Estado Inscripción and apply button
  */
-const MiniRemuneracionCard = ({ empleado, onClick, onApplied }) => {
-   const dispatch = useDispatch();
-   // Determine if already applied
-   const initApplied = empleado.estado_epd === "aplicado" || parseInt(empleado.marca_aplicado_epd) === 1;
-   const [aplicado, setAplicado] = useState(initApplied);
+const MiniRemuneracionCard = ({ empleado, onClick }) => {
+
    const nombre = `${empleado.nombre_empleado || ""} ${empleado.apellidos_empleado || ""}`.trim();
 
-   // Handle apply action
-   const handleApplyClick = async (e) => {
-      e.stopPropagation();
-      setAplicado(true);
-      // Show loading
-      Swal.fire({
-         title: "Procesando",
-         text: "Aplicando usuario...",
-         allowOutsideClick: false,
-         didOpen: () => { Swal.showLoading(); },
-      });
-      try {
-         await dispatch(Planilla_Aplicado(empleado.id_empleado, empleado.planilla_id_epd));
-         Swal.fire({ title: "Éxito", text: "Empleado aplicado correctamente", icon: "success", timer: 2000, showConfirmButton: false });
-         // notify parent
-         if (typeof onApplied === 'function') onApplied(empleado.id_empleado);
-      } catch (error) {
-         console.error("Error al aplicar empleado:", error);
-         Swal.fire({ title: "Error", text: "Error al aplicar el empleado", icon: "error", confirmButtonText: "Aceptar" });
-         setAplicado(false);
-      }
-   };
+
 
    return (
-      <div className={`remuneracion-card ${aplicado ? "aplicado" : "no-aplicado"}`} onClick={onClick} style={{ cursor: 'pointer' }}>
+      <div className="remuneracion-card" onClick={onClick} style={{ cursor: 'pointer' }}>
          <div className="remuneracion-header">REMUNERACIÓN OPU SAL</div>
          <table className="remuneracion-table">
             <tbody>
@@ -1323,12 +958,7 @@ const MiniRemuneracionCard = ({ empleado, onClick, onApplied }) => {
          </table>
          {/* Estado de Inscripción */}
          <EstadoInscripcionTable empleado={empleado} />
-         {/* Botón aplicar */}
-         <div className="boton-container" onClick={(e) => e.stopPropagation()}>
-            <button className="boton-aplicar" onClick={handleApplyClick} disabled={aplicado}>
-               {aplicado ? "Aplicado" : "Aplicar"}
-            </button>
-         </div>
+
       </div>
    );
 };
@@ -1365,12 +995,10 @@ export const VisualizarPlanilla = () => {
    // Add modal state and handlers inside the VisualizarPlanilla component
    const [modalOpen, setModalOpen] = useState(false);
    const [selectedEmpleado, setSelectedEmpleado] = useState(null);
-   const [habilitarEdicion, setHabilitarEdicion] = useState(false);
 
    const handleOpenModal = (empleado) => {
       setSelectedEmpleado(empleado);
       setModalOpen(true);
-      setHabilitarEdicion(false); // Reset checkbox state when opening modal
    };
    
    /**
@@ -1398,7 +1026,6 @@ export const VisualizarPlanilla = () => {
       // Cerrar el modal principal y limpiar estados
       setModalOpen(false);
       setSelectedEmpleado(null);
-      setHabilitarEdicion(false);
       
       // Asegurar que no haya modales de SweetAlert2 abiertos al final
       setTimeout(() => {
@@ -1408,49 +1035,7 @@ export const VisualizarPlanilla = () => {
       }, 100);
    };
 
-   /**
-    * Función para manejar la habilitación de edición del empleado
-    */
-   const handleHabilitarEdicion = async () => {
 
-      if (!selectedEmpleado) {
-         alert('No hay empleado seleccionado');
-         return;
-      }
-
-      const confirmar = confirm(`¿Está seguro que desea habilitar a ${selectedEmpleado.nombre_empleado || 'este empleado'} para edición?`);
-      
-      if (confirmar) {
-         try {
-            // Preparar los datos para el dispatch
-            const formData = {
-               empleado: selectedEmpleado,
-               habilitado: true
-            };
-            
-            
-            // Ejecutar el dispatch
-            const resultado = await dispatch(Planilla_Habilitar(formData));
-            
-
-            // Mostrar mensaje de éxito o error según el resultado
-            if (resultado.success) {
-               alert('Empleado habilitado para edición correctamente');
-               setHabilitarEdicion(true); // Marcar el checkbox como activado
-            } else {
-               alert(resultado.message || 'Error al habilitar el empleado');
-               setHabilitarEdicion(false); // Desmarcar el checkbox en caso de error
-            }
-         } catch (error) {
-            console.error('Error al ejecutar Planilla_Habilitar:', error);
-            alert('Error al procesar la solicitud');
-            setHabilitarEdicion(false); // Desmarcar el checkbox en caso de error
-         }
-      } else {
-         console.log('Usuario canceló la confirmación');
-         setHabilitarEdicion(false); // Desmarcar el checkbox si cancela
-      }
-   };
 
    /**
     * Carga los datos de empleados desde la API o datos de prueba
@@ -1619,43 +1204,7 @@ export const VisualizarPlanilla = () => {
       marginTop: "15px",
    };
 
-   /** Handle marking empleado as applied in list and selected */
-   const handleEmpleadoApplied = (empleadoId) => {
-     // Update and sort main empleados list
-     setEmpleados((prev) => {
-       const updated = prev.map((emp) =>
-         emp.id_empleado === empleadoId ? { ...emp, marca_aplicado_epd: '1' } : emp
-       );
-       return [...updated].sort((a, b) => {
-         const appliedA = parseInt(a.marca_aplicado_epd) === 1;
-         const appliedB = parseInt(b.marca_aplicado_epd) === 1;
-         if (appliedA !== appliedB) return appliedA ? 1 : -1;
-         const nameA = `${a.nombre_empleado || ""} ${a.apellidos_empleado || ""}`.trim().toLowerCase();
-         const nameB = `${b.nombre_empleado || ""} ${b.apellidos_empleado || ""}`.trim().toLowerCase();
-         return nameA.localeCompare(nameB);
-       });
-     });
-     // Update and sort filtered list if active
-     if (busquedaActiva) {
-       setEmpleadosFiltrados((prev) => {
-         const updated = prev.map((emp) =>
-           emp.id_empleado === empleadoId ? { ...emp, marca_aplicado_epd: '1' } : emp
-         );
-         return [...updated].sort((a, b) => {
-           const appliedA = parseInt(a.marca_aplicado_epd) === 1;
-           const appliedB = parseInt(b.marca_aplicado_epd) === 1;
-           if (appliedA !== appliedB) return appliedA ? 1 : -1;
-           const nameA = `${a.nombre_empleado || ""} ${a.apellidos_empleado || ""}`.trim().toLowerCase();
-           const nameB = `${b.nombre_empleado || ""} ${b.apellidos_empleado || ""}`.trim().toLowerCase();
-           return nameA.localeCompare(nameB);
-         });
-       });
-     }
-     // Update selectedEmpleado state if applicable
-     if (selectedEmpleado && selectedEmpleado.id_empleado === empleadoId) {
-       setSelectedEmpleado((emp) => ({ ...emp, marca_aplicado_epd: '1' }));
-     }
-   };
+
 
    return (
       <TarjetaRow
@@ -1692,7 +1241,6 @@ export const VisualizarPlanilla = () => {
                         key={index}
                         empleado={empleado}
                         onClick={() => handleOpenModal(empleado)}
-                        onApplied={handleEmpleadoApplied}
                      />
                   ))}
                </div>
@@ -1725,36 +1273,10 @@ export const VisualizarPlanilla = () => {
                      </button>
                   </div>
                </DialogTitle>
-               {selectedEmpleado.marca_aplicado_epd === 1 && (
-                  <div style={{ margin: '8px 0', display: 'flex', justifyContent: 'flex-end' }}>
-                     <label>
-                        <input type="checkbox" value={selectedEmpleado.tipo_planilla} />
-                        Habilitar empleado para modificación
-                     </label>
-                  </div>
-               )}
+
 
                <DialogContent>
-                  <RemuneracionCard empleado={selectedEmpleado} onApplied={handleEmpleadoApplied} />
-                  
-                  {/* Checkbox adicional para habilitar edición */}
-                  <div style={{ marginTop: '15px', padding: '10px', borderTop: '1px solid #e0e0e0' }}>
-                     <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px' }}>
-                        <input 
-                           type="checkbox" 
-                           checked={habilitarEdicion}
-                           style={{ transform: 'scale(1.2)' }}
-                           onChange={(e) => {
-                              if (e.target.checked) {
-                                 handleHabilitarEdicion();
-                              } else {
-                                 setHabilitarEdicion(false);
-                              }
-                           }}
-                        />
-                        Habilitar para editar
-                     </label>
-                  </div>
+                  <RemuneracionCard empleado={selectedEmpleado} />
                   
                   {/* Botón de cerrar en el contenido */}
                   <div style={{ marginTop: '20px', textAlign: 'center' }}>
