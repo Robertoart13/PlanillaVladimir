@@ -174,7 +174,9 @@ const iniciarCronJob = () => {
       }
    });
    
-   //console.log('✅ Cron job iniciado - se ejecutará cada minuto');
+   //
+   // 
+   console.log('✅ Cron job iniciado - se ejecutará cada minuto');
 };
 
 // Exportar las funciones
