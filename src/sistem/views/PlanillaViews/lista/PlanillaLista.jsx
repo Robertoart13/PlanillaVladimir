@@ -202,9 +202,14 @@ export const PlanillaLista = () => {
      
      // Verificar que se guardó correctamente
      const datosGuardados = localStorage.getItem("selectedPlanilla");
+     const datosParseados = JSON.parse(datosGuardados);
 
-     // Navega a la página de edición de planilla
-     navigate("/planilla/editar");
+     if(datosParseados.planilla_estado === "Procesada"){
+         navigate(`/planilla/planillaEmpleados?planilla_id=${datosParseados.planilla_id}`);
+     } else {
+        // Navega a la página de edición de planilla
+        navigate("/planilla/editar");
+     }
   };
 
   // Configuración de la tabla usando useMemo para optimizar el rendimiento.
