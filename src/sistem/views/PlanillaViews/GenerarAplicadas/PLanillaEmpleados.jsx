@@ -112,6 +112,16 @@ export const PLanillaEmpleados = () => {
 
     try {
       const params = { planilla_id: planillaId };
+      const selectedPlanillaData = JSON.parse(localStorage.getItem("selectedPlanilla"));
+      console.log( params.planilla_id)
+      console.log(selectedPlanillaData.planilla_id)
+
+      // Convertir ambos valores a string para comparar correctamente
+      if( String(params.planilla_id) !== String(selectedPlanillaData.planilla_id)){
+        alert("No se puede cargar la planilla lo sentimos");
+        return
+      }
+
       const response = await dispatch(fetchData_api(params, "gestor/planilla/gestor/card"));
 
       console.log(response);
