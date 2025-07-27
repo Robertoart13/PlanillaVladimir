@@ -13,7 +13,7 @@ import { sendEmployeeEmail } from './EmailService.js';
 const QUERIES = {
    // Consulta SQL para obtener todos los registros de la tabla
    QUERIES_SELECT: `
-        SELECT * FROM planilla_tbl WHERE planilla_estado = "Procesada" AND empresa_id=13 AND planilla_codigo="PL-NAT-Mens-20250726-TPF6QS"
+        SELECT * FROM planilla_tbl WHERE planilla_estado = "Procesada" AND empresa_id=13 
     `,
     
    // Consulta SQL para obtener detalles de empleados por planilla
