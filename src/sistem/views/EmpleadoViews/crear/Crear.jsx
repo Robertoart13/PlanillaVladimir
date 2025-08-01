@@ -672,7 +672,7 @@ export const CrearEmpleado = () => {
                         name="numero_asegurado"
                         value={formData.numero_asegurado}
                         onChange={handleInputChange}
-                        placeholder="123456789"
+                        placeholder="0"
                         required
                         isUnique
                         error={validation.numeroAseguradoError}

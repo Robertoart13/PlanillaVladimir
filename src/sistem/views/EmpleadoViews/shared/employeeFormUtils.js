@@ -104,23 +104,23 @@ export const getInitialFormData = () => ({
    cedula: "",
    
    // Work Information
-   salario_base: "",
+   salario_base: "0",
    tipo_contrato: "",
    departamento: "",
    puesto: "",
    id_empresa: "",
-   fecha_ingreso: "",
-   fecha_salida: "",
-   jornada_laboral: "",
+   fecha_ingreso: "0",
+   fecha_salida: "0",
+   jornada_laboral: "0",
    
    // Identification Numbers
-   numero_asegurado: "",
-   numero_ins: "",
-   numero_hacienda: "",
+   numero_asegurado: "0",
+   numero_ins: "0",
+   numero_hacienda: "0",
    
    // Bank Accounts
-   cuenta_bancaria_1: "",
-   cuenta_bancaria_2: "",
+   cuenta_bancaria_1: "0",
+   cuenta_bancaria_2: "0",
    
    // Accumulated Benefits
    vacaciones_acumuladas: "0",
