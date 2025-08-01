@@ -2,16 +2,16 @@ import nodemailer from 'nodemailer';
 import { realizarConsulta } from "../../mysql2-promise/mysql2-promise.js";
 
 /**
- * Configuración del transportador de correo para Outlook
+ * Configuración del transportador de correo para Hostinger
  */
 const createTransporter = () => {
     return nodemailer.createTransport({
-        host: 'smtp.office365.com',
-        port: 587,
-        secure: false,
+        host: 'smtp.hostinger.com',
+        port: 465,
+        secure: true, // SSL
         auth: {
-            user: 'rzuniga@roccacr.com',
-            pass: 'frhmhxcxqwfbkfhy'
+            user: 'info@gt3cr.com',
+            pass: 'Locos2023@joal'
         }
     });
 };
@@ -262,7 +262,7 @@ const sendEmployeeEmail = async (empleado, planilla, database) => {
         const transporter = createTransporter();
         
         const mailOptions = {
-            from: 'rzuniga@roccacr.com',
+            from: 'info@gt3cr.com',
             to: empleado.correo_empleado,
             subject: `Detalles de Compensación - ${planilla.planilla_codigo}`,
             html: generateEmailTemplate(empleado, planilla),
