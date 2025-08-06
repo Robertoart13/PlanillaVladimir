@@ -31,6 +31,7 @@ export const Planilla_Editar_Thunks = (formData) => {
                planilla_fecha_inicio: formData.planilla_fecha_inicio,
                planilla_fecha_fin: formData.planilla_fecha_fin,
                planilla_creado_por: parseInt(user.id_usuario),
+               planilla_moneda: formData.planilla_moneda,
             },
             acceso: {
                type: 0,

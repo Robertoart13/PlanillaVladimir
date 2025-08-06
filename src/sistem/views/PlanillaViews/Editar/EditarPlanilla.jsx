@@ -15,6 +15,9 @@ const estadosPlanilla = [
   "Procesada",
 ];
 
+// Opciones para moneda
+const monedas = ["colones", "dolares"];
+
 // Abreviaturas para tipos de planilla
 const abreviaturasTipo = {
   Mensual: "Mens",
@@ -32,7 +35,7 @@ function extraerIdentificador(planilla_codigo) {
 }
 
 // Función para generar consecutivo tipo PL-BT4212
-function generarConsecutivo(empresas = [], empresa_id = "", planilla_tipo = "", fechaInicio = "", identificador = "") {
+function generarConsecutivo(empresas = [], empresa_id = "", planilla_tipo = "", fechaInicio = "", planilla_moneda = "colones", identificador = "") {
   // Abreviatura de empresa (primera palabra, 3 letras)
   let empresaAbrev = "";
   if (empresa_id) {
@@ -56,8 +59,11 @@ function generarConsecutivo(empresas = [], empresa_id = "", planilla_tipo = "", 
     ? identificador
     : Math.random().toString(36).substr(2, 6).toUpperCase();
 
-  // Construcción del consecutivo
-  return `PL-${empresaAbrev}-${tipoAbrev}-${fechaFormateada}-${idFinal}`;
+  // Símbolo de moneda
+  const simboloMoneda = planilla_moneda === "dolares" ? "$" : "₡";
+
+  // Construcción del consecutivo con símbolo de moneda
+  return `PL${simboloMoneda}-${empresaAbrev}-${tipoAbrev}-${fechaFormateada}-${idFinal}`;
 }
 
 export const EditarPlanilla = () => {
@@ -76,6 +82,7 @@ export const EditarPlanilla = () => {
     planilla_codigo_viejo: selectedPlanilla.planilla_codigo || "",
     empresa_id: selectedPlanilla.empresa_id || "",
     planilla_tipo: selectedPlanilla.planilla_tipo || "",
+    planilla_moneda: selectedPlanilla.planilla_moneda || "colones", // Nuevo campo de moneda
     planilla_descripcion: selectedPlanilla.planilla_descripcion || "--",
     planilla_estado: selectedPlanilla.planilla_estado || "En Proceso",
     planilla_fecha_inicio: selectedPlanilla.planilla_fecha_inicio ? selectedPlanilla.planilla_fecha_inicio.slice(0, 10) : "",
@@ -96,6 +103,7 @@ export const EditarPlanilla = () => {
         prev.empresa_id,
         prev.planilla_tipo,
         prev.planilla_fecha_inicio,
+        prev.planilla_moneda,
         identificador
       ),
     }));
@@ -111,6 +119,7 @@ export const EditarPlanilla = () => {
         prev.empresa_id,
         prev.planilla_tipo,
         prev.planilla_fecha_inicio,
+        prev.planilla_moneda,
         identificador
       ),
     }));
@@ -125,11 +134,12 @@ export const EditarPlanilla = () => {
         formData.empresa_id,
         formData.planilla_tipo,
         formData.planilla_fecha_inicio,
+        formData.planilla_moneda,
         identificador
       ),
     }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [formData.empresa_id, formData.planilla_tipo, formData.planilla_fecha_inicio, empresas]);
+  }, [formData.empresa_id, formData.planilla_tipo, formData.planilla_fecha_inicio, formData.planilla_moneda, empresas]);
 
   // Validar fechas cada vez que cambian
   useEffect(() => {
@@ -176,6 +186,7 @@ export const EditarPlanilla = () => {
     const nuevosErrores = {};
     if (!formData.empresa_id) nuevosErrores.empresa_id = true;
     if (!formData.planilla_tipo) nuevosErrores.planilla_tipo = true;
+    if (!formData.planilla_moneda) nuevosErrores.planilla_moneda = true;
     if (!formData.planilla_estado) nuevosErrores.planilla_estado = true;
     if (!formData.planilla_fecha_inicio) nuevosErrores.planilla_fecha_inicio = true;
     if (!formData.planilla_fecha_fin) nuevosErrores.planilla_fecha_fin = true;
@@ -189,6 +200,7 @@ export const EditarPlanilla = () => {
     setTouched({
       empresa_id: true,
       planilla_tipo: true,
+      planilla_moneda: true,
       planilla_estado: true,
       planilla_fecha_inicio: true,
       planilla_fecha_fin: true,
@@ -239,6 +251,7 @@ export const EditarPlanilla = () => {
         formData.empresa_id,
         formData.planilla_tipo,
         formData.planilla_fecha_inicio,
+        formData.planilla_moneda,
         identificador
       ),
     }));
@@ -303,7 +316,7 @@ export const EditarPlanilla = () => {
             </select>
           </div>
 
-          {/* Tipo de Planilla y Estado */}
+          {/* Tipo de Planilla y Moneda */}
           <div className="col-md-6 mb-3">
             <label className="form-label" htmlFor="planilla_tipo">
               Tipo de Planilla
@@ -325,6 +338,27 @@ export const EditarPlanilla = () => {
             </select>
           </div>
           <div className="col-md-6 mb-3">
+            <label className="form-label" htmlFor="planilla_moneda">
+              Moneda
+            </label>
+            <select
+              className={`form-select${errores.planilla_moneda && touched.planilla_moneda ? " is-invalid" : ""}`}
+              id="planilla_moneda"
+              name="planilla_moneda"
+              value={formData.planilla_moneda}
+              onChange={handleChange}
+              required
+            >
+              {monedas.map((moneda) => (
+                <option key={moneda} value={moneda}>
+                  {moneda === "colones" ? "Colones" : "Dólares"}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Estado y Fecha Inicio */}
+          <div className="col-md-6 mb-3">
             <label className="form-label" htmlFor="planilla_estado">
               Estado
             </label>
@@ -343,8 +377,6 @@ export const EditarPlanilla = () => {
               ))}
             </select>
           </div>
-
-          {/* Fecha Inicio y Fecha Fin */}
           <div className="col-md-6 mb-3">
             <label className="form-label" htmlFor="planilla_fecha_inicio">
               Fecha de Inicio
@@ -359,6 +391,8 @@ export const EditarPlanilla = () => {
               required
             />
           </div>
+
+          {/* Fecha Fin */}
           <div className="col-md-6 mb-3">
             <label className="form-label" htmlFor="planilla_fecha_fin">
               Fecha de Fin

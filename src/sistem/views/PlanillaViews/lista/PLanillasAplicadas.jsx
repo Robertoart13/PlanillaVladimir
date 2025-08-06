@@ -42,6 +42,11 @@ const obtenerColumnasTabla = () => [
       searchPanes: { show: true },
    },
    {
+      data: "planilla_moneda",
+      title: "Moneda",
+      searchPanes: { show: true },
+   },
+   {
       data: "planilla_fecha_inicio",
       title: "Fecha Inicio",
       searchPanes: { show: true },
@@ -118,7 +123,7 @@ const crearConfiguracionTabla = (usuario) => ({
       },
    },
    columnsLayout: "columns-2", // Diseño de columnas en la tabla.
-   columnsFilter: [0, 1, 2, 3, 6], // Índices de columnas que se pueden filtrar.
+   columnsFilter: [0, 1, 2, 3, 6,7], // Índices de columnas que se pueden filtrar.
    columns: obtenerColumnasTabla(), // Definición de columnas.
 });
 
