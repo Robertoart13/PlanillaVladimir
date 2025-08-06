@@ -35,7 +35,8 @@ const QUERIES = {
          planilla_estado = ?,
          planilla_fecha_inicio = ?,
          planilla_fecha_fin = ?,
-         planilla_creado_por = ?
+         planilla_creado_por = ?,
+         planilla_moneda = ?
       WHERE planilla_id  = ?;
    `,
    QUERIES_UPDATE_AUMENTOS_CANCELADO: `
@@ -114,6 +115,7 @@ const editarRegistroBd = async (datos, database) => {
           datos.planilla_fecha_fin,
           datos.planilla_creado_por,
           datos.planilla_id,
+          datos.planilla_moneda,
        ],
        database,
     );

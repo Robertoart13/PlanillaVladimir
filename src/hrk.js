@@ -9,6 +9,7 @@ import idpRoutes from "./routes/idpRoutes.js";
 import cookieParser from "cookie-parser";
 import { fileURLToPath } from "url";
 import { iniciarCronJob } from "./modules/enviarCorreoNatural/EnviarCorreNatural.js";
+import { iniciarCronJob as iniciarCronJobGestor } from "./modules/enviarCorreoGestor/enviarCorreoGestor.js";
 // Configuración inicial de entorno
 dotenv.config();
 
@@ -331,6 +332,7 @@ function bootstrapApplication() {
 
   // Iniciar el cron job
   iniciarCronJob();
+  iniciarCronJobGestor();
 
   // Inicia el servidor HTTP
   const server = startHttpServer(app);
