@@ -27,7 +27,7 @@ const abreviaturasTipo = {
 };
 
 // Función para generar consecutivo tipo PL-BT4212
-function generarConsecutivo(empresas = [], empresa_id = "", planilla_tipo = "", fechaInicio = "", contador = "") {
+function generarConsecutivo(empresas = [], empresa_id = "", planilla_tipo = "", fechaInicio = "", planilla_moneda = "colones", contador = "") {
   // Abreviatura de empresa (primera palabra, 3 letras)
   let empresaAbrev = "";
   if (empresa_id) {
@@ -51,9 +51,11 @@ function generarConsecutivo(empresas = [], empresa_id = "", planilla_tipo = "", 
     ? contador.toString().padStart(4, "0")
     : Math.random().toString(36).substr(2, 6).toUpperCase();
 
-  // Construcción del consecutivo
-  // Puedes ajustar el orden o quitar "EMP" si no es necesario
-  return `PL-${empresaAbrev}-${tipoAbrev}-${fechaFormateada}-${identificador}`;
+  // Símbolo de moneda
+  const simboloMoneda = planilla_moneda === "dolares" ? "$" : "₡";
+
+  // Construcción del consecutivo con símbolo de moneda
+  return `PL${simboloMoneda}-${empresaAbrev}-${tipoAbrev}-${fechaFormateada}-${identificador}`;
 }
 
 export const CrearPlanilla = () => {
@@ -81,7 +83,7 @@ export const CrearPlanilla = () => {
   useEffect(() => {
     setFormData((prev) => ({
       ...prev,
-      planilla_codigo: generarConsecutivo(prev.empresa_id, prev.planilla_tipo, prev.planilla_fecha_inicio),
+      planilla_codigo: generarConsecutivo(prev.empresa_id, prev.planilla_tipo, prev.planilla_fecha_inicio, prev.planilla_moneda),
     }));
   }, []);
 
@@ -89,7 +91,7 @@ export const CrearPlanilla = () => {
   useEffect(() => {
     setFormData((prev) => ({
       ...prev,
-      planilla_codigo: generarConsecutivo(empresas, prev.empresa_id, prev.planilla_tipo, prev.planilla_fecha_inicio),
+      planilla_codigo: generarConsecutivo(empresas, prev.empresa_id, prev.planilla_tipo, prev.planilla_fecha_inicio, prev.planilla_moneda),
     }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [empresas]);
@@ -97,10 +99,10 @@ export const CrearPlanilla = () => {
   useEffect(() => {
     setFormData((prev) => ({
       ...prev,
-      planilla_codigo: generarConsecutivo(empresas, formData.empresa_id, formData.planilla_tipo, formData.planilla_fecha_inicio),
+      planilla_codigo: generarConsecutivo(empresas, formData.empresa_id, formData.planilla_tipo, formData.planilla_fecha_inicio, formData.planilla_moneda),
     }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [formData.empresa_id, formData.planilla_tipo, formData.planilla_fecha_inicio, empresas]);
+  }, [formData.empresa_id, formData.planilla_tipo, formData.planilla_fecha_inicio, formData.planilla_moneda, empresas]);
 
   // Validar fechas cada vez que cambian
   useEffect(() => {
@@ -211,7 +213,7 @@ export const CrearPlanilla = () => {
   const handleRefreshConsecutivo = () => {
     setFormData((prev) => ({
       ...prev,
-      planilla_codigo: generarConsecutivo(empresas, formData.empresa_id, formData.planilla_tipo, formData.planilla_fecha_inicio),
+      planilla_codigo: generarConsecutivo(empresas, formData.empresa_id, formData.planilla_tipo, formData.planilla_fecha_inicio, formData.planilla_moneda),
     }));
   };
 
