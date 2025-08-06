@@ -114,8 +114,9 @@ const editarRegistroBd = async (datos, database) => {
           datos.planilla_fecha_inicio,
           datos.planilla_fecha_fin,
           datos.planilla_creado_por,
-          datos.planilla_id,
           datos.planilla_moneda,
+          datos.planilla_id,
+          
        ],
        database,
     );
