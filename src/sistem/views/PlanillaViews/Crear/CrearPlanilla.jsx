@@ -15,6 +15,9 @@ const estadosPlanilla = [
   "Procesada",
 ];
 
+// Opciones para moneda
+const monedas = ["colones", "dolares"];
+
 // Abreviaturas para tipos de planilla
 const abreviaturasTipo = {
   Mensual: "Mens",
@@ -62,6 +65,7 @@ export const CrearPlanilla = () => {
     planilla_codigo: "",
     empresa_id: "",
     planilla_tipo: "",
+    planilla_moneda: "colones", // Valor por defecto
     planilla_descripcion: "--",
     planilla_estado: "En Proceso",
     planilla_fecha_inicio: "",
@@ -145,6 +149,7 @@ export const CrearPlanilla = () => {
     const nuevosErrores = {};
     if (!formData.empresa_id) nuevosErrores.empresa_id = true;
     if (!formData.planilla_tipo) nuevosErrores.planilla_tipo = true;
+    if (!formData.planilla_moneda) nuevosErrores.planilla_moneda = true;
     if (!formData.planilla_estado) nuevosErrores.planilla_estado = true;
     if (!formData.planilla_fecha_inicio) nuevosErrores.planilla_fecha_inicio = true;
     if (!formData.planilla_fecha_fin) nuevosErrores.planilla_fecha_fin = true;
@@ -158,6 +163,7 @@ export const CrearPlanilla = () => {
     setTouched({
       empresa_id: true,
       planilla_tipo: true,
+      planilla_moneda: true,
       planilla_estado: true,
       planilla_fecha_inicio: true,
       planilla_fecha_fin: true,
@@ -268,7 +274,7 @@ export const CrearPlanilla = () => {
               </select>
             </div>
 
-            {/* Tipo de Planilla y Estado */}
+            {/* Tipo de Planilla y Moneda */}
             <div className="col-md-6 mb-3">
               <label className="form-label" htmlFor="planilla_tipo">
                 Tipo de Planilla
@@ -290,6 +296,27 @@ export const CrearPlanilla = () => {
               </select>
             </div>
             <div className="col-md-6 mb-3">
+              <label className="form-label" htmlFor="planilla_moneda">
+                Moneda
+              </label>
+              <select
+                className={`form-select${errores.planilla_moneda && touched.planilla_moneda ? " is-invalid" : ""}`}
+                id="planilla_moneda"
+                name="planilla_moneda"
+                value={formData.planilla_moneda}
+                onChange={handleChange}
+                required
+              >
+                {monedas.map((moneda) => (
+                  <option key={moneda} value={moneda}>
+                    {moneda === "colones" ? "Colones" : "Dólares"}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Estado y Fecha Inicio */}
+            <div className="col-md-6 mb-3">
               <label className="form-label" htmlFor="planilla_estado">
                 Estado
               </label>
@@ -308,8 +335,6 @@ export const CrearPlanilla = () => {
                 ))}
               </select>
             </div>
-
-            {/* Fecha Inicio y Fecha Fin */}
             <div className="col-md-6 mb-3">
               <label className="form-label" htmlFor="planilla_fecha_inicio">
                 Fecha de Inicio
@@ -324,6 +349,8 @@ export const CrearPlanilla = () => {
                 required
               />
             </div>
+
+            {/* Fecha Fin */}
             <div className="col-md-6 mb-3">
               <label className="form-label" htmlFor="planilla_fecha_fin">
                 Fecha de Fin

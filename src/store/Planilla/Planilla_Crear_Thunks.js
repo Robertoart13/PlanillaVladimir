@@ -23,6 +23,7 @@ export const Planilla_Crear_Thunks = (formData) => {
                planilla_codigo: formData.planilla_codigo, 
                empresa_id: formData.empresa_id,
                planilla_tipo: formData.planilla_tipo,
+               planilla_moneda: formData.planilla_moneda, // Nuevo campo de moneda
                planilla_descripcion: formData.planilla_descripcion,
                planilla_estado: formData.planilla_estado,
                planilla_fecha_inicio: formData.planilla_fecha_inicio,
