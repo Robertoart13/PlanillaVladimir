@@ -4,7 +4,7 @@ import { SistemLayout } from "../../layout/SistemLayout";
 import { GenerarAplicadas } from "../../views/PlanillaViews/GenerarAplicadas/GenerarAplicadas";
 import { PLanillaEmpleados } from "../../views/PlanillaViews/GenerarAplicadas/PLanillaEmpleados";
 import { PLanillasAplicadas } from "../../views/PlanillaViews/lista/PLanillasAplicadas";
-
+import { Liquidaciones } from "../../views/PlanillaViews/Liquidaciones/Liquidaciones";
 
 /**
  * Página para gestionar empresas.
@@ -23,6 +23,7 @@ export const PlanillaGestorPage = () => {
                            {accion === "planillas-aplicadas" && <GenerarAplicadas />}
                            {accion === "planillas-empleados" && <PLanillasAplicadas/>}   
                            {accion === "planillas-empleadosLista" && <PLanillaEmpleados/>}
+                           {accion === "liquidaciones" && <Liquidaciones/>}
                         </div>
                      </div>
                   </div>

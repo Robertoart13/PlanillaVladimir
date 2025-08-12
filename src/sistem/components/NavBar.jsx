@@ -306,10 +306,10 @@ export const NavBar = ({ isSidebarOpen, isMobile }) => {
                            />
                            {tienePermiso(1) && (
                               <MenuItem
-                                 to="/gestor/empleados"
-                                 icon="fas fa-users"
-                                 label="Empleados"
-                                 i18n="Empleados"
+                                 to="/gestor/liquidaciones"
+                                 icon="fas fa-file-invoice-dollar"  
+                                 label="Liquidaciones"
+                                 i18n="Liquidaciones"
                               />
                            )}
                         </ul>
