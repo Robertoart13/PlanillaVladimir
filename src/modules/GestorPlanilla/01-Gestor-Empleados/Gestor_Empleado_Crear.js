@@ -41,7 +41,7 @@ const QUERIES = {
    `,
    
    INSERT_VACACIONES: `
-    INSERT INTO Vacaciones (
+    INSERT INTO Vacaciones_metrica (
         id_empleado_gestor,
         dias_asignados,
         dias_disfrutados
@@ -179,6 +179,9 @@ const crearTransaccion = async (req, res) => {
       // Asignar número de socio y crear registro de vacaciones si la creación fue exitosa
       if (resultado.datos.insertId > 0) {
          await registrarNumeroSocio(resultado.datos.insertId, res?.database);
+
+         console.log("resultado.datos.insertId", resultado.datos.insertId);
+         console.log("res?.transaccion?.data?.vacaciones_acumuladas", res?.transaccion?.data?.vacaciones_acumuladas);
          
          // Insertar registro de vacaciones
          const dias_asignados = res?.transaccion?.data?.vacaciones_acumuladas || 0;
