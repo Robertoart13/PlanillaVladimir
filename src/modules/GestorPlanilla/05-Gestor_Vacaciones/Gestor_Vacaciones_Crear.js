@@ -27,6 +27,7 @@ const QUERIES = {
    INSERT INTO gestor_vacaciones_tbl (
       empresa_id_vacaciones_gestor,
       empleado_id_vacaciones_gestor,
+      planilla_id_vacaciones_gestor,
       fecha_inicio_vacaciones_gestor,
       dias_vacaciones_vacaciones_gestor,
       motivo_vacaciones_gestor,
@@ -36,6 +37,7 @@ const QUERIES = {
    ) VALUES (
       ?,                -- ID de empresa (debe existir en empresas_tbl)
       ?,                -- ID de empleado (debe existir en gestor_empleado_tbl)
+      ?,                -- ID de planilla (debe existir en planilla_tbl)
       ?,                -- Fecha de inicio de vacaciones
       ?,                -- Cantidad de días de vacaciones
       ?,                -- Motivo u observaciones
@@ -44,6 +46,22 @@ const QUERIES = {
       ?                 -- ID de usuario
    );
 `,
+   QUERIES_CHECK_METRICA: `
+   SELECT * FROM Vacaciones_metrica WHERE id_empleado_gestor = ?
+   `,
+   QUERIES_INSERT_METRICA: `
+   INSERT INTO Vacaciones_metrica (
+      id_empleado_gestor,
+      dias_asignados,
+      dias_disfrutados
+   ) VALUES (?, 0, ?)
+   `,
+   QUERIES_UPDATE_METRICA: `
+   UPDATE Vacaciones_metrica 
+   SET dias_asignados = dias_asignados - ?, 
+       dias_disfrutados = dias_disfrutados + ?
+   WHERE id_empleado_gestor = ?
+   `,
 }; 
 
 /**
@@ -67,6 +85,7 @@ const crearNuevoRegistroBd = async (datos, usuario_id, empresa_id, database) => 
       [
          empresa_id,
          datos.empleado,
+         datos.planilla,
          datos.fecha_inicio_vacaciones,
          datos.dias_vacaciones,
          datos.motivo_vacaciones || null,
@@ -77,6 +96,51 @@ const crearNuevoRegistroBd = async (datos, usuario_id, empresa_id, database) => 
       database,
    );
    return result;
+};
+
+/**
+ * ====================================================================================================================================
+ * Actualiza la métrica de vacaciones del empleado.
+ *
+ * Esta función verifica si existe un registro en Vacaciones_metrica para el empleado
+ * y lo crea o actualiza según corresponda.
+ *
+ * @param {number} empleado_id - ID del empleado
+ * @param {number} dias_vacaciones - Días de vacaciones a procesar
+ * @param {Object} database - Conexión a la base de datos
+ * @returns {Promise<Object>} Resultado de la operación
+ * ====================================================================================================================================
+ */
+const actualizarMetricaVacaciones = async (empleado_id, dias_vacaciones, database) => {
+   try {
+      // 1. Verificar si existe registro en Vacaciones_metrica
+      const checkResult = await realizarConsulta(
+         QUERIES.QUERIES_CHECK_METRICA,
+         [empleado_id],
+         database,
+      );
+
+      if (checkResult.success && checkResult.data && checkResult.data.length > 0) {
+         // 2. Si existe, actualizar el registro
+         const updateResult = await realizarConsulta(
+            QUERIES.QUERIES_UPDATE_METRICA,
+            [dias_vacaciones, dias_vacaciones, empleado_id],
+            database,
+         );
+         return updateResult;
+      } else {
+         // 3. Si no existe, crear nuevo registro
+         const insertResult = await realizarConsulta(
+            QUERIES.QUERIES_INSERT_METRICA,
+            [empleado_id, dias_vacaciones],
+            database,
+         );
+         return insertResult;
+      }
+   } catch (error) {
+      console.error('Error al actualizar métrica de vacaciones:', error);
+      return { success: false, error: error.message };
+   }
 };
 
 /**
@@ -121,6 +185,8 @@ const esCreacionExitosa = (resultado) => {
  * ====================================================================================================================================
  */
 const crearTransaccion = async (req, res) => {
+
+   console.log(res?.transaccion?.data);
    try {
       // 1. Validar los datos iniciales de la solicitud (por ejemplo, formato y autenticidad de los datos).
       const errorValidacion = await realizarValidacionesIniciales(res);
@@ -138,7 +204,20 @@ const crearTransaccion = async (req, res) => {
          return crearRespuestaErrorCrear(`Error al crear el registro de vacaciones: ${resultado.error}`);
       }
 
-      // 4. Si la creación fue exitosa, retorna una respuesta exitosa.
+      // 4. Actualizar la métrica de vacaciones del empleado
+      const resultadoMetrica = await actualizarMetricaVacaciones(
+         res?.transaccion?.data?.empleado,
+         res?.transaccion?.data?.dias_vacaciones,
+         res?.database
+      );
+
+      // 5. Verificar si la actualización de métrica fue exitosa
+      if (!resultadoMetrica.success) {
+         console.error('Error al actualizar métrica de vacaciones:', resultadoMetrica.error);
+         // No retornamos error aquí porque el registro de vacaciones ya se creó exitosamente
+      }
+
+      // 6. Si la creación fue exitosa, retorna una respuesta exitosa.
       return crearRespuestaExitosa(resultado.datos);
    } catch (error) {
       return manejarError(error, 500, "Error al crear el registro de vacaciones: ", error.message);
