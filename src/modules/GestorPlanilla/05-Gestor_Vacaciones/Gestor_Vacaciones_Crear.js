@@ -113,6 +113,9 @@ const crearNuevoRegistroBd = async (datos, usuario_id, empresa_id, database) => 
  */
 const actualizarMetricaVacaciones = async (empleado_id, dias_vacaciones, database) => {
    try {
+      // Convertir dias_vacaciones a número para evitar concatenación de strings
+      const diasVacacionesNum = parseFloat(dias_vacaciones) || 0;
+      
       // 1. Verificar si existe registro en Vacaciones_metrica
       const checkResult = await realizarConsulta(
          QUERIES.QUERIES_CHECK_METRICA,
@@ -120,25 +123,36 @@ const actualizarMetricaVacaciones = async (empleado_id, dias_vacaciones, databas
          database,
       );
 
-      if (checkResult.success && checkResult.data && checkResult.data.length > 0) {
-         // 2. Si existe, actualizar el registro
+      if (checkResult.exito && checkResult.datos.length > 0) {
+         // Obtener los valores actuales
+         const registroActual = checkResult.datos[0];
+         const diasAsignadosActual = parseFloat(registroActual.dias_asignados) || 0;
+         const diasDisfrutadosActual = parseFloat(registroActual.dias_disfrutados) || 0;
+         
+         // Calcular nuevos valores
+         const nuevosDiasAsignados = Math.max(0, diasAsignadosActual - diasVacacionesNum);
+         const nuevosDiasDisfrutados = diasDisfrutadosActual + diasVacacionesNum;
+         
+         // 2. Si existe, actualizar el registro con los valores calculados
          const updateResult = await realizarConsulta(
-            QUERIES.QUERIES_UPDATE_METRICA,
-            [dias_vacaciones, dias_vacaciones, empleado_id],
+            `UPDATE Vacaciones_metrica 
+             SET dias_asignados = ?, 
+                 dias_disfrutados = ?
+             WHERE id_empleado_gestor = ?`,
+            [nuevosDiasAsignados, nuevosDiasDisfrutados, empleado_id],
             database,
          );
          return updateResult;
-      } else {
-         // 3. Si no existe, crear nuevo registro
-         const insertResult = await realizarConsulta(
-            QUERIES.QUERIES_INSERT_METRICA,
-            [empleado_id, dias_vacaciones],
-            database,
-         );
-         return insertResult;
-      }
+             } else {
+          // 3. Si no existe, crear nuevo registro
+          const insertResult = await realizarConsulta(
+             QUERIES.QUERIES_INSERT_METRICA,
+             [empleado_id, diasVacacionesNum],
+             database,
+          );
+          return insertResult;
+       }
    } catch (error) {
-      console.error('Error al actualizar métrica de vacaciones:', error);
       return { success: false, error: error.message };
    }
 };
@@ -185,8 +199,6 @@ const esCreacionExitosa = (resultado) => {
  * ====================================================================================================================================
  */
 const crearTransaccion = async (req, res) => {
-
-   console.log(res?.transaccion?.data);
    try {
       // 1. Validar los datos iniciales de la solicitud (por ejemplo, formato y autenticidad de los datos).
       const errorValidacion = await realizarValidacionesIniciales(res);
@@ -213,7 +225,6 @@ const crearTransaccion = async (req, res) => {
 
       // 5. Verificar si la actualización de métrica fue exitosa
       if (!resultadoMetrica.success) {
-         console.error('Error al actualizar métrica de vacaciones:', resultadoMetrica.error);
          // No retornamos error aquí porque el registro de vacaciones ya se creó exitosamente
       }
 
