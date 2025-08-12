@@ -43,7 +43,8 @@ import TipoContrato_Listar_select from "../modules/05-Selects/TipoContrato.js";
 import Supervisor_Listar_select from "../modules/05-Selects/Supervisores.js";
 import Planilla_Listar_select from "../modules/05-Selects/Planilla_Lista.js";
 import Permisos_Listar_select from "../modules/05-Selects/Permisos_Lista.js";
-
+import Empleado_PorEmpresa_select from "../modules/05-Selects/Empleado_PorEmpresa.js";    
+import Gestor_Liqudacion_Listar from "../modules/GestorPlanilla/01-Gestor-Empleados/Gerstor_Liqudacion.js";
 /**
  * ====================================================================================================================================
  * Importación de módulos relacionados con la Empleados
@@ -453,6 +454,7 @@ function getModulesConfig() {
             ...Supervisor_Listar_select,
             ...Planilla_Listar_select,
             ...Permisos_Listar_select,
+            ...Empleado_PorEmpresa_select,
          }, // Combinamos ambos modelos
          routes: [
             {
@@ -493,6 +495,11 @@ function getModulesConfig() {
             {
                path: "permisos/select", // Ruta para la lista de permisos
                method: "Permisos_Listar_select", // Método que se ejecutará
+               isAuthRequired: true, // Requiere autenticación
+            },
+            {
+               path: "empleado/select", // Ruta para la lista de empleados
+               method: "Empleado_PorEmpresa_select", // Método que se ejecutará
                isAuthRequired: true, // Requiere autenticación
             },
          ],
@@ -662,7 +669,8 @@ function getModulesConfig() {
          model: {
             ...Gestor_Empleados_Listar,
             ...Gestor_Empleado_Crear,
-            ...Gestor_Empleado_Editar,
+            ...Gestor_Empleado_Editar, 
+            ...Gestor_Liqudacion_Listar,
          }, // Combinamos ambos modelos
          routes: [
             {
@@ -678,6 +686,11 @@ function getModulesConfig() {
             {
                path: "gestor/empleados/editar", // Ruta para la lista de empleados
                method: "editarTransaccion", // Método que se ejecutará
+               isAuthRequired: true, // Requiere autenticación
+            }, 
+            {
+               path: "gestor/empleados/liquidaciones", // Ruta para la lista de empleados
+               method: "Gestor_Liqudacion_Listar", // Método que se ejecutará
                isAuthRequired: true, // Requiere autenticación
             },
          ],
