@@ -39,6 +39,14 @@ const QUERIES = {
    UPDATE_NUMERO_SOCIO: `
     UPDATE gestor_empleado_tbl SET numero_socio_empleado_gestor = ? WHERE id_empleado_gestor = ?
    `,
+   
+   INSERT_VACACIONES: `
+    INSERT INTO Vacaciones (
+        id_empleado_gestor,
+        dias_asignados,
+        dias_disfrutados
+    ) VALUES (?, ?, ?)
+   `,
 };
 
 /**
@@ -88,6 +96,19 @@ const registrarNumeroSocio = async (id_empleado, database) => {
    const numero_socio = `GT${id_empleado}${randomPart}`;
    
    return await realizarConsulta(QUERIES.UPDATE_NUMERO_SOCIO, [numero_socio, id_empleado], database);
+};
+
+/**
+ * Inserta un registro de vacaciones para el empleado
+ * @param {number} id_empleado - ID del empleado
+ * @param {number} dias_asignados - Días de vacaciones asignados
+ * @param {Object} database - Conexión a la base de datos
+ * @returns {Promise<Object>} Resultado de la operación
+ */
+const insertarVacaciones = async (id_empleado, dias_asignados, database) => {
+   const dias_disfrutados = 0; // Siempre 0 para empleados nuevos
+   
+   return await realizarConsulta(QUERIES.INSERT_VACACIONES, [id_empleado, dias_asignados, dias_disfrutados], database);
 };
 
 /**
@@ -155,9 +176,13 @@ const crearTransaccion = async (req, res) => {
          return crearRespuestaErrorCrearSinCaracteresEspeciales(`Error al crear el Socio: ${resultado.error}`);
       }
 
-      // Asignar número de socio si la creación fue exitosa
+      // Asignar número de socio y crear registro de vacaciones si la creación fue exitosa
       if (resultado.datos.insertId > 0) {
          await registrarNumeroSocio(resultado.datos.insertId, res?.database);
+         
+         // Insertar registro de vacaciones
+         const dias_asignados = res?.transaccion?.data?.vacaciones_acumuladas || 0;
+         await insertarVacaciones(resultado.datos.insertId, dias_asignados, res?.database);
       }
 
       return crearRespuestaExitosa(resultado.datos);
