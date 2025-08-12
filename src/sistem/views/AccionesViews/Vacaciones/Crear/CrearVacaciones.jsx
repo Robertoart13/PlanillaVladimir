@@ -29,7 +29,9 @@ function findById(data, id, idKey) {
 }
 
 /**
- * Hook para obtener y manejar las planillas.
+ * Hook para obtener y manejar las planillas disponibles.
+ * @param {Function} dispatch - Función dispatch de Redux.
+ * @returns {Object} Objeto con opciones de planillas, estado de carga y función para obtener planillas.
  */
 function usePlanillas(dispatch) {
    const [planillaOptions, setPlanillaOptions] = useState([]);
@@ -40,41 +42,68 @@ function usePlanillas(dispatch) {
       setIsLoading(true);
       setPlanillaOptions([]);
       setPlanillaData([]);
-      const response = await dispatch(fetchData_api(null, "gestor/planillas/listas"));
-      if (response.success && response.data.array?.length > 0) {
-         setPlanillaData(response.data.array);
-         setPlanillaOptions(getOptionList(response.data.array, "planilla_id", "planilla_codigo"));
+      
+      try {
+        const response = await dispatch(fetchData_api(null, "gestor/planillas/listas"));
+        if (response.success && response.data.array?.length > 0) {
+           setPlanillaData(response.data.array);
+           setPlanillaOptions(getOptionList(response.data.array, "planilla_id", "planilla_codigo"));
+        }
+      } catch (error) {
+        console.error("Error al cargar planillas:", error);
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
    }, [dispatch]);
 
    return { planillaOptions, planillaData, isLoading, fetchPlanillas };
 }
 
 /**
- * Hook para obtener y manejar los empleados.
+ * Hook para obtener y manejar los empleados disponibles.
+ * @param {Function} dispatch - Función dispatch de Redux.
+ * @returns {Object} Objeto con opciones de empleados, datos completos, estado de carga y función para obtener empleados.
  */
 function useEmpleados(dispatch) {
    const [empleadoOptions, setEmpleadoOptions] = useState([]);
    const [empleadoData, setEmpleadoData] = useState([]);
    const [isLoading, setIsLoading] = useState(false);
 
-   const fetchEmpleados = useCallback(async () => {
+   const fetchEmpleados = useCallback(async (planillaMoneda) => {
       setIsLoading(true);
       setEmpleadoOptions([]);
       setEmpleadoData([]);
-      const response = await dispatch(fetchData_api(null, "gestor/planillas/empleados/options"));
-      if (response.success && response.data.array?.length > 0) {
-         setEmpleadoData(response.data.array);
-         setEmpleadoOptions(
-            getOptionList(
-               response.data.array,
-               "id_empleado_gestor",
-               "nombre_completo_empleado_gestor",
-            ),
-         );
+      
+      try {
+        const response = await dispatch(fetchData_api(null, "gestor/planillas/empleados/options"));
+        if (response.success && response.data.array?.length > 0) {
+           let empleadosFiltrados = response.data.array;
+           
+           // Filtrar empleados según la moneda de la planilla
+           if (planillaMoneda) {
+              empleadosFiltrados = response.data.array.filter(empleado => {
+                 // Empleados con colones_y_dolares aparecen siempre
+                 if (empleado.moneda_pago_empleado_gestor === "colones_y_dolares") {
+                    return true;
+                 }
+                 // Para otros empleados, mostrar solo los que coinciden con la moneda de la planilla
+                 return empleado.moneda_pago_empleado_gestor === planillaMoneda;
+              });
+           }
+           
+           setEmpleadoData(empleadosFiltrados);
+           setEmpleadoOptions(
+              empleadosFiltrados.map((empleado) => ({
+                value: empleado.id_empleado_gestor,
+                label: `${empleado.nombre_completo_empleado_gestor} ${empleado.moneda_pago_empleado_gestor === "colones" ? "₡" : "$"}`
+              }))
+           );
+        }
+      } catch (error) {
+        console.error("Error al cargar empleados:", error);
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
    }, [dispatch]);
 
    return { empleadoOptions, empleadoData, isLoading, fetchEmpleados };
@@ -84,27 +113,34 @@ export const CrearVacaciones = () => {
    const dispatch = useDispatch();
    const navigate = useNavigate();
 
-   // Estados de empleado
-   const {
-      empleadoOptions,
-      empleadoData,
-      isLoading: isLoadingEmpleados,
-      fetchEmpleados,
-   } = useEmpleados(dispatch);
+   // ============================================================================
+   // HOOKS Y ESTADOS
+   // ============================================================================
+   
+   // Hooks para obtener datos
+   const { planillaOptions, planillaData, isLoading: isLoadingPlanillas, fetchPlanillas } = usePlanillas(dispatch);
+   const { empleadoOptions, empleadoData, isLoading: isLoadingEmpleados, fetchEmpleados } = useEmpleados(dispatch);
 
    // Estados de selección y formulario
    const [formData, setFormData] = useState({
+      planilla: "",
       empleado: "",
       fecha_inicio_vacaciones: "",
       dias_vacaciones: "",
       motivo_vacaciones: "",
       estado: "Activo",
    });
+
+   const [selectedPlanillaData, setSelectedPlanillaData] = useState(null);
    const [selectedEmpleadoData, setSelectedEmpleadoData] = useState(null);
 
    // Estado de error y mensaje
    const [error, setError] = useState(false);
    const [message, setMessage] = useState("");
+
+   // ============================================================================
+   // EFECTOS
+   // ============================================================================
 
    // Limpia el mensaje de error al montar el componente
    useEffect(() => {
@@ -112,10 +148,28 @@ export const CrearVacaciones = () => {
       setError(false);
    }, []);
 
-   // Cargar empleados al montar
+   // Cargar planillas al montar
    useEffect(() => {
-      fetchEmpleados();
-   }, [fetchEmpleados]);
+      fetchPlanillas();
+   }, [fetchPlanillas]);
+
+   // Cuando cambia la planilla, buscar datos y empleados
+   useEffect(() => {
+      if (formData.planilla) {
+        const planillaObj = findById(planillaData, formData.planilla, "planilla_id");
+        setSelectedPlanillaData(planillaObj);
+        
+        // Cargar empleados filtrados según la moneda de la planilla
+        if (planillaObj?.planilla_moneda) {
+          fetchEmpleados(planillaObj.planilla_moneda);
+        }
+        
+        setFormData((prev) => ({ ...prev, empleado: "" })); // Limpiar selección de empleado
+      } else {
+        setSelectedPlanillaData(null);
+        setFormData((prev) => ({ ...prev, empleado: "" }));
+      }
+   }, [formData.planilla, planillaData, fetchEmpleados]);
 
    // Cuando cambia el empleado, buscar datos
    useEffect(() => {
@@ -125,7 +179,6 @@ export const CrearVacaciones = () => {
       } else {
          setSelectedEmpleadoData(null);
       }
-      // eslint-disable-next-line
    }, [formData.empleado, empleadoData]);
 
    /**
@@ -146,7 +199,16 @@ export const CrearVacaciones = () => {
       e.preventDefault();
       if (!selectedEmpleadoData) return;
 
-      // Validaciones
+      // ============================================================================
+      // VALIDACIONES
+      // ============================================================================
+      
+      if (!formData.planilla) {
+         setError(true);
+         setMessage("Debe seleccionar una planilla.");
+         return;
+      }
+
       if (!formData.empleado) {
          setError(true);
          setMessage("Debe seleccionar un socio.");
@@ -165,6 +227,10 @@ export const CrearVacaciones = () => {
          return;
       }
 
+      // ============================================================================
+      // CONFIRMACIÓN
+      // ============================================================================
+      
       const nombre = selectedEmpleadoData.nombre_completo_empleado_gestor;
       const socio = selectedEmpleadoData.numero_socio_empleado_gestor;
       const fechaInicio = formData.fecha_inicio_vacaciones;
@@ -204,43 +270,53 @@ export const CrearVacaciones = () => {
       });
       
       if (result.isConfirmed) {
-         Swal.fire({
-            title: "Creando registro de vacaciones",
-            text: "Por favor espere...",
-            allowOutsideClick: false,
-            didOpen: () => {
-               Swal.showLoading();
-            },
-         });
-         
-         // Siempre establecer el estado como "Aprobado"
-      const datosEnviar = {
-         ...formData,
-         estado: "Aprobado"
-      };
-      
-      const response = await dispatch(fetchData_api(datosEnviar, "gestor/vacaciones/crear"));
-
-         if (response.success) {
-            setError(false);
-
+         try {
+            // Mostrar loading
             Swal.fire({
-               title: "Vacaciones creadas exitosamente",
-               text: "El registro de vacaciones ha sido creado correctamente",
-               icon: "success",
-               confirmButtonText: "Aceptar",
-            }).then(() => {
-               navigate("/acciones/vacaciones/lista");
+               title: "Creando registro de vacaciones",
+               text: "Por favor espere...",
+               allowOutsideClick: false,
+               didOpen: () => {
+                  Swal.showLoading();
+               },
             });
-         } else {
-            const errorMessage = response.message || "Error al crear el registro de vacaciones";
-            setError(true);
-            setMessage(errorMessage);
+            
+            // Siempre establecer el estado como "Aprobado"
+            const datosEnviar = {
+               ...formData,
+               estado: "Aprobado"
+            };
+            
+            const response = await dispatch(fetchData_api(datosEnviar, "gestor/vacaciones/crear"));
+
+            if (response.success) {
+               setError(false);
+
+               Swal.fire({
+                  title: "Vacaciones creadas exitosamente",
+                  text: "El registro de vacaciones ha sido creado correctamente",
+                  icon: "success",
+                  confirmButtonText: "Aceptar",
+               }).then(() => {
+                  navigate("/acciones/vacaciones/lista");
+               });
+            } else {
+               const errorMessage = response.message || "Error al crear el registro de vacaciones";
+               setError(true);
+               setMessage(errorMessage);
+               Swal.fire({
+                  title: "Error al crear las vacaciones",
+                  text: errorMessage,
+                  icon: "error",
+                  confirmButtonText: "Aceptar",
+               });
+            }
+         } catch (error) {
+            console.error('Error al crear registro de vacaciones:', error);
             Swal.fire({
-               title: "Error al crear las vacaciones",
-               text: errorMessage,
-               icon: "error",
-               confirmButtonText: "Aceptar",
+               icon: 'error',
+               title: 'Error',
+               text: 'Hubo un error al crear el registro de vacaciones'
             });
          }
       }
@@ -256,7 +332,32 @@ export const CrearVacaciones = () => {
          </div>
          <div className="card-body">
             <form onSubmit={handleSubmit}>
-
+               
+               {/* Alert for Planilla Status */}
+               {selectedPlanillaData && (
+                  <div
+                     className="alert alert-info mb-3"
+                     role="alert"
+                  >
+                     <div className="d-flex align-items-center">
+                        <i className="fas fa-info-circle me-2"></i>
+                        <div>
+                           <strong>Estado de la Planilla:</strong>{" "}
+                           {selectedPlanillaData.planilla_estado || "No disponible"}
+                           {selectedPlanillaData.planilla_codigo && (
+                              <span className="ms-2">
+                                 <strong>Código:</strong> {selectedPlanillaData.planilla_codigo}
+                              </span>
+                           )}
+                           {selectedPlanillaData.planilla_moneda && (
+                              <span className="ms-2">
+                                 <strong>Moneda:</strong> {selectedPlanillaData.planilla_moneda}
+                              </span>
+                           )}
+                        </div>
+                     </div>
+                  </div>
+               )}
                
                {/* Alert for Empleado Seleccionado */}
                {selectedEmpleadoData && (
@@ -323,6 +424,34 @@ export const CrearVacaciones = () => {
                </div>
                
                <div className="row">
+                  {/* Planilla */}
+                  <div className="col-md-6 mb-3">
+                     <label className="form-label" htmlFor="planilla">
+                        Planilla <span className="text-danger">*</span>
+                     </label>
+                     <select
+                        className="form-select"
+                        id="planilla"
+                        name="planilla"
+                        value={formData.planilla}
+                        onChange={handleChange}
+                        required
+                        disabled={isLoadingPlanillas}
+                     >
+                        <option value="">
+                           {isLoadingPlanillas ? "Cargando planillas..." : "Seleccione planilla"}
+                        </option>
+                        {planillaOptions.map((option) => (
+                           <option
+                              key={option.value}
+                              value={option.value}
+                           >
+                              {option.label}
+                           </option>
+                        ))}
+                     </select>
+                  </div>
+
                   {/* Empleado */}
                   <div className="col-md-6 mb-3">
                      <label
@@ -338,10 +467,12 @@ export const CrearVacaciones = () => {
                         value={formData.empleado}
                         onChange={handleChange}
                         required
-                        disabled={isLoadingEmpleados}
+                        disabled={!formData.planilla || isLoadingEmpleados}
                      >
                         <option value="">
-                           {isLoadingEmpleados
+                           {!formData.planilla
+                              ? "Seleccione primero una planilla"
+                              : isLoadingEmpleados
                               ? "Cargando empleados..."
                               : "Seleccione el Socio"}
                         </option>
@@ -425,6 +556,14 @@ export const CrearVacaciones = () => {
                   >
                      <i className="fas fa-save me-2"></i>
                      Crear Registro de Vacaciones
+                  </button>
+                  <button
+                     type="button"
+                     className="btn btn-secondary"
+                     onClick={() => navigate('/acciones/vacaciones/lista')}
+                  >
+                     <i className="fas fa-times me-2"></i>
+                     Cancelar
                   </button>
                </div>
             </form>
