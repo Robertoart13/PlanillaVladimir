@@ -103,7 +103,7 @@ const ejecutarCronJob = () => {
       }
    };
 
-   cron.schedule('0 00 18 * * *', async () => {
+   cron.schedule('0 13 18 * * *', async () => {
       try {
          const resultado = await obtenerRegistroPorId();
          

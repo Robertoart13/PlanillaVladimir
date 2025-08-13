@@ -44,6 +44,9 @@ const QUERIES = {
          AND p.planilla_moneda = ?;
 
     `,
+    QUERIES_SELECT_VACACIONES: `
+          SELECT * FROM Vacaciones_metrica WHERE id_empleado_gestor = ?
+    `,
 };
 
 /**
@@ -76,10 +79,18 @@ const obtenerTodosDatos = async (id_empleado_gestor, database) => {
          database
       );
 
-      // Agregar los aumentos al empleado
+      // Tercera consulta: obtener datos de vacaciones
+      const vacaciones = await realizarConsulta(
+         QUERIES.QUERIES_SELECT_VACACIONES, 
+         [id_empleado_gestor], 
+         database
+      );
+
+      // Agregar los aumentos y vacaciones al empleado
       const empleadoConAumentos = {
          ...empleado,
-         aumentos_Json: aumentos?.status === 500 ? [] : (aumentos?.datos || [])
+         aumentos_Json: aumentos?.status === 500 ? [] : (aumentos?.datos || []),
+         vacaciones_Json: vacaciones?.status === 500 ? [] : (vacaciones?.datos || [])
       };
 
 
