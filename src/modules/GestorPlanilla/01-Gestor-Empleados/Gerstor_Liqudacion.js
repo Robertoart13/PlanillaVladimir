@@ -45,8 +45,18 @@ const QUERIES = {
 
     `,
     QUERIES_SELECT_VACACIONES: `
-          SELECT * FROM Vacaciones_metrica WHERE id_empleado_gestor = ?
+          SELECT * FROM Vacaciones_metrica WHERE id_empleado_gestor = ? 
     `,
+    QUERIES_SELECT_COMPENSACION_EXTRA: ` 
+          SELECT * FROM gestor_compensacion_extra_tbl WHERE empleado_id_compensacion_extra_gestor = ? AND estado_compensacion_extra_gestor IN ('Aplicada','Aprobado','Procesada') AND aplica_en_compensacion_anual_gestor= 1
+    `,
+    QUERIES_SELECT_COMPENSACION_METRICA: `
+          SELECT * FROM gestor_compensacion_metrica_tbl WHERE empleado_id_compensacion_metrica_gestor = ? AND estado_compensacion_metrica_gestor IN ('Aprobada','Aplicada','Procesada') and aplica_en_compensacion_anual_gestor=1
+    `,
+    QUERIES_SELECT_REBAJO_COMPENSACION: `
+    SELECT * FROM gestor_rebajo_compensacion_tbl WHERE empleado_id_rebajo = ? AND estado_rebajo IN ('Aprobado','Aplicado','Procesada') and aplica_compensacion_anual=1
+`,
+
 };
 
 /**
@@ -78,19 +88,42 @@ const obtenerTodosDatos = async (id_empleado_gestor, database) => {
          [id_empleado_gestor, moneda], 
          database
       );
-
-      // Tercera consulta: obtener datos de vacaciones
+        // Tercera consulta: obtener datos de vacaciones
       const vacaciones = await realizarConsulta(
          QUERIES.QUERIES_SELECT_VACACIONES, 
          [id_empleado_gestor], 
          database
       );
 
-      // Agregar los aumentos y vacaciones al empleado
+      // Cuarta consulta: obtener datos de compensación extra
+      const compensacionExtra = await realizarConsulta(
+         QUERIES.QUERIES_SELECT_COMPENSACION_EXTRA, 
+         [id_empleado_gestor], 
+         database
+      );
+
+      // Quinta consulta: obtener datos de compensación métrica
+      const compensacionMetrica = await realizarConsulta(
+         QUERIES.QUERIES_SELECT_COMPENSACION_METRICA, 
+         [id_empleado_gestor], 
+         database
+      );
+
+      // Sexta consulta: obtener datos de rebajo compensación
+      const rebajoCompensacion = await realizarConsulta(
+         QUERIES.QUERIES_SELECT_REBAJO_COMPENSACION, 
+         [id_empleado_gestor], 
+         database
+      );
+
+      // Agregar los aumentos, vacaciones y compensaciones al empleado
       const empleadoConAumentos = {
          ...empleado,
          aumentos_Json: aumentos?.status === 500 ? [] : (aumentos?.datos || []),
-         vacaciones_Json: vacaciones?.status === 500 ? [] : (vacaciones?.datos || [])
+         vacaciones_Json: vacaciones?.status === 500 ? [] : (vacaciones?.datos || []),
+         compensacion_extra_Json: compensacionExtra?.status === 500 ? [] : (compensacionExtra?.datos || []),
+         compensacion_metrica_Json: compensacionMetrica?.status === 500 ? [] : (compensacionMetrica?.datos || []),
+         rebajo_compensacion_Json: rebajoCompensacion?.status === 500 ? [] : (rebajoCompensacion?.datos || [])
       };
 
 
