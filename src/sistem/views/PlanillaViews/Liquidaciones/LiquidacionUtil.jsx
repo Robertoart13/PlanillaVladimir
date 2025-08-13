@@ -481,7 +481,7 @@ export const renderFormularioLiquidacion = (datosEmpleado) => {
         : (promedioMensual / 30);
     
     // Calcular total de remuneraciones acumuladas (base para aguinaldo)
-    const totalRemuneracionesAcumuladas = 3760000; // Valor fijo según requisito del cliente
+    const totalRemuneracionesAcumuladas = 0; // Valor fijo según requisito del cliente
     
     // Calcular días de preaviso según tiempo de servicio
     const calcularDiasPreaviso = (mesesTrabajados) => {
