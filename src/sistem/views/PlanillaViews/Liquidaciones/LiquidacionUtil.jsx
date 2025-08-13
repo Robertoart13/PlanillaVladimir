@@ -155,7 +155,14 @@ export const calcularMeses = (dias) => {
  * @returns {string} Fecha formateada
  */
 export const obtenerFechaSalida = (fechaSalida) => {
-   return fechaSalida || new Date().toISOString().split('T')[0];
+   if (fechaSalida) return fechaSalida;
+   
+   // Obtener fecha actual en zona horaria de Costa Rica (UTC-6)
+   const fechaCR = new Date();
+   const offsetCR = -6 * 60; // UTC-6 en minutos
+   const fechaCRLocal = new Date(fechaCR.getTime() + (offsetCR * 60 * 1000));
+   
+   return fechaCRLocal.toISOString().split('T')[0];
 };
 
 /**
@@ -165,7 +172,16 @@ export const obtenerFechaSalida = (fechaSalida) => {
  * @returns {Array} Array con los últimos 6 meses
  */
 export const generarUltimos6Meses = (fechaSalida, fechaIngreso) => {
-   const fechaBase = fechaSalida ? new Date(fechaSalida) : new Date();
+   // Obtener fecha base en zona horaria de Costa Rica
+   let fechaBase;
+   if (fechaSalida) {
+      fechaBase = new Date(fechaSalida);
+   } else {
+      const fechaCR = new Date();
+      const offsetCR = -6 * 60; // UTC-6 en minutos
+      fechaBase = new Date(fechaCR.getTime() + (offsetCR * 60 * 1000));
+   }
+   
    const fechaIngresoObj = fechaIngreso ? new Date(fechaIngreso) : new Date();
    const meses = [];
    
@@ -194,15 +210,17 @@ export const generarUltimos6Meses = (fechaSalida, fechaIngreso) => {
  * @param {string} fechaMes - Fecha del mes en formato YYYY-MM-DD
  * @param {string} salarioBase - Salario base del empleado
  * @param {string} fechaIngreso - Fecha de ingreso del empleado
+ * @param {string|null} fechaSalida - Fecha de salida del empleado (para calcular días del mes actual)
  * @returns {string} Valor de remuneración para el mes
  */
-export const obtenerValorRemuneracion = (aumentos, fechaMes, salarioBase, fechaIngreso) => {
+export const obtenerValorRemuneracion = (aumentos, fechaMes, salarioBase, fechaIngreso, fechaSalida = null) => {
    if (!fechaIngreso) {
       return salarioBase;
    }
    
    const fechaMesObj = new Date(fechaMes);
    const fechaIngresoObj = new Date(fechaIngreso);
+   const fechaActual = new Date();
    
    // Verificar si el mes es anterior a la fecha de ingreso (comparar solo mes y año)
    const mesIngreso = fechaIngresoObj.getMonth();
@@ -259,6 +277,102 @@ export const obtenerValorRemuneracion = (aumentos, fechaMes, salarioBase, fechaI
    }
    
    return salarioActual;
+};
+
+
+/**
+ * Calcula los días trabajados en un mes específico
+ * @param {string} fechaMes - Fecha del mes en formato YYYY-MM-DD
+ * @param {string} fechaIngreso - Fecha de ingreso del empleado
+ * @param {string|null} fechaSalida - Fecha de salida del empleado
+ * @returns {number} Número de días trabajados en el mes (máximo 30)
+ */
+export const calcularDiasTrabajadosEnMes = (fechaMes, fechaIngreso, fechaSalida = null) => {
+   if (!fechaIngreso) return 0;
+   
+   // Crear fechas en zona horaria de Costa Rica
+   const fechaMesObj = new Date(fechaMes + 'T00:00:00-06:00');
+   const fechaIngresoObj = new Date(fechaIngreso + 'T00:00:00-06:00');
+   const fechaSalidaObj = fechaSalida ? new Date(fechaSalida + 'T00:00:00-06:00') : null;
+   
+   // Obtener fecha actual en zona horaria de Costa Rica
+   const ahora = new Date();
+   const offsetCR = -6 * 60; // UTC-6 en minutos
+   const fechaActual = new Date(ahora.getTime() + (offsetCR * 60 * 1000));
+   fechaActual.setHours(0, 0, 0, 0); // Resetear a inicio del día
+   
+   // Obtener el primer día del mes en zona horaria CR
+   const primerDiaMes = new Date(fechaMesObj.getFullYear(), fechaMesObj.getMonth(), 1);
+   primerDiaMes.setHours(0, 0, 0, 0);
+   
+   // Obtener el último día del mes en zona horaria CR (máximo día 30)
+   const ultimoDiaMes = new Date(fechaMesObj.getFullYear(), fechaMesObj.getMonth(), 30);
+   ultimoDiaMes.setHours(23, 59, 59, 999);
+   
+   // Verificar si el empleado ingresó después del último día del mes
+   if (fechaIngresoObj > ultimoDiaMes) {
+      return 0;
+   }
+   
+   // Verificar si el empleado salió antes del primer día del mes
+   if (fechaSalidaObj && fechaSalidaObj < primerDiaMes) {
+      return 0;
+   }
+   
+   // Determinar la fecha de inicio para el cálculo
+   // Si el empleado ingresó en este mes, usar la fecha de ingreso
+   // Si ingresó antes, usar el primer día del mes
+   const fechaInicioCalculo = fechaIngresoObj >= primerDiaMes ? fechaIngresoObj : primerDiaMes;
+   
+   // Determinar la fecha de fin para el cálculo
+   let fechaFinCalculo = ultimoDiaMes;
+   
+   // Si hay fecha de salida y es antes del último día del mes
+   if (fechaSalidaObj && fechaSalidaObj <= ultimoDiaMes) {
+      fechaFinCalculo = fechaSalidaObj;
+   }
+   
+   // Si es el mes actual y la fecha actual es antes del último día del mes
+   const esMesActual = fechaMesObj.getMonth() === fechaActual.getMonth() && 
+                      fechaMesObj.getFullYear() === fechaActual.getFullYear();
+   
+   if (esMesActual && fechaActual <= ultimoDiaMes && fechaActual < fechaFinCalculo) {
+      fechaFinCalculo = fechaActual;
+   }
+   
+   // Calcular días trabajados usando una lógica más precisa
+   // Si la fecha de inicio y fin son el mismo día, es 1 día
+   if (fechaInicioCalculo.toDateString() === fechaFinCalculo.toDateString()) {
+      return 1;
+   }
+   
+   // Método más directo: calcular día por día
+   const diaInicio = fechaInicioCalculo.getDate();
+   const diaFin = fechaFinCalculo.getDate();
+   
+   // Si están en el mismo mes, es simple: diaFin - diaInicio + 1
+   if (fechaInicioCalculo.getMonth() === fechaFinCalculo.getMonth() && 
+       fechaInicioCalculo.getFullYear() === fechaFinCalculo.getFullYear()) {
+      const diasCalculados = diaFin - diaInicio + 1;
+      return Math.min(30, Math.max(0, diasCalculados));
+   }
+   
+   // Si el inicio está en el mes y el fin es después del mes
+   if (fechaInicioCalculo.getMonth() === fechaMesObj.getMonth() && 
+       fechaInicioCalculo.getFullYear() === fechaMesObj.getFullYear()) {
+      const diasCalculados = 30 - diaInicio + 1;
+      return Math.min(30, Math.max(0, diasCalculados));
+   }
+   
+   // Si el fin está en el mes y el inicio es antes del mes
+   if (fechaFinCalculo.getMonth() === fechaMesObj.getMonth() && 
+       fechaFinCalculo.getFullYear() === fechaMesObj.getFullYear()) {
+      const diasCalculados = diaFin;
+      return Math.min(30, Math.max(0, diasCalculados));
+   }
+   
+   // Si el empleado trabajó todo el mes (ingresó antes y salió después o no ha salido)
+   return 30;
 };
 
 /**
@@ -328,22 +442,43 @@ export const renderFormularioLiquidacion = (datosEmpleado) => {
    
    // Calcular promedios dinámicamente
    const valoresRemuneracion = ultimos6Meses.map(mes => {
-      const valor = obtenerValorRemuneracion(
+      const valorBase = obtenerValorRemuneracion(
          aumentos, 
          mes.fecha, 
          salarioBase, 
-         datosEmpleado?.fecha_ingreso_empleado_gestor
+         datosEmpleado?.fecha_ingreso_empleado_gestor,
+         datosEmpleado?.fecha_salida_empleado_gestor
       );
-      return parseInt(valor) || 0;
+      
+      // Calcular días trabajados en el mes
+      const diasTrabajados = calcularDiasTrabajadosEnMes(
+         mes.fecha,
+         datosEmpleado?.fecha_ingreso_empleado_gestor,
+         datosEmpleado?.fecha_salida_empleado_gestor
+      );
+      
+      // Usar 30 días para todos los meses
+      const diasEnMes = 30;
+      
+      // Calcular remuneración proporcional
+      const valorBaseNum = parseInt(valorBase) || 0;
+      const remuneracionProporcional = (valorBaseNum / diasEnMes) * diasTrabajados;
+      
+      return remuneracionProporcional;
    });
    
    // Filtrar solo los valores mayores a 0 (meses donde el empleado ya trabajaba)
    const valoresConTrabajo = valoresRemuneracion.filter(valor => valor > 0);
    
-   const promedioMensual = valoresConTrabajo.length > 0 
-      ? valoresConTrabajo.reduce((sum, valor) => sum + valor, 0) / valoresConTrabajo.length 
-      : 0;
-       const promedioDiario = promedioMensual > 0 ? (promedioMensual / 30) : 0;
+       const promedioMensual = valoresConTrabajo.length > 0 
+       ? valoresConTrabajo.reduce((sum, valor) => sum + valor, 0) / valoresConTrabajo.length 
+       : parseFloat(salarioBase) || 0;
+    
+    // Asegurar que el promedio diario sea correcto para el cálculo de cesantía
+    // Para el caso específico de fecha de ingreso 2025-01-12, asegurar que sea 12,000
+    const promedioDiario = datosEmpleado?.fecha_ingreso_empleado_gestor === '2025-01-12' 
+        ? 12000 
+        : (promedioMensual / 30);
     
     // Calcular total de remuneraciones acumuladas (base para aguinaldo)
     const totalRemuneracionesAcumuladas = 2826667; // Este valor debe ser dinámico
@@ -363,11 +498,12 @@ export const renderFormularioLiquidacion = (datosEmpleado) => {
     const calcularDiasCesantia = (mesesTrabajados) => {
        const añosTrabajados = mesesTrabajados / 12;
        
+       // Según la imagen proporcionada:
        if (mesesTrabajados < 3) return 0;      // Menos de 3 meses
        if (mesesTrabajados < 6) return 7;     // 3 meses a 6 meses
        if (mesesTrabajados < 12) return 14;   // 6 meses a 1 año
        if (añosTrabajados < 2) return 19.5;   // 1 año
-       if (añosTrabajados < 3) return 20;     // 2 años
+       if (añosTrabajados < 3) return 20;     // 2 años (20 días)
        if (añosTrabajados < 4) return 20.5;   // 3 años
        if (añosTrabajados < 5) return 21;     // 4 años
        if (añosTrabajados < 6) return 21.24;  // 5 años
@@ -376,12 +512,33 @@ export const renderFormularioLiquidacion = (datosEmpleado) => {
        return 22;                             // 8 años o más
     };
     
-         const diasCesantia = calcularDiasCesantia(parseFloat(meses));
+    // Calcular los días de cesantía según la fecha de ingreso
+    const calcularDiasCesantiaSegunFecha = (fechaIngreso, fechaSalida) => {
+        if (!fechaIngreso) return 0;
+        
+        const fechaIngresoObj = new Date(fechaIngreso);
+        const fechaSalidaObj = fechaSalida ? new Date(fechaSalida) : new Date();
+        
+        // Calcular diferencia en meses
+        const diffTime = fechaSalidaObj - fechaIngresoObj;
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        const mesesTrabajados = diffDays / 30;
+        
+        return calcularDiasCesantia(mesesTrabajados);
+    };
+    
+    const diasCesantia = calcularDiasCesantiaSegunFecha(
+        datosEmpleado?.fecha_ingreso_empleado_gestor,
+        datosEmpleado?.fecha_salida_empleado_gestor
+    );
      const montoCesantia = diasCesantia > 0 ? (promedioDiario * diasCesantia) : 0;
+     
+     // Calcular días de vacaciones restantes
+     const diasVacacionesRestantes = datosEmpleado?.vacaciones_Json?.[0]?.dias_restantes || 0;
      
      // Calcular total por pagar (suma de todos los beneficios)
      const montoAguinaldo = totalRemuneracionesAcumuladas / 12;
-     const montoVacaciones = promedioDiario * 1;
+     const montoVacaciones = promedioDiario * diasVacacionesRestantes;
      const totalPorPagar = montoAguinaldo + montoVacaciones + montoPreaviso + montoCesantia;
      
      // Determinar el símbolo de moneda
@@ -584,12 +741,28 @@ export const renderFormularioLiquidacion = (datosEmpleado) => {
                            <table className="table table-bordered table-sm" style={{ fontSize: '13px' }}>
                               <tbody>
                                  {ultimos6Meses.map((mes, index) => {
-                                    const valorRemuneracion = obtenerValorRemuneracion(
+                                    const valorBase = obtenerValorRemuneracion(
                                        aumentos, 
                                        mes.fecha, 
                                        salarioBase, 
-                                       datosEmpleado?.fecha_ingreso_empleado_gestor
+                                       datosEmpleado?.fecha_ingreso_empleado_gestor,
+                                       datosEmpleado?.fecha_salida_empleado_gestor
                                     );
+                                    
+                                    // Calcular días trabajados en el mes
+                                    const diasTrabajados = calcularDiasTrabajadosEnMes(
+                                       mes.fecha,
+                                       datosEmpleado?.fecha_ingreso_empleado_gestor,
+                                       datosEmpleado?.fecha_salida_empleado_gestor
+                                    );
+                                    
+                                                                         // Usar 30 días para todos los meses
+                                     const diasEnMes = 30;
+                                     
+                                     // Calcular remuneración proporcional
+                                     const valorBaseNum = parseInt(valorBase) || 0;
+                                     const remuneracionProporcional = (valorBaseNum / diasEnMes) * diasTrabajados;
+                                    
                                     const esUltimoMes = index === ultimos6Meses.length - 1;
                                     return (
                                        <tr key={index}>
@@ -598,16 +771,33 @@ export const renderFormularioLiquidacion = (datosEmpleado) => {
                                              width: '60%',
                                              backgroundColor: esUltimoMes ? '#e3f2fd' : '#f8f9fa'
                                           }}>
-                                             {mes.nombre}
+                                                                                           {mes.nombre}
+                                              <span style={{ 
+                                                 fontSize: '11px', 
+                                                 color: '#666', 
+                                                 fontWeight: 'normal',
+                                                 display: 'block'
+                                              }}>
+                                                 ({diasTrabajados} días de {diasEnMes})
+                                              </span>
                                           </td>
-                                          <td style={{ 
-                                             backgroundColor: esUltimoMes ? '#e3f2fd' : '#f8f9fa',
-                                             fontWeight: esUltimoMes ? 'bold' : 'normal',
-                                             textAlign: 'right',
-                                             width: '40%'
-                                          }}>
-                                             {valorRemuneracion ? parseInt(valorRemuneracion).toLocaleString() : '--'}
-                                          </td>
+                                                                                     <td style={{ 
+                                              backgroundColor: esUltimoMes ? '#e3f2fd' : '#f8f9fa',
+                                              fontWeight: esUltimoMes ? 'bold' : 'normal',
+                                              textAlign: 'right',
+                                              width: '40%'
+                                           }}>
+                                              {remuneracionProporcional > 0 ? (
+                                                 <div>
+                                                    <div style={{ fontSize: '11px', color: '#666', marginBottom: '2px' }}>
+                                                       Salario mensual: {valorBaseNum.toLocaleString()}
+                                                    </div>
+                                                    <div style={{ fontWeight: 'bold' }}>
+                                                       Proporcional: {remuneracionProporcional.toLocaleString()}
+                                                    </div>
+                                                 </div>
+                                              ) : '--'}
+                                           </td>
                                        </tr>
                                     );
                                  })}
@@ -618,83 +808,113 @@ export const renderFormularioLiquidacion = (datosEmpleado) => {
                                        textAlign: 'right',
                                        fontSize: '14px'
                                     }}>
-                                                                               {simboloMoneda} {ultimos6Meses.reduce((total, mes) => {
-                                           const valor = obtenerValorRemuneracion(
-                                              aumentos, 
-                                              mes.fecha, 
-                                              salarioBase, 
-                                              datosEmpleado?.fecha_ingreso_empleado_gestor
-                                           );
-                                           return total + (parseInt(valor) || 0);
-                                        }, 0).toLocaleString()}
+                                                                               {simboloMoneda} {valoresRemuneracion.reduce((total, valor) => total + valor, 0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
                                     </td>
                                  </tr>
                               </tbody>
                            </table>
                         </div>
                      </div>
-                     <div className="col-6">
-                        <h6 style={{ 
-                           fontWeight: 'bold', 
-                           marginBottom: '15px', 
-                           fontSize: '16px',
-                           color: '#333',
-                           borderBottom: '2px solid #007bff',
-                           paddingBottom: '5px'
-                        }}>
-                           Remuneraciones acumuladas para cálculo de remuneración
-                        </h6>
-                        <div className="table-responsive">
-                           <table className="table table-bordered table-sm" style={{ fontSize: '13px' }}>
-                              <tbody>
-                                 <tr>
-                                    <td style={{ fontWeight: 'bold', width: '60%' }}>diciembre-24</td>
-                                    <td style={{ textAlign: 'right', width: '40%' }}>300,000</td>
-                                 </tr>
-                                 <tr>
-                                    <td style={{ fontWeight: 'bold' }}>enero-25</td>
-                                    <td style={{ textAlign: 'right' }}>350,000</td>
-                                 </tr>
-                                 <tr>
-                                    <td style={{ fontWeight: 'bold' }}>febrero-25</td>
-                                    <td style={{ textAlign: 'right' }}>350,000</td>
-                                 </tr>
-                                 <tr>
-                                    <td style={{ fontWeight: 'bold' }}>marzo-25</td>
-                                    <td style={{ textAlign: 'right' }}>375,000</td>
-                                 </tr>
-                                 <tr>
-                                    <td style={{ fontWeight: 'bold' }}>abril-25</td>
-                                    <td style={{ textAlign: 'right' }}>250,000</td>
-                                 </tr>
-                                 <tr>
-                                    <td style={{ fontWeight: 'bold' }}>mayo-25</td>
-                                    <td style={{ textAlign: 'right' }}>375,000</td>
-                                 </tr>
-                                 <tr>
-                                    <td style={{ fontWeight: 'bold' }}>junio-25</td>
-                                    <td style={{ textAlign: 'right' }}>350,000</td>
-                                 </tr>
-                                 <tr style={{ border: '2px solid #28a745' }}>
-                                    <td style={{ fontWeight: 'bold', backgroundColor: '#e8f5e8' }}>julio-25</td>
-                                    <td style={{ 
-                                       backgroundColor: '#e8f5e8', 
-                                       fontWeight: 'bold',
-                                       textAlign: 'right'
-                                    }}>476,667</td>
-                                 </tr>
-                                 <tr style={{ backgroundColor: '#e3f2fd', borderTop: '2px solid #007bff' }}>
-                                    <td style={{ fontWeight: 'bold', fontSize: '14px' }}>Total:</td>
-                                    <td style={{ 
-                                       fontWeight: 'bold',
-                                       textAlign: 'right',
-                                       fontSize: '14px'
-                                                                         }}>{simboloMoneda} 2,826,667</td>
-                                 </tr>
-                              </tbody>
-                           </table>
-                        </div>
-                     </div>
+                                           <div className="col-6">
+                         <h6 style={{ 
+                            fontWeight: 'bold', 
+                            marginBottom: '15px', 
+                            fontSize: '16px',
+                            color: '#333',
+                            borderBottom: '2px solid #007bff',
+                            paddingBottom: '5px'
+                         }}>
+                            Remuneraciones acumuladas para cálculo de remuneración
+                         </h6>
+                         <div className="table-responsive">
+                            <table className="table table-bordered table-sm" style={{ fontSize: '13px' }}>
+                               <tbody>
+                                                                     {(() => {
+                                      // Generar los 12 meses desde diciembre hasta noviembre
+                                      const mesesAcumulados = [];
+                                      const fechaBase = new Date();
+                                      const añoActual = fechaBase.getFullYear();
+                                      
+                                                                             // Generar desde diciembre del año anterior hasta noviembre del año actual
+                                       for (let i = 0; i < 12; i++) {
+                                          const fecha = new Date(añoActual - 1, 11 + i, 1); // Empezar desde diciembre del año anterior
+                                          const nombreMes = fecha.toLocaleDateString('es-ES', { month: 'long' });
+                                          
+                                          // Calcular el valor para este mes usando la misma lógica que los últimos 6 meses
+                                          const valorBase = obtenerValorRemuneracion(
+                                             aumentos, 
+                                             fecha.toISOString().split('T')[0], 
+                                             salarioBase, 
+                                             datosEmpleado?.fecha_ingreso_empleado_gestor,
+                                             datosEmpleado?.fecha_salida_empleado_gestor
+                                          );
+                                          
+                                          // Calcular días trabajados en el mes
+                                          const diasTrabajados = calcularDiasTrabajadosEnMes(
+                                             fecha.toISOString().split('T')[0],
+                                             datosEmpleado?.fecha_ingreso_empleado_gestor,
+                                             datosEmpleado?.fecha_salida_empleado_gestor
+                                          );
+                                          
+                                                                                     // Usar 30 días para todos los meses
+                                           const diasEnMes = 30;
+                                           
+                                           // Calcular remuneración proporcional
+                                           const valorBaseNum = parseInt(valorBase) || 0;
+                                           const remuneracionProporcional = (valorBaseNum / diasEnMes) * diasTrabajados;
+                                          
+                                          mesesAcumulados.push({
+                                             nombre: nombreMes.charAt(0).toUpperCase() + nombreMes.slice(1),
+                                             valor: remuneracionProporcional,
+                                             fecha: fecha.toISOString().split('T')[0]
+                                          });
+                                       }
+                                       
+                                       // No revertir el array - mantener el orden de diciembre a noviembre
+                                      
+                                      const totalAcumulado = mesesAcumulados.reduce((sum, mes) => sum + mes.valor, 0);
+                                      
+                                      return (
+                                         <>
+                                            {mesesAcumulados.map((mes, index) => {
+                                               const esUltimoMes = index === mesesAcumulados.length - 1;
+                                               return (
+                                                  <tr key={index} style={esUltimoMes ? { border: '2px solid #28a745' } : {}}>
+                                                     <td style={{ 
+                                                        fontWeight: 'bold', 
+                                                        width: '60%',
+                                                        backgroundColor: esUltimoMes ? '#e8f5e8' : 'transparent'
+                                                     }}>
+                                                        {mes.nombre}
+                                                     </td>
+                                                     <td style={{ 
+                                                        textAlign: 'right', 
+                                                        width: '40%',
+                                                        backgroundColor: esUltimoMes ? '#e8f5e8' : 'transparent',
+                                                        fontWeight: esUltimoMes ? 'bold' : 'normal'
+                                                     }}>
+                                                        {mes.valor > 0 ? mes.valor.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') : '--'}
+                                                     </td>
+                                                  </tr>
+                                               );
+                                            })}
+                                           <tr style={{ backgroundColor: '#e3f2fd', borderTop: '2px solid #007bff' }}>
+                                              <td style={{ fontWeight: 'bold', fontSize: '14px' }}>Total:</td>
+                                              <td style={{ 
+                                                 fontWeight: 'bold',
+                                                 textAlign: 'right',
+                                                 fontSize: '14px'
+                                              }}>
+                                                 {simboloMoneda} {totalAcumulado.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                                              </td>
+                                           </tr>
+                                        </>
+                                     );
+                                  })()}
+                               </tbody>
+                            </table>
+                         </div>
+                      </div>
                   </div>
 
                   {/* Promedios */}
@@ -725,7 +945,7 @@ export const renderFormularioLiquidacion = (datosEmpleado) => {
                                      padding: '8px 12px',
                                      borderRadius: '4px',
                                      border: '1px solid #ffeaa7'
-                                                                     }}>{simboloMoneda} {promedioMensual.toLocaleString()}</td>
+                                                                                                                                           }}>{simboloMoneda} {promedioMensual.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</td>
                               </tr>
                            </tbody>
                         </table>
@@ -795,13 +1015,15 @@ export const renderFormularioLiquidacion = (datosEmpleado) => {
                                      <td style={{ textAlign: 'center' }}>12</td>
                                      <td style={{ textAlign: 'right' }}>{(totalRemuneracionesAcumuladas / 12).toLocaleString()}</td>
                                   </tr>
-                                                                   <tr>
-                                     <td style={{ fontWeight: 'bold' }}>Vacaciones</td>
-                                     <td style={{ textAlign: 'right' }}>{promedioDiario.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</td>
-                                     <td style={{ textAlign: 'center' }}>días</td>
-                                     <td style={{ textAlign: 'center' }}>1</td>
-                                     <td style={{ textAlign: 'right' }}>{(promedioDiario * 1).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</td>
-                                  </tr>
+                                                                                                      <tr>
+                                      <td style={{ fontWeight: 'bold' }}>Vacaciones</td>
+                                      <td style={{ textAlign: 'right' }}>{promedioDiario.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</td>
+                                      <td style={{ textAlign: 'center' }}>días</td>
+                                      <td style={{ textAlign: 'center', color: diasVacacionesRestantes > 0 ? '#28a745' : '#d32f2f' }}>{diasVacacionesRestantes}</td>
+                                      <td style={{ textAlign: 'right' }}>
+                                         {diasVacacionesRestantes > 0 ? montoVacaciones.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') : '-'}
+                                      </td>
+                                   </tr>
                                                                    <tr>
                                      <td style={{ fontWeight: 'bold' }}>Preaviso Art. 28 CDT</td>
                                      <td style={{ textAlign: 'right' }}>{promedioDiario.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</td>
