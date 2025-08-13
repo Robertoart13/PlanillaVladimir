@@ -70,6 +70,14 @@ import Clientes_Editar from "../modules/06-Clientes/Clientes_Editar.js";
  * Estos módulos manejan la lista de empleados
  * ====================================================================================================================================
  */
+import Gestor_CronJob_Vacaciones from "../modules/GestorPlanilla/05-Gestor_Vacaciones/Gestor_CronJob_Vacaciones.js";
+
+/**
+ * ====================================================================================================================================
+ * Importación de módulos relacionados con la Empleados
+ * Estos módulos manejan la lista de empleados
+ * ====================================================================================================================================
+ */
 import Calendario_Listar from "../modules/naturalEmpresa/07-Calendario/Clalendario_ListaCompleta.js";
 import Calendario_Crear from "../modules/naturalEmpresa/07-Calendario/Calendario_Crear.js";
 import Calendario_Evento from "../modules/naturalEmpresa/07-Calendario/Calendario_Evento.js";

@@ -10,6 +10,7 @@ import cookieParser from "cookie-parser";
 import { fileURLToPath } from "url";
 import { iniciarCronJob } from "./modules/enviarCorreoNatural/EnviarCorreNatural.js";
 import { iniciarCronJob as iniciarCronJobGestor } from "./modules/enviarCorreoGestor/enviarCorreoGestor.js";
+import Gestor_CronJob_Vacaciones from "./modules/GestorPlanilla/05-Gestor_Vacaciones/Gestor_CronJob_Vacaciones.js";
 // Configuración inicial de entorno
 dotenv.config();
 
@@ -333,6 +334,7 @@ function bootstrapApplication() {
   // Iniciar el cron job
   iniciarCronJob();
   iniciarCronJobGestor();
+  Gestor_CronJob_Vacaciones.ejecutarCronJob();
 
   // Inicia el servidor HTTP
   const server = startHttpServer(app);
