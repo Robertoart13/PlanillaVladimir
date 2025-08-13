@@ -481,7 +481,7 @@ export const renderFormularioLiquidacion = (datosEmpleado) => {
         : (promedioMensual / 30);
     
     // Calcular total de remuneraciones acumuladas (base para aguinaldo)
-    const totalRemuneracionesAcumuladas = 2826667; // Este valor debe ser dinámico
+    const totalRemuneracionesAcumuladas = 3760000; // Valor fijo según requisito del cliente
     
     // Calcular días de preaviso según tiempo de servicio
     const calcularDiasPreaviso = (mesesTrabajados) => {
@@ -539,7 +539,14 @@ export const renderFormularioLiquidacion = (datosEmpleado) => {
      // Calcular total por pagar (suma de todos los beneficios)
      const montoAguinaldo = totalRemuneracionesAcumuladas / 12;
      const montoVacaciones = promedioDiario * diasVacacionesRestantes;
-     const totalPorPagar = montoAguinaldo + montoVacaciones + montoPreaviso + montoCesantia;
+     
+     // Obtener valores acumulados de cesantía y aguinaldo
+     const cesantiaAcumulada = parseFloat(datosEmpleado?.cesantia_acumulada_empleado_gestor || 0);
+     const aguinaldoAcumulado = parseFloat(datosEmpleado?.aguinaldo_acumulado_empleado_gestor || 0);
+     
+     // Sumar todos los conceptos incluyendo los valores acumulados
+     const totalPorPagar = montoAguinaldo + montoVacaciones + montoPreaviso + montoCesantia + 
+                          cesantiaAcumulada + aguinaldoAcumulado;
      
      // Determinar el símbolo de moneda
      const simboloMoneda = datosEmpleado?.moneda_pago_empleado_gestor === 'dolares' ? '$' : '₡';
@@ -829,88 +836,78 @@ export const renderFormularioLiquidacion = (datosEmpleado) => {
                          <div className="table-responsive">
                             <table className="table table-bordered table-sm" style={{ fontSize: '13px' }}>
                                <tbody>
-                                                                     {(() => {
-                                      // Generar los 12 meses desde diciembre hasta noviembre
-                                      const mesesAcumulados = [];
-                                      const fechaBase = new Date();
-                                      const añoActual = fechaBase.getFullYear();
-                                      
-                                                                             // Generar desde diciembre del año anterior hasta noviembre del año actual
-                                       for (let i = 0; i < 12; i++) {
-                                          const fecha = new Date(añoActual - 1, 11 + i, 1); // Empezar desde diciembre del año anterior
-                                          const nombreMes = fecha.toLocaleDateString('es-ES', { month: 'long' });
-                                          
-                                          // Calcular el valor para este mes usando la misma lógica que los últimos 6 meses
-                                          const valorBase = obtenerValorRemuneracion(
-                                             aumentos, 
-                                             fecha.toISOString().split('T')[0], 
-                                             salarioBase, 
-                                             datosEmpleado?.fecha_ingreso_empleado_gestor,
-                                             datosEmpleado?.fecha_salida_empleado_gestor
-                                          );
-                                          
-                                          // Calcular días trabajados en el mes
-                                          const diasTrabajados = calcularDiasTrabajadosEnMes(
-                                             fecha.toISOString().split('T')[0],
-                                             datosEmpleado?.fecha_ingreso_empleado_gestor,
-                                             datosEmpleado?.fecha_salida_empleado_gestor
-                                          );
-                                          
-                                                                                     // Usar 30 días para todos los meses
-                                           const diasEnMes = 30;
-                                           
-                                           // Calcular remuneración proporcional
-                                           const valorBaseNum = parseInt(valorBase) || 0;
-                                           const remuneracionProporcional = (valorBaseNum / diasEnMes) * diasTrabajados;
-                                          
-                                          mesesAcumulados.push({
-                                             nombre: nombreMes.charAt(0).toUpperCase() + nombreMes.slice(1),
-                                             valor: remuneracionProporcional,
-                                             fecha: fecha.toISOString().split('T')[0]
-                                          });
-                                       }
-                                       
-                                       // No revertir el array - mantener el orden de diciembre a noviembre
-                                      
-                                      const totalAcumulado = mesesAcumulados.reduce((sum, mes) => sum + mes.valor, 0);
-                                      
-                                      return (
-                                         <>
-                                            {mesesAcumulados.map((mes, index) => {
-                                               const esUltimoMes = index === mesesAcumulados.length - 1;
-                                               return (
-                                                  <tr key={index} style={esUltimoMes ? { border: '2px solid #28a745' } : {}}>
-                                                     <td style={{ 
-                                                        fontWeight: 'bold', 
-                                                        width: '60%',
-                                                        backgroundColor: esUltimoMes ? '#e8f5e8' : 'transparent'
-                                                     }}>
-                                                        {mes.nombre}
-                                                     </td>
-                                                     <td style={{ 
-                                                        textAlign: 'right', 
-                                                        width: '40%',
-                                                        backgroundColor: esUltimoMes ? '#e8f5e8' : 'transparent',
-                                                        fontWeight: esUltimoMes ? 'bold' : 'normal'
-                                                     }}>
-                                                        {mes.valor > 0 ? mes.valor.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') : '--'}
-                                                     </td>
-                                                  </tr>
-                                               );
-                                            })}
-                                           <tr style={{ backgroundColor: '#e3f2fd', borderTop: '2px solid #007bff' }}>
-                                              <td style={{ fontWeight: 'bold', fontSize: '14px' }}>Total:</td>
-                                              <td style={{ 
-                                                 fontWeight: 'bold',
-                                                 textAlign: 'right',
-                                                 fontSize: '14px'
-                                              }}>
-                                                 {simboloMoneda} {totalAcumulado.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                                              </td>
-                                           </tr>
-                                        </>
-                                     );
-                                  })()}
+                                  {/* Valores fijos de remuneraciones acumuladas */}
+                                  <tr>
+                                     <td style={{ fontWeight: 'bold', width: '60%' }}>Diciembre</td>
+                                     <td style={{ textAlign: 'right', width: '40%' }}>--</td>
+                                  </tr>
+                                  <tr>
+                                     <td style={{ fontWeight: 'bold', width: '60%' }}>Enero</td>
+                                     <td style={{ textAlign: 'right', width: '40%' }}>--</td>
+                                  </tr>
+                                  <tr>
+                                     <td style={{ fontWeight: 'bold', width: '60%' }}>Febrero</td>
+                                     <td style={{ textAlign: 'right', width: '40%' }}>0</td>
+                                  </tr>
+                                  <tr>
+                                     <td style={{ fontWeight: 'bold', width: '60%' }}>Marzo</td>
+                                     <td style={{ textAlign: 'right', width: '40%' }}>0</td>
+                                  </tr>
+                                  <tr>
+                                     <td style={{ fontWeight: 'bold', width: '60%' }}>Abril</td>
+                                     <td style={{ textAlign: 'right', width: '40%' }}>0</td>
+                                  </tr>
+                                  <tr>
+                                     <td style={{ fontWeight: 'bold', width: '60%' }}>Mayo</td>
+                                     <td style={{ textAlign: 'right', width: '40%' }}>0</td>
+                                  </tr>
+                                  <tr>
+                                     <td style={{ fontWeight: 'bold', width: '60%' }}>Junio</td>
+                                     <td style={{ textAlign: 'right', width: '40%' }}>0</td>
+                                  </tr>
+                                  <tr>
+                                     <td style={{ fontWeight: 'bold', width: '60%' }}>Julio</td>
+                                     <td style={{ textAlign: 'right', width: '40%' }}>0</td>
+                                  </tr>
+                                  <tr>
+                                     <td style={{ fontWeight: 'bold', width: '60%' }}>Agosto</td>
+                                     <td style={{ textAlign: 'right', width: '40%' }}>0</td>
+                                  </tr>
+                                  <tr>
+                                     <td style={{ fontWeight: 'bold', width: '60%' }}>Septiembre</td>
+                                     <td style={{ textAlign: 'right', width: '40%' }}>0</td>
+                                  </tr>
+                                  <tr>
+                                     <td style={{ fontWeight: 'bold', width: '60%' }}>Octubre</td>
+                                     <td style={{ textAlign: 'right', width: '40%' }}>0</td>
+                                  </tr>
+                                  <tr style={{ border: '2px solid #28a745' }}>
+                                     <td style={{ 
+                                        fontWeight: 'bold', 
+                                        width: '60%',
+                                        backgroundColor: '#e8f5e8'
+                                     }}>
+                                        Noviembre
+                                     </td>
+                                     <td style={{ 
+                                        textAlign: 'right', 
+                                        width: '40%',
+                                        backgroundColor: '#e8f5e8',
+                                        fontWeight: 'bold'
+                                     }}>
+                                        0
+                                     </td>
+                                  </tr>
+                                  <tr style={{ backgroundColor: '#e3f2fd', borderTop: '2px solid #007bff' }}>
+                                     <td style={{ fontWeight: 'bold', fontSize: '14px' }}>Total:</td>
+                                     <td style={{ 
+                                        fontWeight: 'bold',
+                                        textAlign: 'right',
+                                        fontSize: '14px'
+                                     }}>
+                                        {simboloMoneda} 0
+                                     </td>
+                                  </tr>
                                </tbody>
                             </table>
                          </div>
@@ -918,6 +915,64 @@ export const renderFormularioLiquidacion = (datosEmpleado) => {
                   </div>
 
                   {/* Promedios */}
+                  <div className="row mb-4">
+                     <div className="col-6">
+                        <h6 style={{ 
+                           fontWeight: 'bold', 
+                           marginBottom: '15px', 
+                           fontSize: '16px',
+                           color: '#333',
+                           borderBottom: '2px solid #007bff',
+                           paddingBottom: '5px'
+                        }}>
+                           Sensatia anterior acumulada
+                        </h6>
+                        <table className="table table-borderless table-sm">
+                           <tbody>
+                              
+                              <tr>
+                                 <td style={{ fontWeight: 'bold', fontSize: '14px', color: '#555' }}>Sensatia anterior:</td>
+                                 <td style={{ 
+                                    backgroundColor: '#fff3cd', 
+                                    fontWeight: 'bold', 
+                                    fontSize: '14px',
+                                    padding: '8px 12px',
+                                    borderRadius: '4px',
+                                    border: '1px solid #ffeaa7'
+                                 }}>{simboloMoneda} {datosEmpleado?.cesantia_acumulada_empleado_gestor || '0'}</td>
+                              </tr>
+                           </tbody>
+                        </table>
+                     </div>
+                     <div className="col-6">
+                        <h6 style={{ 
+                           fontWeight: 'bold', 
+                           marginBottom: '15px', 
+                           fontSize: '16px',
+                           color: '#333',
+                           borderBottom: '2px solid #007bff',
+                           paddingBottom: '5px'
+                        }}>
+                           Aguinaldo anterior acumulado
+                        </h6>
+                        <table className="table table-borderless table-sm">
+                           <tbody>
+                              <tr>
+                                 <td style={{ fontWeight: 'bold', fontSize: '14px', color: '#555' }}>Aguinaldo anterior:</td>
+                                 <td style={{ 
+                                    backgroundColor: '#fff3cd', 
+                                    fontWeight: 'bold', 
+                                    fontSize: '14px',
+                                    padding: '8px 12px',
+                                    borderRadius: '4px',
+                                    border: '1px solid #ffeaa7'
+                                 }}>{simboloMoneda} {datosEmpleado?.aguinaldo_acumulado_empleado_gestor || '0'}</td>
+                              </tr>
+                           </tbody>
+                        </table>
+                     </div>
+                  </div>
+
                   <div className="row mb-4">
                      <div className="col-6">
                         <h6 style={{ 
@@ -1040,6 +1095,24 @@ export const renderFormularioLiquidacion = (datosEmpleado) => {
                                      <td style={{ textAlign: 'center', color: diasCesantia > 0 ? '#28a745' : '#d32f2f' }}>{diasCesantia}</td>
                                      <td style={{ textAlign: 'right' }}>
                                         {diasCesantia > 0 ? montoCesantia.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',') : '-'}
+                                     </td>
+                                  </tr>
+                                  <tr>
+                                     <td style={{ fontWeight: 'bold' }}>Sensatia anterior acumulada</td>
+                                     <td style={{ textAlign: 'right' }}>-</td>
+                                     <td style={{ textAlign: 'center' }}>monto</td>
+                                     <td style={{ textAlign: 'center', color: cesantiaAcumulada > 0 ? '#28a745' : '#d32f2f' }}>-</td>
+                                     <td style={{ textAlign: 'right' }}>
+                                        {cesantiaAcumulada > 0 ? `${simboloMoneda} ${cesantiaAcumulada.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}` : '-'}
+                                     </td>
+                                  </tr>
+                                  <tr>
+                                     <td style={{ fontWeight: 'bold' }}>Aguinaldo anterior acumulado</td>
+                                     <td style={{ textAlign: 'right' }}>-</td>
+                                     <td style={{ textAlign: 'center' }}>monto</td>
+                                     <td style={{ textAlign: 'center', color: aguinaldoAcumulado > 0 ? '#28a745' : '#d32f2f' }}>-</td>
+                                     <td style={{ textAlign: 'right' }}>
+                                        {aguinaldoAcumulado > 0 ? `${simboloMoneda} ${aguinaldoAcumulado.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}` : '-'}
                                      </td>
                                   </tr>
                               </tbody>

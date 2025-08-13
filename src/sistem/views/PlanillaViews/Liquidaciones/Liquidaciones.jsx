@@ -8,7 +8,7 @@ import {
    manejarCambioEmpresa,
    manejarCambioEmpleado,
    renderFormularioLiquidacion
-} from "./LiquidacionUtil.jsx";
+} from "./LiquidacionUtil.jsx";   
 
 /**
  * Componente principal para gestionar liquidaciones de empleados
