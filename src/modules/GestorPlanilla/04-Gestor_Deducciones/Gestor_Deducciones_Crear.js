@@ -76,6 +76,9 @@ const QUERIES = {
  * ====================================================================================================================================
  */
 const crearNuevoRegistroBd = async (datos, usuario_id, empresa_id, database) => {
+
+   console.log(datos.aplica_compensacion_anual ? 1 : 0);
+
    const result = await realizarConsulta(
       QUERIES.QUERIES_INSERT,
       [
@@ -91,7 +94,7 @@ const crearNuevoRegistroBd = async (datos, usuario_id, empresa_id, database) => 
          datos.monto_rebajo_calculado || 0,
          datos.motivo_rebajo || null,
          datos.fecha_rebajo || new Date().toISOString().split('T')[0],
-         datos.aplica_compensacion_anual || false,
+         datos.aplica_compensacion_anual ? 1 : 0,
          'Pendiente', // Estado inicial por defecto
          usuario_id,
       ],

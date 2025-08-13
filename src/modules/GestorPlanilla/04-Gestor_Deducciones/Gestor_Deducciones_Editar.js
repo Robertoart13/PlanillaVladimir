@@ -73,7 +73,7 @@ const editarRegistroBd = async (datos, empresa_id, database) => {
          datos.monto_rebajo_calculado || 0,
          datos.motivo_rebajo || null,
          datos.fecha_rebajo || new Date().toISOString().split('T')[0],
-         datos.aplica_compensacion_anual || false,
+         datos.aplica_compensacion_anual ? 1 : 0,
          datos.estado_rebajo || 'Pendiente',
          datos.id_rebajo_compensacion,
       ],

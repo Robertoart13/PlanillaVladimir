@@ -64,7 +64,7 @@ const editarRegistroBd = async (datos, empresa_id, database) => {
          datos.monto_compensacion_metrica_gestor,
          datos.motivo_compensacion_gestor,
          datos.fecha_compensacion_metrica_gestor || new Date().toISOString().split('T')[0],
-         datos.aplica_en_compensacion_anual_gestor,
+         datos.aplica_en_compensacion_anual_gestor ? 1 : 0,
          datos.estado_compensacion_metrica_gestor,
          datos.id_compensacion_metrica_gestor,
       ],
