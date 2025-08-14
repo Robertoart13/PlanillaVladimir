@@ -51,7 +51,11 @@ const QUERIES = {
       FROM gestor_empleado_tbl e
       JOIN empresas_tbl emp ON emp.id_empresa = e.id_empresa
       WHERE e.estado_empleado_gestor = 1
-        AND (e.fecha_salida_empleado_gestor IS NULL OR e.fecha_salida_empleado_gestor = '')
+         AND (
+        e.fecha_salida_empleado_gestor IS NULL 
+        OR e.fecha_salida_empleado_gestor = '' 
+        OR e.fecha_salida_empleado_gestor = 0
+      )
         AND e.salario_base_empleado_gestor IS NOT NULL
         AND e.salario_base_empleado_gestor != ''
         AND e.id_empresa = ?
