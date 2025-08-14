@@ -25,39 +25,45 @@ import { crearRespuestaErrorCrear } from "../../../hooks/crearRespuestaErrorCrea
 const QUERIES = {
    // Consulta SQL optimizada para obtener todos los empleados con sus datos relacionados en una sola consulta
    TRAER_TODOS_LOS_EMPLEADOS_DE_LA_EMPRESA: `
-      SELECT 
-         e.id_empleado_gestor,
-         e.numero_socio_empleado_gestor,
-         e.nombre_completo_empleado_gestor,
-         e.correo_empleado_gestor,
-         e.cedula_empleado_gestor,
-         e.salario_base_empleado_gestor,
-         e.tipo_contrato_empleado_gestor,
-         e.supervisor_empleado_gestor,
-         e.fecha_ingreso_empleado_gestor,
-         e.fecha_salida_empleado_gestor,
-         e.numero_asegurado_empleado_gestor,
-         e.numero_ins_empleado_gestor,
-         e.numero_hacienda_empleado_gestor,
-         e.cuenta_bancaria_1_empleado_gestor,
-         e.ministerio_hacienda_empleado_gestor,
-         e.rt_ins_empleado_gestor,
-         e.ccss_empleado_gestor,
-         e.moneda_pago_empleado_gestor,
-         e.estado_empleado_gestor,
-         e.montoAsegurado_gestor_empelado,
-         e.tipo_planilla_empleado_gestor,
-         emp.nombre_comercial_empresa
-      FROM gestor_empleado_tbl e
-      JOIN empresas_tbl emp ON emp.id_empresa = e.id_empresa
-      WHERE e.estado_empleado_gestor = 1
-        AND (e.fecha_salida_empleado_gestor IS NULL OR e.fecha_salida_empleado_gestor = '')
-        AND e.salario_base_empleado_gestor IS NOT NULL
-        AND e.salario_base_empleado_gestor != ''
-        AND e.id_empresa = ?
-        AND e.moneda_pago_empleado_gestor = ?
-        AND e.tipo_planilla_empleado_gestor = ?
-      ORDER BY e.nombre_completo_empleado_gestor;
+     SELECT 
+    e.id_empleado_gestor,
+    e.numero_socio_empleado_gestor,
+    e.nombre_completo_empleado_gestor,
+    e.correo_empleado_gestor,
+    e.cedula_empleado_gestor,
+    e.salario_base_empleado_gestor,
+    e.tipo_contrato_empleado_gestor,
+    e.supervisor_empleado_gestor,
+    e.fecha_ingreso_empleado_gestor,
+    e.fecha_salida_empleado_gestor,
+    e.numero_asegurado_empleado_gestor,
+    e.numero_ins_empleado_gestor,
+    e.numero_hacienda_empleado_gestor,
+    e.cuenta_bancaria_1_empleado_gestor,
+    e.ministerio_hacienda_empleado_gestor,
+    e.rt_ins_empleado_gestor,
+    e.ccss_empleado_gestor,
+    e.moneda_pago_empleado_gestor,
+    e.estado_empleado_gestor,
+    e.montoAsegurado_gestor_empelado,
+    e.tipo_planilla_empleado_gestor,
+    emp.nombre_comercial_empresa
+FROM gestor_empleado_tbl e
+JOIN empresas_tbl emp 
+    ON emp.id_empresa = e.id_empresa
+WHERE e.estado_empleado_gestor = 1
+  AND (
+        e.fecha_salida_empleado_gestor IS NULL 
+        OR e.fecha_salida_empleado_gestor = '' 
+        OR e.fecha_salida_empleado_gestor = 0
+      )
+  AND e.salario_base_empleado_gestor IS NOT NULL
+  AND e.salario_base_empleado_gestor != ''
+  AND e.id_empresa = ?
+  AND e.moneda_pago_empleado_gestor = ?
+  AND e.tipo_planilla_empleado_gestor = ?
+ORDER BY e.nombre_completo_empleado_gestor;
+
    `,
    
    // Consulta optimizada para obtener todos los aumentos de todos los empleados en una sola consulta
@@ -162,6 +168,8 @@ const obtenerTodosDatos = async (datos, database) => {
          database,
          15000 // 15 segundos para la consulta principal
       );
+
+
       
       if (empleadosResultado?.status === 500) {
          return empleadosResultado;
@@ -263,6 +271,9 @@ const obtenerTodosDatos = async (datos, database) => {
          horas_extras: horasExtrasMap.get(empleado.id_empleado_gestor) || [],
          compensacion_metrica: compensacionMetricaMap.get(empleado.id_empleado_gestor) || []
       }));
+
+
+      console.log("empleadosConDatosAdicionales", empleadosConDatosAdicionales);
 
       return {
          status: 200,
