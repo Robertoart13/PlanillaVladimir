@@ -45,7 +45,7 @@ const QUERIES = {
     e.ccss_empleado_gestor,
     e.moneda_pago_empleado_gestor,
     e.estado_empleado_gestor,
-    e.montoAsegurado_gestor_empleado,   -- corregido aquí
+    e.montoAsegurado_gestor_empelado,
     e.tipo_planilla_empleado_gestor,
     emp.nombre_comercial_empresa
 FROM gestor_empleado_tbl e
@@ -53,17 +53,16 @@ JOIN empresas_tbl emp
     ON emp.id_empresa = e.id_empresa
 WHERE e.estado_empleado_gestor = 1
   AND (
-        e.fecha_salida_empleado_gestor IS NULL
-        OR e.fecha_salida_empleado_gestor = ''
+        e.fecha_salida_empleado_gestor IS NULL 
+        OR e.fecha_salida_empleado_gestor = '' 
         OR e.fecha_salida_empleado_gestor = 0
       )
   AND e.salario_base_empleado_gestor IS NOT NULL
   AND e.salario_base_empleado_gestor != ''
-  AND e.id_empresa = ?
-  AND e.moneda_pago_empleado_gestor = ?
-  AND e.tipo_planilla_empleado_gestor = ?
-ORDER BY e.nombre_completo_empleado_gestor;
-
+        AND e.id_empresa = ?
+        AND e.moneda_pago_empleado_gestor = ?
+        AND e.tipo_planilla_empleado_gestor = ?
+      ORDER BY e.nombre_completo_empleado_gestor;
    `,
    
    // Consulta optimizada para obtener todos los aumentos de todos los empleados en una sola consulta
