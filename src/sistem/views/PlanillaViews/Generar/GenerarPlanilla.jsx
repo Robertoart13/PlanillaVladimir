@@ -35,7 +35,7 @@ const SUBTABLE_COLUMNS = [
 ];
 
 /** Opciones de tamaño de página para la paginación */
-const PAGE_SIZES = [1000000, 10, 30, 60, 80, 100];
+const PAGE_SIZES = [800, 10, 30, 60, 80, 100];
 
 /**
  * =========================
