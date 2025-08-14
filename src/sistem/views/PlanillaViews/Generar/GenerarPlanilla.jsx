@@ -32,7 +32,7 @@ const PAYROLL_COLUMNS = [
    { key: "neta", label: "Remuneración Neta", type: "number" },
 ];
 
-const PAGE_SIZES = [5, 10, 30, 60, 80, 100];
+const PAGE_SIZES = [1000000, 10, 30, 60, 80, 100];
 
 /**
  * ================
