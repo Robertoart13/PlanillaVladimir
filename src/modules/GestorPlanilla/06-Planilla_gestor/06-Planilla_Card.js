@@ -51,10 +51,14 @@ const QUERIES = {
       FROM gestor_empleado_tbl e
       JOIN empresas_tbl emp ON emp.id_empresa = e.id_empresa
       WHERE e.estado_empleado_gestor = 1
-        AND (e.fecha_salida_empleado_gestor IS NULL OR e.fecha_salida_empleado_gestor = '')
-        AND e.salario_base_empleado_gestor IS NOT NULL
-        AND e.salario_base_empleado_gestor != ''
-        AND e.id_empresa = ?
+         AND (
+               e.fecha_salida_empleado_gestor IS NULL 
+               OR e.fecha_salida_empleado_gestor = '' 
+               OR e.fecha_salida_empleado_gestor = 0
+               )
+         AND e.salario_base_empleado_gestor IS NOT NULL
+         AND e.salario_base_empleado_gestor != ''
+         AND e.id_empresa = ?
         AND e.moneda_pago_empleado_gestor = ?
         AND e.tipo_planilla_empleado_gestor = ?
       ORDER BY e.nombre_completo_empleado_gestor;
@@ -170,9 +174,7 @@ const obtenerTodosDatos = async (datos, database) => {
          5000 // 5 segundos para obtener la planilla
       );
 
-      if (planillaResultado?.status === 500) {
-         return planillaResultado;
-      }
+    
 
       const planilla = planillaResultado.datos?.[0];
       if (!planilla) {
@@ -182,6 +184,8 @@ const obtenerTodosDatos = async (datos, database) => {
             datos: []
          };
       }
+
+      console.log("asasasa")
 
 
 
